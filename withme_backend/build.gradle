@@ -25,8 +25,8 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'// JPA 사용
+    implementation 'org.springframework.boot:spring-boot-starter-web'//웹 어플리 케이션 기본
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -61,6 +61,21 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
     // xml json 변환
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
+    // 보안
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    //유효성 검증
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    //JWT 인증
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    // JWT 구현
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    // JWT JSON 파싱
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // MariaDB  드라이버
+    implementation 'org.mariadb.jdbc:mariadb-java-client'
+
+
 
 
 }
