@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import '../css/DoctorList.css';
+import DoctorView from './DoctorView';
+import { useNavigate, Link } from 'react-router-dom';
+
+
+
 
 /**
  * 전문가 리스트 페이지
@@ -24,7 +29,7 @@ const mockData = [
     { id: 12, name: '송은이', subject: '정형외과', hospital: '한강병원', status: '보류' },
 ];
 
-export default function DoctorList() {
+export default function DoctorList( ) {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState({
         name: '',
@@ -32,18 +37,19 @@ export default function DoctorList() {
         hospital: '',
         status: '',
     });
-    const itemsPerPage = 10;
+    const itemsPerPage = 10;    // 페이지단위 보여줄 리스트 수
 
+    // 검색기능
     const filteredData = mockData.filter((doctor) => {
         return (
-            doctor.name.includes(searchQuery.name) &&
-            doctor.subject.includes(searchQuery.subject) &&
-            doctor.hospital.includes(searchQuery.hospital) &&
-            (searchQuery.status === '' || doctor.status === searchQuery.status)
+            doctor.name.includes(searchQuery.name) &&   // 이름검색
+            doctor.subject.includes(searchQuery.subject) && // 담당과목검색
+            doctor.hospital.includes(searchQuery.hospital) && // 병원정보검색
+            (searchQuery.status === '' || doctor.status === searchQuery.status) // 상태검색
         );
     });
 
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage); // 전체 페이지 수
 
     const currentData = filteredData.slice(
         (currentPage - 1) * itemsPerPage,
@@ -60,6 +66,9 @@ export default function DoctorList() {
         const { name, value } = e.target;
         setSearchQuery((prev) => ({ ...prev, [name]: value }));
     };
+
+
+
 
     return (
         <div className="doctor-list-container">

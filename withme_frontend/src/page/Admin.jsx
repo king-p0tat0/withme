@@ -1,6 +1,8 @@
 import DoctorUpdate from './DoctorUpdate';
 import DoctorList from './DoctorList';
-import React, { useState } from 'react';
+import DoctorView from './DoctorView';
+import React, { useState  } from 'react';
+
 
 import '../css/Admin.css';
 
