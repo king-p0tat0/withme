@@ -1,11 +1,17 @@
-import React from 'react';
+import { Routes, Route } from "react-router-dom";
+import MainNotice from "./components/notice/MainNotice.jsx";
+import NoticeList from "./components/notice/NoticeList.jsx";
+import CreateNotice from "./components/notice/CreateNotice.jsx";
+import EditNotice from "./components/notice/EditNotice.jsx";
 
 const App = () => {
   return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
-      <h1>Welcome to React with Vite!</h1>
-      <p>This is the default screen. Edit <code>src/App.jsx</code> to get started.</p>
-    </div>
+    <Routes>
+      <Route path="/" element={<MainNotice />} />
+      <Route path="/notices" element={<NoticeList />} />
+      <Route path="/create" element={<CreateNotice />} />
+      <Route path="/edit/:id" element={<EditNotice />} />
+    </Routes>
   );
 };
 

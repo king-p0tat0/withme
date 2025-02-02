@@ -88,7 +88,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/api/auth/login", "/api/auth/logout").permitAll() // 로그인 API 허용 [수정]
                 .requestMatchers( "/api/auth/userInfo", "/api/auth/login/error").permitAll() // 로그인 API 허용
                 .requestMatchers("/api/students/**").permitAll()
-                .requestMatchers("/api/students/add").hasRole("ADMIN") // 학생 등록 API에 ROLE_ADMIN 요구
+                .requestMatchers("/api/students/add","/api/notices/**").hasRole("ADMIN") // 학생 등록 API에 ROLE_ADMIN 요구
                 .requestMatchers("/images/**", "/static-images/**", "/css/**", "/favicon.ico", "/error", "/img/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
