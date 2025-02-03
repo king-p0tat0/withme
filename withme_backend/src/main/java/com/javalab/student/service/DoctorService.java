@@ -46,7 +46,7 @@ public class DoctorService {
      */
     public Doctor getDoctorApplication(String userId) {
 
-        return doctorRepository.findByUserId(userId);
+        return doctorRepository.findByUser_UserId(userId);
     }
 
     /**

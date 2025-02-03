@@ -1,6 +1,4 @@
 package com.javalab.student.service;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import com.javalab.student.constant.Role;
 import com.javalab.student.constant.Status;
@@ -17,8 +15,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.annotation.Commit;
 
-@ExtendWith(MockitoExtension.class) // Mockito 확장 (단위 테스트)
-@Commit // DB에 실제 반영됨
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@Commit
 class DoctorServiceTest {
 
     @InjectMocks
@@ -38,9 +40,13 @@ class DoctorServiceTest {
     void setUp() {
         // Mock User 객체 생성
         mockUser = User.builder()
-                .id(1L)
                 .userId("testUser")
-                .role(Role.USER)
+                .userName("Test User")
+                .password("1234")
+                .email("test@test.com")
+                .phone("010-1234-5678")
+                .address("Seoul")
+                .points(0)
                 .build();
 
         // Mock DoctorFormDto 객체 생성
@@ -52,7 +58,7 @@ class DoctorServiceTest {
 
         // Mock Doctor 객체 생성
         mockDoctor = Doctor.builder()
-                .id(1L)
+                .doctorId(1L)
                 .user(mockUser)
                 .subject(doctorFormDto.getSubject())
                 .hospital(doctorFormDto.getHospital())
@@ -62,6 +68,7 @@ class DoctorServiceTest {
     }
 
     @Test
+    @Commit
     void saveDoctorApplication_ShouldSaveDoctor() {
         // Given
         when(userRepository.findByUserId("testUser")).thenReturn(mockUser);
@@ -77,9 +84,10 @@ class DoctorServiceTest {
     }
 
     @Test
+    @Commit
     void getDoctorApplication_ShouldReturnDoctor() {
         // Given
-        when(doctorRepository.findByUserId("testUser")).thenReturn(mockDoctor);
+        when(doctorRepository.findByUser_UserId("testUser")).thenReturn(mockDoctor);
 
         // When
         Doctor foundDoctor = doctorService.getDoctorApplication("testUser");
@@ -90,9 +98,10 @@ class DoctorServiceTest {
     }
 
     @Test
+    @Commit
     void updateDoctorApplication_ShouldUpdateDoctorDetails() {
         // Given
-        when(doctorRepository.findByUserId("testUser")).thenReturn(mockDoctor);
+        when(doctorRepository.findByUser_UserId("testUser")).thenReturn(mockDoctor);
         when(doctorRepository.save(any(Doctor.class))).thenReturn(mockDoctor);
 
         // When
@@ -105,9 +114,10 @@ class DoctorServiceTest {
     }
 
     @Test
+    @Commit
     void deleteDoctorApplication_ShouldDeleteDoctor() {
         // Given
-        when(doctorRepository.findByUserId("testUser")).thenReturn(mockDoctor);
+        when(doctorRepository.findByUser_UserId("testUser")).thenReturn(mockDoctor);
         doNothing().when(doctorRepository).delete(mockDoctor);
 
         // When
@@ -118,9 +128,10 @@ class DoctorServiceTest {
     }
 
     @Test
+    @Commit
     void approveDoctorApplication_ShouldUpdateDoctorStatusAndUserRole() {
         // Given
-        when(doctorRepository.findByUserId("testUser")).thenReturn(mockDoctor);
+        when(doctorRepository.findByUser_UserId("testUser")).thenReturn(mockDoctor);
         when(userRepository.save(any(User.class))).thenReturn(mockUser);
         when(doctorRepository.save(any(Doctor.class))).thenReturn(mockDoctor);
 

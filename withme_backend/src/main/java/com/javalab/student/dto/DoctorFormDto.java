@@ -3,9 +3,14 @@ package com.javalab.student.dto;
 import com.javalab.student.entity.User;
 import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.validation.constraints.*;
-import lombok.Data;
+import lombok.*;
 
-@Data
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class DoctorFormDto {
 
     @NotBlank(message = "담당과목을 입력해주세요.")

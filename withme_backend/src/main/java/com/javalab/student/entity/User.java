@@ -1,21 +1,19 @@
 package com.javalab.student.entity;
 
 import com.javalab.student.constant.Role;
-import com.javalab.student.dto.MemberFormDto;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 
 @Entity  // JPA가 관리하는 엔티티임을 명시
+@Builder
 @Table(name = "user")  // 실제 DB 테이블 이름 지정
 @Getter
 @Setter  // Lombok: 모든 필드의 getter/setter 자동 생성
 @NoArgsConstructor  // Lombok: 기본 생성자 자동 생성
+@AllArgsConstructor
 public class User {
     @Id  // 기본키(Primary Key) 지정
     @Column(name = "user_id", length = 20, nullable = false)
