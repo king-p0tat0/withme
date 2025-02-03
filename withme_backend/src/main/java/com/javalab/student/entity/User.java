@@ -1,11 +1,13 @@
 package com.javalab.student.entity;
 
 import com.javalab.student.constant.Role;
+import com.javalab.student.dto.MemberFormDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 
@@ -44,6 +46,7 @@ public class User {
     @Column(name = "created_at")
     @CreationTimestamp  // 엔티티가 생성될 때 자동으로 시간 설정
     private LocalDateTime createdAt;
+
 
 
 }

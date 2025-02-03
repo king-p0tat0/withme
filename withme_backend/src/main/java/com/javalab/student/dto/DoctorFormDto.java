@@ -1,6 +1,7 @@
 package com.javalab.student.dto;
 
 import com.javalab.student.entity.User;
+import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -20,5 +21,6 @@ public class DoctorFormDto {
     private String hospital;
 
     private User user;
+
 
 }

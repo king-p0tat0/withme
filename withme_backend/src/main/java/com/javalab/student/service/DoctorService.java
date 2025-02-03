@@ -26,9 +26,7 @@ public class DoctorService {
      * - 로그인 사용자 정보를 통해 user 정보 저장
      */
     public Doctor saveDoctorApplication(DoctorFormDto doctorFormDto, String userId) {
-        // `findByUserId(userId)` 수정: Optional<User>을 바로 가져오도록 변경
-        User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = userRepository.findByUserId(userId);
 
         // Doctor 객체 생성 및 저장
         Doctor doctor = Doctor.builder()
@@ -48,8 +46,7 @@ public class DoctorService {
      */
     public Doctor getDoctorApplication(String userId) {
 
-        return doctorRepository.findByUser_UserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Doctor application not found"));
+        return doctorRepository.findByUserId(userId);
     }
 
     /**
@@ -61,7 +58,7 @@ public class DoctorService {
 
         doctor.setSubject(doctorFormDto.getSubject());
         doctor.setHospital(doctorFormDto.getHospital());
-        doctor.setDoctorNumber(doctorFormDto.getDoctorNumber()); // doctorNumber 추가
+        doctor.setDoctorNumber(doctorFormDto.getDoctorNumber());
 
         return doctorRepository.save(doctor);
     }

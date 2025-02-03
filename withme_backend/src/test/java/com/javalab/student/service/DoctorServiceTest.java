@@ -2,8 +2,6 @@ package com.javalab.student.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Optional;
-
 import com.javalab.student.constant.Role;
 import com.javalab.student.constant.Status;
 import com.javalab.student.dto.DoctorFormDto;
@@ -23,82 +21,116 @@ import org.springframework.test.annotation.Commit;
 @Commit // DB에 실제 반영됨
 class DoctorServiceTest {
 
-    @Mock
-    private DoctorRepository doctorRepository; // 가짜 doctorRepository
-
-    @Mock
-    private UserRepository userRepository; // 가짜 userRepository
-
     @InjectMocks
-    private DoctorService doctorService; // 테스트 대상
+    private DoctorService doctorService;
 
-    private User testUser;
-    private Doctor testDoctor;
+    @Mock
+    private DoctorRepository doctorRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    private User mockUser;
+    private Doctor mockDoctor;
+    private DoctorFormDto doctorFormDto;
 
     @BeforeEach
     void setUp() {
-        testUser = new User();
-        testUser.setUserId("testUser");
-        testUser.setUserName("John Doe");
+        // Mock User 객체 생성
+        mockUser = User.builder()
+                .id(1L)
+                .userId("testUser")
+                .role(Role.USER)
+                .build();
 
-        testDoctor = Doctor.builder()
-                .user(testUser)
+        // Mock DoctorFormDto 객체 생성
+        doctorFormDto = DoctorFormDto.builder()
                 .subject("Cardiology")
-                .hospital("Good Hospital")
-                .doctorNumber("D12345")
+                .hospital("Test Hospital")
+                .doctorNumber("12345")
+                .build();
+
+        // Mock Doctor 객체 생성
+        mockDoctor = Doctor.builder()
+                .id(1L)
+                .user(mockUser)
+                .subject(doctorFormDto.getSubject())
+                .hospital(doctorFormDto.getHospital())
+                .doctorNumber(doctorFormDto.getDoctorNumber())
                 .status(Status.PENDING)
                 .build();
     }
 
     @Test
-    @Commit // DB에 저장된 결과 확인 가능
-    void testSaveDoctorApplication() {
+    void saveDoctorApplication_ShouldSaveDoctor() {
         // Given
-        DoctorFormDto formDto = new DoctorFormDto();
-        formDto.setSubject("Cardiology");
-        formDto.setHospital("Good Hospital");
-        formDto.setDoctorNumber("D12345");
-
-        when(userRepository.findByUserId("testUser")).thenReturn(Optional.of(testUser));
-        when(doctorRepository.save(any(Doctor.class))).thenReturn(testDoctor);
+        when(userRepository.findByUserId("testUser")).thenReturn(mockUser);
+        when(doctorRepository.save(any(Doctor.class))).thenReturn(mockDoctor);
 
         // When
-        Doctor savedDoctor = doctorService.saveDoctorApplication(formDto, "testUser");
+        Doctor savedDoctor = doctorService.saveDoctorApplication(doctorFormDto, "testUser");
 
         // Then
         assertNotNull(savedDoctor);
         assertEquals("Cardiology", savedDoctor.getSubject());
-        assertEquals("Good Hospital", savedDoctor.getHospital());
         verify(doctorRepository, times(1)).save(any(Doctor.class));
     }
 
     @Test
-    @Commit // DB에 저장된 결과 확인 가능
-    void testGetDoctorApplication() {
+    void getDoctorApplication_ShouldReturnDoctor() {
         // Given
-        when(doctorRepository.findByUser_UserId("testUser")).thenReturn(Optional.of(testDoctor));
+        when(doctorRepository.findByUserId("testUser")).thenReturn(mockDoctor);
 
         // When
         Doctor foundDoctor = doctorService.getDoctorApplication("testUser");
 
         // Then
         assertNotNull(foundDoctor);
-        assertEquals("D12345", foundDoctor.getDoctorNumber());
+        assertEquals("Cardiology", foundDoctor.getSubject());
     }
 
     @Test
-    @Commit // 승인 후 DB에서 상태값 변경 확인 가능
-    void testApproveDoctorApplication() {
+    void updateDoctorApplication_ShouldUpdateDoctorDetails() {
         // Given
-        when(doctorRepository.findByUser_UserId("testUser")).thenReturn(Optional.of(testDoctor));
+        when(doctorRepository.findByUserId("testUser")).thenReturn(mockDoctor);
+        when(doctorRepository.save(any(Doctor.class))).thenReturn(mockDoctor);
+
+        // When
+        Doctor updatedDoctor = doctorService.updateDoctorApplication("testUser", doctorFormDto);
+
+        // Then
+        assertEquals("Cardiology", updatedDoctor.getSubject());
+        assertEquals("Test Hospital", updatedDoctor.getHospital());
+        verify(doctorRepository, times(1)).save(any(Doctor.class));
+    }
+
+    @Test
+    void deleteDoctorApplication_ShouldDeleteDoctor() {
+        // Given
+        when(doctorRepository.findByUserId("testUser")).thenReturn(mockDoctor);
+        doNothing().when(doctorRepository).delete(mockDoctor);
+
+        // When
+        doctorService.deleteDoctorApplication("testUser");
+
+        // Then
+        verify(doctorRepository, times(1)).delete(mockDoctor);
+    }
+
+    @Test
+    void approveDoctorApplication_ShouldUpdateDoctorStatusAndUserRole() {
+        // Given
+        when(doctorRepository.findByUserId("testUser")).thenReturn(mockDoctor);
+        when(userRepository.save(any(User.class))).thenReturn(mockUser);
+        when(doctorRepository.save(any(Doctor.class))).thenReturn(mockDoctor);
 
         // When
         doctorService.approveDoctorApplication("testUser");
 
         // Then
-        assertEquals(Status.APPROVED, testDoctor.getStatus());
-        assertEquals(Role.DOCTOR, testUser.getRole());
-        verify(userRepository, times(1)).save(testUser);
-        verify(doctorRepository, times(1)).save(testDoctor);
+        assertEquals(Role.DOCTOR, mockUser.getRole());
+        assertEquals(Status.APPROVED, mockDoctor.getStatus());
+        verify(userRepository, times(1)).save(mockUser);
+        verify(doctorRepository, times(1)).save(mockDoctor);
     }
 }
