@@ -45,9 +45,9 @@ public class DoctorService {
     /**
      * Doctor 신청정보 조회
      * - doctor 테이블에서 신청정보 조회
+     * - 로그인 사용자의 본인 신청정보만 조회
      */
     public Doctor getDoctorApplication(String userId) {
-
         return doctorRepository.findByUser_UserId(userId);
     }
 
@@ -98,5 +98,9 @@ public class DoctorService {
      */
     public List<Doctor> getDoctorList() {
         return doctorRepository.findAllWithUser();
+    }
+
+    public List<Doctor> getPendingDoctorList() {
+        return doctorRepository.findByStatusWithUser(Status.PENDING);
     }
 }

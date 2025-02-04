@@ -3,6 +3,7 @@ package com.javalab.student.controller;
 import com.javalab.student.entity.Doctor;
 import com.javalab.student.service.DoctorService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,15 +12,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/doctor")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
+@Log4j2
 public class AdminDoctorController {
     private final DoctorService doctorService;
 
-    @PutMapping("/approve/{userId}")
-    public ResponseEntity<String> approveDoctor(@PathVariable String userId) {
-        doctorService.approveDoctorApplication(userId);
-        return ResponseEntity.ok("Doctor application approved successfully");
-    }
+
 
     /**
      * 전문가 리스트 전체 조회
@@ -27,5 +24,24 @@ public class AdminDoctorController {
     @GetMapping("/list")
     public ResponseEntity<List<Doctor>> getDoctorList() {
         return ResponseEntity.ok(doctorService.getDoctorList());
+    }
+
+    /**
+     * 승인 대기중 전문가 리스트 조회
+     * - 전문가 상태가 pending(대기중)인 전문가 리스트 조회
+     */
+    @GetMapping("/pending")
+    public ResponseEntity<List<Doctor>> getPendingDoctorList() {
+        return ResponseEntity.ok(doctorService.getPendingDoctorList());
+    }
+
+    /**
+     * 전문가 승인
+     * - post로 받은 userId를 사용해서 전문가 승인 및 user role을 doctor로 변경
+     */
+    @PutMapping("/approve/{userId}")
+    public ResponseEntity<String> approveDoctor(@PathVariable String userId) {
+        doctorService.approveDoctorApplication(userId);
+        return ResponseEntity.ok("Doctor application approved successfully");
     }
 }

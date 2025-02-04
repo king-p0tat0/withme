@@ -1,5 +1,6 @@
 package com.javalab.student.repository;
 
+import com.javalab.student.constant.Status;
 import com.javalab.student.entity.Doctor;
 import com.javalab.student.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,8 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     //Optional<Doctor> findByUser_UserId(String userId);
     @Query("SELECT d FROM Doctor d JOIN FETCH d.user")
     List<Doctor> findAllWithUser();
+
+    @Query("SELECT d FROM Doctor d JOIN FETCH d.user WHERE d.status = :status")
+    List<Doctor> findByStatusWithUser(Status status);
+
 }
