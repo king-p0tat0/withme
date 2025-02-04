@@ -4,6 +4,8 @@ import com.javalab.student.entity.Response;
 import com.javalab.student.service.ResponseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/responses")
+@Validated
 public class ResponseController {
 
     private final ResponseService responseService;
@@ -58,5 +61,11 @@ public class ResponseController {
     public ResponseEntity<Void> deleteResponse(@PathVariable Long responseId) {
         responseService.deleteResponse(responseId);
         return ResponseEntity.noContent().build();
+    }
+
+    // 예외 처리 - 유효하지 않은 응답 생성 요청
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        return ResponseEntity.badRequest().body("잘못된 요청: " + ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
     }
 }
