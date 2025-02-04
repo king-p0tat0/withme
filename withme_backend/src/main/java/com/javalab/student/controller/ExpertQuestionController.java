@@ -2,8 +2,11 @@ package com.javalab.student.controller;
 
 import com.javalab.student.entity.ExpertQuestion;
 import com.javalab.student.service.ExpertQuestionService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +28,7 @@ public class ExpertQuestionController {
         this.expertQuestionService = expertQuestionService;
     }
 
+
     /**
      * 모든 전문가 질문 조회
      */
@@ -33,21 +37,22 @@ public class ExpertQuestionController {
         return ResponseEntity.ok(expertQuestionService.getAllExpertQuestions());
     }
 
+
     /**
      * 전문가 질문 ID로 질문 조회
      */
     @GetMapping("/{expertQuestionId}")
-    public ResponseEntity<ExpertQuestion> getExpertQuestionById(@PathVariable Long expertQuestionId) {
+    public ResponseEntity<ExpertQuestion> getExpertQuestionById(@PathVariable @NotNull Long expertQuestionId) {
         Optional<ExpertQuestion> expertQuestion = expertQuestionService.getExpertQuestionById(expertQuestionId);
         return expertQuestion.map(ResponseEntity::ok)
-                .orElseGet(()-> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
      * 새로운 전문가 질문 생성
      */
     @PostMapping
-    public ResponseEntity<ExpertQuestion> createExpertQuestion(@RequestBody ExpertQuestion expertQuestion) {
+    public ResponseEntity<ExpertQuestion> createExpertQuestion(@Valid @RequestBody ExpertQuestion expertQuestion) {
         return ResponseEntity.ok(expertQuestionService.createExpertQuestion(expertQuestion));
     }
 
@@ -58,5 +63,11 @@ public class ExpertQuestionController {
     public ResponseEntity<Void> deleteExpertQuestion(@PathVariable Long expertQuestionId) {
         expertQuestionService.deleteExpertQuestion(expertQuestionId);
         return ResponseEntity.noContent().build();
+    }
+
+    // 예외 처리 - 유효하지 않은 전문가 질문 요청
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        return ResponseEntity.badRequest().body("잘못된 요청: " + ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
     }
 }
