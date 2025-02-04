@@ -11,7 +11,7 @@ function Home() {
             <Typography variant="h4" gutterBottom sx={{ width: '100%', textAlign: 'center' }}>
                 메인 화면
             </Typography>
-
+{/*  테스트*/}
             {/* 로그인하지 않은 경우 로그인 카드 표시 */}
             {!isLoggedIn && (
                 <Card sx={{ width: 300 }}>
