@@ -10,12 +10,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+//import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -23,16 +27,21 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(DoctorController.class)
+@SpringBootTest
+//@WebMvcTest(DoctorController.class)
+@AutoConfigureMockMvc
 class DoctorControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+//    @MockBean
+    @Autowired
     private DoctorService doctorService;
 
-    @MockBean
+//    @MockBean
+    @Autowired
     private UserDetailsService userDetailsService;
+
 
     private DoctorFormDto doctorFormDto;
     private Doctor doctor;
@@ -87,4 +96,6 @@ class DoctorControllerTest {
                 .andExpect(jsonPath("$.subject").value("내과"))
                 .andExpect(jsonPath("$.hospital").value("테스트병원"));
     }
+
+
 }

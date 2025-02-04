@@ -12,6 +12,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -87,5 +89,14 @@ public class DoctorService {
 
         userRepository.save(user);
         doctorRepository.save(doctor);
+    }
+
+
+
+    /**
+     * Doctor 전체 리스트 조회
+     */
+    public List<Doctor> getDoctorList() {
+        return doctorRepository.findAllWithUser();
     }
 }
