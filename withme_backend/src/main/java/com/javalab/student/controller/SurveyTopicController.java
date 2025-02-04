@@ -4,6 +4,8 @@ import com.javalab.student.entity.SurveyTopic;
 import com.javalab.student.service.SurveyTopicService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/survey-topics")
+@Validated
 public class SurveyTopicController {
 
     private final SurveyTopicService surveyTopicService;
@@ -57,5 +60,11 @@ public class SurveyTopicController {
     public ResponseEntity<Void> deleteTopic(@PathVariable Long topicId) {
         surveyTopicService.deleteTopic(topicId);
         return ResponseEntity.noContent().build();
+    }
+
+    // 예외 처리 - 유효하지 않은 주제 생성 요청
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        return ResponseEntity.badRequest().body("잘못된 요청: " + ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
     }
 }
