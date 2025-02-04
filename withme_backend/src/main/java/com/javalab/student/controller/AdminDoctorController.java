@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/doctor")
@@ -37,11 +38,16 @@ public class AdminDoctorController {
 
     /**
      * 전문가 승인
-     * - post로 받은 userId를 사용해서 전문가 승인 및 user role을 doctor로 변경
+     * - Put으로 받은 userId를 사용해서 전문가 승인 및 user role을 doctor로 변경
      */
     @PutMapping("/approve/{userId}")
-    public ResponseEntity<String> approveDoctor(@PathVariable String userId) {
-        doctorService.approveDoctorApplication(userId);
+    public ResponseEntity<String> approveDoctor(
+            @PathVariable String userId,
+            @RequestBody Map<String, String> requestBody) {
+
+        String status = requestBody.get("status");
+
+        doctorService.approveDoctorApplication(userId, status);
         return ResponseEntity.ok("Doctor application approved successfully");
     }
 }

@@ -41,6 +41,11 @@ export default function Admin() {
                                 >
                                     전문가 리스트
                                 </li>
+                                <li
+                                    className="menu-item"
+                                    onClick={() => setCurrentPage(<DoctorView />)}
+                                >
+                                </li>
                             </ul>
                         )}
                     </div>

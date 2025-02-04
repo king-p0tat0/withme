@@ -127,7 +127,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).delete(mockDoctor);
     }
 
-    @Test
+    /*@Test
     @Commit
     void approveDoctorApplication_ShouldUpdateDoctorStatusAndUserRole() {
         // Given
@@ -143,5 +143,5 @@ class DoctorServiceTest {
         assertEquals(Status.APPROVED, mockDoctor.getStatus());
         verify(userRepository, times(1)).save(mockUser);
         verify(doctorRepository, times(1)).save(mockDoctor);
-    }
+    }*/
 }

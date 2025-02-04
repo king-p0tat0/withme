@@ -75,19 +75,30 @@ public class DoctorService {
     }
 
     /**
-     * Doctor 신청 승인
-     * - doctor 테이블에서 신청 승인
-     * - user 테이블에서 권한 DOCTOR로 변경
-     * - doctor 테이블에서 상태를 승인으로 변경
+     * Doctor 권한 변경 (승인, 거절, 보류 , 대기)
+     * - doctor 테이블에서 신청 상태 변경
+     * - 승인시 user 테이블에서 권한 DOCTOR로 변경
      */
-    public void approveDoctorApplication(String userId) {
+    public void approveDoctorApplication(String userId, String status) {
         Doctor doctor = getDoctorApplication(userId);
         User user = doctor.getUser();
+        Status doctorStatus = Status.valueOf(status.toUpperCase());
 
-        user.setRole(Role.DOCTOR);
-        doctor.setStatus(Status.APPROVED);
+        if(doctorStatus.equals(Status.APPROVED)) {
+            doctor.setStatus(Status.APPROVED);
+            user.setRole(Role.DOCTOR);
+            userRepository.save(user);
+        }
+        else if(doctorStatus.equals(Status.REJECTED)) {
+            doctor.setStatus(Status.REJECTED);
+        }
+        else if(doctorStatus.equals(Status.ON_HOLD)) {
+            doctor.setStatus(Status.ON_HOLD);
+        }
+        else if(doctorStatus.equals(Status.PENDING)) {
+            doctor.setStatus(Status.PENDING);
+        }
 
-        userRepository.save(user);
         doctorRepository.save(doctor);
     }
 
