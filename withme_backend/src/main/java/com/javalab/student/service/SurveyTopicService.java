@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 설문 주제 서비스
@@ -27,6 +28,13 @@ public class SurveyTopicService {
      */
     public List<SurveyTopic> getAllTopics() {
         return surveyTopicRepository.findAll();
+    }
+
+    /**
+     * 설문 주제 ID로 설문 주제 조회
+     */
+    public Optional<SurveyTopic> getTopicById(Long topicId) {
+        return surveyTopicRepository.findById(topicId);
     }
 
     /**

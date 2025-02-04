@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 응답 서비스
@@ -25,14 +26,21 @@ public class ResponseService {
     /**
      * 모든 응답 조회
      */
-    public List<Response> getAllresponses() {
+    public List<Response> getAllResponses() {
         return responseRepository.findAll();
     }
 
     /**
-     * 응답 ID 로 응답 조회
+     * 응답 ID로 응답 조회
      */
-    public Response createResponse(Response response){
+    public Optional<Response> getResponseById(Long responseId) {
+        return responseRepository.findById(responseId);
+    }
+
+    /**
+     * 응답 생성
+     */
+    public Response createResponse(Response response) {
         return responseRepository.save(response);
     }
 
@@ -42,5 +50,4 @@ public class ResponseService {
     public void deleteResponse(Long responseId) {
         responseRepository.deleteById(responseId);
     }
-
 }

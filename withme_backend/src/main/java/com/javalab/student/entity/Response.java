@@ -20,17 +20,17 @@ public class Response {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long responseId; // 응답 ID
+    private Long responseId;  // 응답 ID
 
     @ManyToOne
     @JoinColumn(name = "survey_id")
-    private Survey survey; // 해당 응답이 속한 설문
+    private Survey survey;  // 해당 응답이 속한 설문
 
     @ManyToOne
     @JoinColumn(name = "question_id")
-    private Question question; // 해당 응답이 속한 질문
+    private Question question;  // 해당 응답이 속한 질문
 
     @ManyToOne
     @JoinColumn(name = "choice_id")
-    private Choice choice; // 유저가 선택한 선택지
+    private Choice choice;  // 유저가 선택한 선택지
 }
