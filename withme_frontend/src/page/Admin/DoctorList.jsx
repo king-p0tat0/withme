@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import '../css/DoctorList.css';
+import '../../css/DoctorList.css';
 import DoctorView from './DoctorView';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from "axios";
-import { fetchWithAuth } from '../common/fetchWithAuth';
-import { API_URL } from '../constant';
+import { fetchWithAuth } from '../../common/fetchWithAuth';
+import { API_URL } from '../../constant';
 
 
 

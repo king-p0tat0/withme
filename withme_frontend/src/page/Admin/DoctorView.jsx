@@ -1,11 +1,11 @@
 import { useParams } from "react-router-dom";
 import React, { useState, useEffect } from "react";
-import '../css/DoctorList.css';
+import '../../css/DoctorList.css';
 // import '../css/DoctorView.css';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { fetchWithAuth } from "../common/fetchWithAuth";
-import { API_URL } from '../constant';
+import { fetchWithAuth } from "../../common/fetchWithAuth";
+import { API_URL } from '../../constant';
 
 export default function DoctorView({doctor, onClose, docList }) {
 

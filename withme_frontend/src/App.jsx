@@ -1,5 +1,5 @@
 import React from 'react';
-import Admin from './page/Admin';
+import Admin from './page/Admin/Admin';
 
 const App = () => {
   return (

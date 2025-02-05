@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { fetchWithAuth } from '../common/fetchWithAuth';
+import { fetchWithAuth } from '../../common/fetchWithAuth';
 import DoctorViewAdmin from './DoctorViewAdmin';
-import '../css/DoctorUpdate.css';
+import '../../css/DoctorUpdate.css';
 
 export default function DoctorUpdate() {
     const [pendingDoctors, setPendingDoctors] = useState([]); // 대기중 전문가 리스트 상태

@@ -2,9 +2,7 @@ import DoctorUpdate from './DoctorUpdate';
 import DoctorList from './DoctorList';
 import DoctorView from './DoctorView';
 import React, { useState  } from 'react';
-
-
-import '../css/Admin.css';
+import '../../css/Admin.css';
 
 export default function Admin() {
     // 드롭다운 상태 관리
