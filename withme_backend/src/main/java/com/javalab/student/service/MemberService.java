@@ -35,6 +35,32 @@ public class MemberService {
     }
 
     /**
+     * 사용자 정보를 ID로 조회
+     * @param id - 사용자 ID
+     * @return Member 엔티티
+     * @throws IllegalArgumentException - 해당 ID의 사용자가 없는 경우 예외 발생
+     */
+    @Transactional(readOnly = true)
+    public Member getMemberById(Long id) {
+        return memberRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 사용자를 찾을 수 없습니다."));
+    }
+
+
+    // 사용자 정보 수정 메서드
+    public void updateMember(Long id, MemberFormDto memberFormDto) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        member.setUser_name(memberFormDto.getUser_name());
+        member.setPhone(memberFormDto.getPhone());
+        member.setAddress(memberFormDto.getAddress());
+
+        memberRepository.save(member); // 변경 사항 저장
+    }
+
+
+    /**
      * 이메일 중복 체크
      * @param email - 클라이언트에서 입력받은 이메일
      * @return true(중복) or false(사용 가능)
