@@ -1,6 +1,7 @@
 import DoctorUpdate from './DoctorUpdate';
 import DoctorList from './DoctorList';
 import DoctorView from './DoctorView';
+import UserList from './UserList';
 import React, { useState  } from 'react';
 import '../../css/Admin.css';
 
@@ -56,7 +57,9 @@ export default function Admin() {
                         </p>
                         {showCustomerMenu && (
                             <ul className="menu-items">
-                                <li className="menu-item">고객 리스트</li>
+                                <li className="menu-item"
+                                 onClick={() => setCurrentPage(<UserList />)}
+                                 >고객 리스트</li>
                             </ul>
                         )}
                     </div>

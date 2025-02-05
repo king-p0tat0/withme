@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
 import React, { useState, useEffect } from "react";
-import '../../css/DoctorList.css';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../../common/fetchWithAuth";
@@ -50,6 +49,13 @@ export default function DoctorViewAdmin({doctor, onClose, docList }) {
         }
     };
 
+const statuses = [
+        { value: 'approved', label: '승인' },
+        { value: 'pending', label: '대기' },
+        { value: 'rejected', label: '거절' },
+        { value: 'on_hold', label: '보류' }
+        ];
+
         return (
            <div className="modal">
                       <div className="modal-content">
@@ -63,10 +69,19 @@ export default function DoctorViewAdmin({doctor, onClose, docList }) {
                           <p><strong>가입일:</strong> {doctor.user.createdAt}</p>
                           <p><strong>상태:</strong> {getStatusText(doctor.status)}</p>
 
-                          <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'approved')}>승인</button>
+                           {statuses.map((status) => (
+                               <button
+                                   key={status.value}
+                                   className={`modal-button modal-button-${status.value}`}
+                                   onClick={() => handleApprove(doctor.user.userId, status.value)}
+                               >
+                                   {status.label}
+                               </button>
+                           ))}
+                          {/* <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'approved')}>승인</button>
                           <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'rejected')}>거절</button>
                           <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'on_hold')}>보류</button>
-                          <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'pending')}>대기</button>
+                          <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'pending')}>대기</button> */}
                           <button className="modal-button" onClick={onClose}>닫기</button>
                       </div>
                   </div>

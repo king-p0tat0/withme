@@ -89,20 +89,3 @@
 .modal-button:hover {
     background-color: #dc2626;
 }
-
-
-.modal-button-approved {
-  background-color: green;
-}
-
-.modal-button-rejected {
-  background-color: red;
-}
-
-.modal-button-on_hold {
-  background-color: orange;
-}
-
-.modal-button-pending {
-  background-color: gray;
-}
