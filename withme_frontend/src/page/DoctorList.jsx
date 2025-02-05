@@ -4,6 +4,7 @@ import DoctorView from './DoctorView';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from "axios";
 import { fetchWithAuth } from '../common/fetchWithAuth';
+import { API_URL } from '../constant';
 
 
 
@@ -41,7 +42,7 @@ export default function DoctorList() {
             // JWT 토큰을 localStorage에서 가져와서 Authorization 헤더에 포함
             const token = localStorage.getItem("token");
 
-            const response = await axios.get('http://localhost:8080/api/admin/doctor/list', {
+            const response = await axios.get(`${API_URL}admin/doctor/list`, {
                 headers: {
                     Authorization: `Bearer ${token}`,  // Authorization 헤더에 토큰 추가
                     'Content-Type': 'application/json'

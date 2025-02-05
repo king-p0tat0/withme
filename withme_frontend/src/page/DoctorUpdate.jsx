@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from '../common/fetchWithAuth';
 import DoctorViewAdmin from './DoctorViewAdmin';
+import '../css/DoctorUpdate.css';
 
 export default function DoctorUpdate() {
     const [pendingDoctors, setPendingDoctors] = useState([]); // 대기중 전문가 리스트 상태
@@ -43,16 +44,33 @@ export default function DoctorUpdate() {
         setIsModalOpen(false);
     };
 
+//     상태값 한글 변환
+    const getStatusText = (status) => {
+        switch (status) {
+            case 'APPROVED':
+                return '승인';
+            case 'PENDING':
+                return '대기';
+            case 'REJECTED':
+                return '거절';
+            case 'ON_HOLD':
+                return '보류';
+            default:
+                return status;
+        }
+    };
+
     return (
-        <div>
-            <h1>대기중 전문가 목록</h1>
-            <table>
+        <div className="doctor-update-container">
+            <h1 className="title">대기중 전문가 목록</h1>
+            <table className="doctor-table">
                 <thead>
                     <tr>
                         <th>전문가번호</th>
                         <th>이름</th>
                         <th>담당과목</th>
                         <th>병원정보</th>
+                        <th>상태</th>
                         <th>상세보기</th>
                     </tr>
                 </thead>
@@ -64,13 +82,14 @@ export default function DoctorUpdate() {
                             <td>{doctor.user.userName}</td>
                             <td>{doctor.subject}</td>
                             <td>{doctor.hospital}</td>
-                            <td><button onClick={() => openModal(doctor)}>상세보기</button></td>
+                            <td>{getStatusText(doctor.status)}</td>
+                            <td><button className="detail-button" onClick={() => openModal(doctor)}>상세보기</button></td>
 
                         </tr>
                     ))
                     ):(
                         <tr>
-                            <td colSpan="5">신청자가 없습니다.</td>
+                            <td colSpan="5" className="no-data">신청자가 없습니다.</td>
                         </tr>
                     )}
                 </tbody>

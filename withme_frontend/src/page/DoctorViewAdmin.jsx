@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import '../css/DoctorList.css';
-// import '../css/DoctorView.css';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../common/fetchWithAuth";
+import { API_URL } from '../constant';
 
 
 export default function DoctorViewAdmin({doctor, onClose, docList }) {
@@ -14,7 +14,7 @@ export default function DoctorViewAdmin({doctor, onClose, docList }) {
  */
     const handleApprove = async (userId, status) => {
         try {
-            const response = await fetchWithAuth(`http://localhost:8080/api/admin/doctor/approve/${userId}`, {
+            const response = await fetchWithAuth(`${API_URL}admin/doctor/approve/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -34,6 +34,22 @@ export default function DoctorViewAdmin({doctor, onClose, docList }) {
         }
     };
 
+//     상태값 한글 변환
+    const getStatusText = (status) => {
+        switch (status) {
+            case 'APPROVED':
+                return '승인';
+            case 'PENDING':
+                return '대기';
+            case 'REJECTED':
+                return '거절';
+            case 'ON_HOLD':
+                return '보류';
+            default:
+                return status;
+        }
+    };
+
         return (
            <div className="modal">
                       <div className="modal-content">
@@ -45,12 +61,13 @@ export default function DoctorViewAdmin({doctor, onClose, docList }) {
                           <p><strong>전문분야:</strong> {doctor.subject}</p>
                           <p><strong>병원:</strong> {doctor.hospital}</p>
                           <p><strong>가입일:</strong> {doctor.user.createdAt}</p>
+                          <p><strong>상태:</strong> {getStatusText(doctor.status)}</p>
 
-                          <button onClick={() => handleApprove(doctor.user.userId, 'approved')}>승인</button>
-                          <button onClick={() => handleApprove(doctor.user.userId, 'rejected')}>거절</button>
-                          <button onClick={() => handleApprove(doctor.user.userId, 'on_hold')}>보류</button>
-                          <button onClick={() => handleApprove(doctor.user.userId, 'pending')}>대기</button>
-                          <button onClick={onClose}>닫기</button>
+                          <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'approved')}>승인</button>
+                          <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'rejected')}>거절</button>
+                          <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'on_hold')}>보류</button>
+                          <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'pending')}>대기</button>
+                          <button className="modal-button" onClick={onClose}>닫기</button>
                       </div>
                   </div>
         );

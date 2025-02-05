@@ -5,6 +5,7 @@ import '../css/DoctorList.css';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../common/fetchWithAuth";
+import { API_URL } from '../constant';
 
 export default function DoctorView({doctor, onClose, docList }) {
 
@@ -14,7 +15,7 @@ export default function DoctorView({doctor, onClose, docList }) {
  */
     const handleApprove = async (userId, status) => {
         try {
-            const response = await fetchWithAuth(`http://localhost:8080/api/admin/doctor/approve/${userId}`, {
+            const response = await fetchWithAuth(`{API_URL}admin/doctor/approve/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

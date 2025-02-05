@@ -15,7 +15,10 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     @Query("SELECT d FROM Doctor d JOIN FETCH d.user")
     List<Doctor> findAllWithUser();
 
-    @Query("SELECT d FROM Doctor d JOIN FETCH d.user WHERE d.status = :status")
-    List<Doctor> findByStatusWithUser(Status status);
+   /* @Query("SELECT d FROM Doctor d JOIN FETCH d.user WHERE d.status = :status")
+    List<Doctor> findByStatusWithUser(Status status);*/
+
+    /* 해당 상테만 제외하고 조회*/
+    List<Doctor> findByStatusNot(Status status);
 
 }

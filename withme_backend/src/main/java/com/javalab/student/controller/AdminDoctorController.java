@@ -29,7 +29,7 @@ public class AdminDoctorController {
 
     /**
      * 승인 대기중 전문가 리스트 조회
-     * - 전문가 상태가 pending(대기중)인 전문가 리스트 조회
+     * - 전문가 상태가 대기,보류,거절인 전문가 리스트 조회
      */
     @GetMapping("/pending")
     public ResponseEntity<List<Doctor>> getPendingDoctorList() {

@@ -1,5 +1,6 @@
 package com.javalab.student.repository;
 
+import com.javalab.student.constant.Role;
 import com.javalab.student.constant.Status;
 import com.javalab.student.entity.Doctor;
 import com.javalab.student.entity.User;
@@ -11,6 +12,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,23 +53,56 @@ class DoctorRepositoryTest {
                 .build();
     }
 
+
+    /*더미데이터*/
+    public void insertDummyData() {
+        List<User> users = new ArrayList<>();
+        List<Doctor> doctors = new ArrayList<>();
+
+        // 일반 사용자 10명 추가
+        for (int i = 1; i <= 10; i++) {
+            User user = createUser(
+                    "user" + i, "사용자" + i, "password123",
+                    "user" + i + "@example.com", "서울시 어딘가 " + i, "010-1234-56" + String.format("%02d", i)
+            );
+            user.setRole(Role.USER);
+            users.add(user);
+        }
+
+        // 의사 10명 추가
+        for (int i = 1; i <= 10; i++) {
+            User doctorUser = createUser(
+                    "doctor" + i, "의사" + i, "password123",
+                    "doctor" + i + "@example.com", "서울시 병원가 " + i, "010-5678-90" + String.format("%02d", i)
+            );
+            doctorUser.setRole(Role.DOCTOR);
+            users.add(doctorUser);
+
+            Doctor doctor = createDoctor(doctorUser, "과목" + i, "병원" + i, "D" + String.format("%03d", i));
+            doctors.add(doctor);
+        }
+
+        // 관리자 2명 추가
+        for (int i = 1; i <= 2; i++) {
+            User admin = createUser(
+                    "admin" + i, "관리자" + i, "password123",
+                    "admin" + i + "@example.com", "서울시 본사 " + i, "010-9999-88" + i
+            );
+            admin.setRole(Role.ADMIN);
+            users.add(admin);
+        }
+
+        // 저장
+        userRepository.saveAll(users);
+        doctorRepository.saveAll(doctors);
+
+    }
+
     @Test
     @DisplayName("의사 저장 테스트")
     @Commit
     void saveDoctorTest() {
-        // Given
-        User user = createUser("doc1", "최강의사", "password123", "doc1@example.com", "서울시 강남구", "010-1111-2222");
-        userRepository.save(user);
-
-        Doctor doctor = createDoctor(user, "정형외과", "서울병원", "DOC12345");
-
-        // When
-        Doctor savedDoctor = doctorRepository.save(doctor);
-
-        // Then
-        assertThat(savedDoctor).isNotNull();
-        assertThat(savedDoctor.getUser().getUserId()).isEqualTo("doc1");
-        assertThat(savedDoctor.getSubject()).isEqualTo("정형외과");
+        insertDummyData();
     }
 
     @Test

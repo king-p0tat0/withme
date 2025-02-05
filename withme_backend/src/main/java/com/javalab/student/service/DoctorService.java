@@ -111,7 +111,11 @@ public class DoctorService {
         return doctorRepository.findAllWithUser();
     }
 
+    /**
+     * Doctor 승인 대기중 리스트 조회
+     * - 대기, 보류, 거절 상태 모두 포함해서 조회
+     */
     public List<Doctor> getPendingDoctorList() {
-        return doctorRepository.findByStatusWithUser(Status.PENDING);
+        return doctorRepository.findByStatusNot(Status.APPROVED);
     }
 }
