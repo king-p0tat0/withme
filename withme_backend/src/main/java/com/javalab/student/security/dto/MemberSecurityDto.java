@@ -15,13 +15,15 @@ import java.util.Map;
 @ToString
 public class MemberSecurityDto extends User implements OAuth2User {
 
+    private Long id; // 사용자 ID 추가[수정]
     private String email;
     private boolean social;
     private String provider;
-    private String name;
+    private String user_name;
     private Map<String, Object> attributes; // 소셜 사용자 정보
 
-    public MemberSecurityDto(String username,
+    public MemberSecurityDto(Long id,   // 사용자 ID 추가[수정]
+                             String username,
                              String password,
                              Collection<? extends GrantedAuthority> authorities,
                              String name,
@@ -30,7 +32,8 @@ public class MemberSecurityDto extends User implements OAuth2User {
                              Map<String, Object> attributes) {
         super(username, password, authorities);
         this.email = username;
-        this.name = name;
+        this.id = id;   // 사용자 ID 추가[수정]
+        this.user_name = name;
         this.social = social;
         this.provider = provider;
         this.attributes = attributes;
@@ -51,6 +54,6 @@ public class MemberSecurityDto extends User implements OAuth2User {
      * @return 사용자 이름
      */
     public String getRealName() {
-        return name;
+        return user_name;
     }
 }
