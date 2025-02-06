@@ -13,7 +13,6 @@ import java.util.Optional;
  * 선택지 컨트롤러
  * 설문 질문에 대한 선택지 요청을 처리하는 REST API 컨트롤러
  */
-
 @RestController
 @RequestMapping("/api/choices")
 public class ChoiceController {
@@ -26,7 +25,7 @@ public class ChoiceController {
     }
 
     /**
-     * 모든 선택지 조회
+     * ✅ 모든 선택지 조회
      */
     @GetMapping
     public ResponseEntity<List<Choice>> getAllChoices() {
@@ -34,7 +33,7 @@ public class ChoiceController {
     }
 
     /**
-     * 선택지 ID로 선택지 조회
+     * ✅ 선택지 ID로 선택지 조회
      */
     @GetMapping("/{choiceId}")
     public ResponseEntity<Choice> getChoiceById(@PathVariable Long choiceId) {
@@ -44,14 +43,15 @@ public class ChoiceController {
     }
 
     /**
-     * 새로운 선택지 생성
+     * ✅ 새로운 선택지 생성
      */
+    @PostMapping
     public ResponseEntity<Choice> createChoice(@RequestBody Choice choice) {
         return ResponseEntity.ok(choiceService.createChoice(choice));
     }
 
     /**
-     * 선택지 삭제
+     * ✅ 선택지 삭제
      */
     @DeleteMapping("/{choiceId}")
     public ResponseEntity<Void> deleteChoice(@PathVariable Long choiceId) {

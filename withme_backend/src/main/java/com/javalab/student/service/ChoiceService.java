@@ -12,7 +12,6 @@ import java.util.Optional;
  * 선택지 서비스
  * 설문 질문에 대한 선택지에 대한 비즈니스 로직을 처리하는 서비스 클래스
  */
-
 @Service
 public class ChoiceService {
 
@@ -24,30 +23,30 @@ public class ChoiceService {
     }
 
     /**
-     * 모든 선택지 조회
+     * ✅ 모든 선택지 조회
      */
     public List<Choice> getAllChoices() {
         return choiceRepository.findAll();
     }
 
     /**
-     * 선택지 ID 로 선택지 조회
+     * ✅ 선택지 ID로 선택지 조회
      */
     public Optional<Choice> getChoiceById(Long choiceId) {
         return choiceRepository.findById(choiceId);
     }
 
     /**
-     * 새로운 선택지 생성
+     * ✅ 새로운 선택지 생성
      */
     public Choice createChoice(Choice choice) {
         return choiceRepository.save(choice);
     }
 
     /**
-     * 선택지 삭제
+     * ✅ 선택지 삭제
      */
-    public void deleteChoice(Long ChoiceId){
-        choiceRepository.deleteById(ChoiceId);
+    public void deleteChoice(Long choiceId) {
+        choiceRepository.deleteById(choiceId);
     }
 }
