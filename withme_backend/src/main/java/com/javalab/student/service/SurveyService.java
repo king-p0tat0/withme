@@ -10,7 +10,7 @@ import java.util.Optional;
 
 /**
  * 설문 서비스
- * 설문에 대한 비지니스 로직을 처리하는 서비스 클래스
+ * 설문에 대한 비즈니스 로직을 처리하는 서비스 클래스
  */
 @Service
 public class SurveyService {
@@ -20,7 +20,6 @@ public class SurveyService {
     @Autowired
     public SurveyService(SurveyRepository surveyRepository){
         this.surveyRepository = surveyRepository;
-
     }
 
     /**
@@ -31,14 +30,14 @@ public class SurveyService {
     }
 
     /**
-     *  설문 ID로 설문 조회
+     * 특정 설문 ID로 설문 조회
      */
     public Optional<Survey> getSurveyById(Long surveyId) {
         return surveyRepository.findById(surveyId);
     }
 
     /**
-     *  새로운 설문 생성
+     * 새로운 설문 생성
      */
     public Survey createSurvey(Survey survey) {
         return surveyRepository.save(survey);

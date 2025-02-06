@@ -2,11 +2,8 @@ package com.javalab.student.controller;
 
 import com.javalab.student.entity.Survey;
 import com.javalab.student.service.SurveyService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,10 +13,8 @@ import java.util.Optional;
  * 설문 컨트롤러
  * 설문 관련 요청을 처리하는 REST API 컨트롤러
  */
-
 @RestController
 @RequestMapping("/api/surveys")
-@Validated // 클래스에서 모든 메서드 파라미터에 대한 유효성 검사 자동으로 적용
 public class SurveyController {
 
     private final SurveyService surveyService;
@@ -38,20 +33,19 @@ public class SurveyController {
     }
 
     /**
-     * 설문 ID로 설문 조회
+     * 특정 설문 ID로 설문 조회
      */
-    @GetMapping
+    @GetMapping("/{surveyId}")
     public ResponseEntity<Survey> getSurveyById(@PathVariable Long surveyId) {
         Optional<Survey> survey = surveyService.getSurveyById(surveyId);
-        return survey.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return survey.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
      * 새로운 설문 생성
      */
     @PostMapping
-    public ResponseEntity<Survey> createSurvey(@Valid @RequestBody Survey survey) {
+    public ResponseEntity<Survey> createSurvey(@RequestBody Survey survey) {
         return ResponseEntity.ok(surveyService.createSurvey(survey));
     }
 
@@ -62,13 +56,5 @@ public class SurveyController {
     public ResponseEntity<Void> deleteSurvey(@PathVariable Long surveyId) {
         surveyService.deleteSurvey(surveyId);
         return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * 예외 처리 - 유효하지 않은 설문 요청이 왔을 때 처리
-     */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        return ResponseEntity.badRequest().body("잘못된 요청: " + ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
     }
 }
