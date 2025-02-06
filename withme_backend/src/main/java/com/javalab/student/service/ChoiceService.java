@@ -37,6 +37,13 @@ public class ChoiceService {
     }
 
     /**
+     * ✅ 특정 질문 ID에 해당하는 선택지 조회
+     */
+    public List<Choice> getChoicesByQuestionId(Long questionId) {
+        return choiceRepository.findByQuestion_QuestionId(questionId);
+    }
+
+    /**
      * ✅ 새로운 선택지 생성
      */
     public Choice createChoice(Choice choice) {

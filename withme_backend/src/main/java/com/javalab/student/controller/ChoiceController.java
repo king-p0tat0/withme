@@ -43,6 +43,14 @@ public class ChoiceController {
     }
 
     /**
+     * 특정 질문 ID에 해당하는 선택지 조회
+     */
+    @GetMapping("/question/{questionId}")
+    public ResponseEntity<List<Choice>> getChoicesByQuestionId(@PathVariable Long questionId) {
+        return ResponseEntity.ok(choiceService.getChoicesByQuestionId(questionId));
+    }
+
+    /**
      * ✅ 새로운 선택지 생성
      */
     @PostMapping
