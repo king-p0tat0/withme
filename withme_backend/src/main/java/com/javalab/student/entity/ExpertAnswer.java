@@ -17,22 +17,24 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Table(name = "expert_answer")
-
 public class ExpertAnswer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "answer_id")
     private Long answerId; // 답변 ID
 
     @ManyToOne
-    @JoinColumn(name = "expert_question_id")
+    @JoinColumn(name = "expert_question_id", nullable = false)
     private ExpertQuestion expertQuestion; // 전문가 질문 ID
 
-    private String doctorId; // 전문가 ID
+    @Column(name = "user_id", nullable = false, length = 20)
+    private String userId; // 전문가 ID
 
     @Lob
+    @Column(name = "answer_text", nullable = false)
     private String answerText; // 답변 내용
 
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt; // 답변 작성일
-
 }

@@ -2,7 +2,6 @@ package com.javalab.student.service;
 
 import com.javalab.student.entity.ExpertAnswer;
 import com.javalab.student.repository.ExpertAnswerRepository;
-import com.javalab.student.repository.ExpertQuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,17 +31,23 @@ public class ExpertAnswerService {
     }
 
     /**
-     * 전문가 답변 ID 로 답변 조회
+     * 특정 전문가 답변 조회 (ID 기반)
      */
-
     public Optional<ExpertAnswer> getExpertAnswerById(Long answerId) {
         return expertAnswerRepository.findById(answerId);
     }
 
     /**
+     * 특정 유저 ID 기반 전문가 답변 조회
+     */
+    public List<ExpertAnswer> getExpertAnswersByUserId(String userId) {
+        return expertAnswerRepository.findAllByUserId(userId);
+    }
+
+    /**
      * 새로운 전문가 답변 생성
      */
-    public ExpertAnswer createExpertAnswer(ExpertAnswer expertAnswer){
+    public ExpertAnswer createExpertAnswer(ExpertAnswer expertAnswer) {
         return expertAnswerRepository.save(expertAnswer);
     }
 
@@ -52,5 +57,4 @@ public class ExpertAnswerService {
     public void deleteExpertAnswer(Long answerId) {
         expertAnswerRepository.deleteById(answerId);
     }
-
 }
