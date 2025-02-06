@@ -1,10 +1,10 @@
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-import { BrowserRouter } from 'react-router-dom'
-import { Provider } from 'react-redux';
-import { store, persistor } from './redux/store'; // Redux 스토어 및 Persistor 가져오기
-import { PersistGate } from 'redux-persist/integration/react'; // PersistGate 가져오기
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
+import { BrowserRouter } from "react-router-dom";
+import { Provider } from "react-redux";
+import { store, persistor } from "./redux/store"; // Redux 스토어 및 Persistor 가져오기
+import { PersistGate } from "redux-persist/integration/react"; // PersistGate 가져오기
 /**
  * 리액트 앱이 시작되는 지점으로 App 컴포넌트를 렌더링한다.
  * - App 컴포넌트를 BrowserRouter로 감싸 라우팅 기능을 사용할 수 있도록 한다.[수정]
@@ -16,16 +16,16 @@ import { PersistGate } from 'redux-persist/integration/react'; // PersistGate �
  * - loading={null}은 로드 중일 때 표시할 UI를 지정합니다. 필요 시 로딩 스피너를 넣을 수 있습니다.
  */
 
-createRoot(document.getElementById('root')).render(
-    <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-            <BrowserRouter>
-                <App />
-            </BrowserRouter>
-        </PersistGate>
-    </Provider>
-)
+createRoot(document.getElementById("root")).render(
+  <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </PersistGate>
+  </Provider>
+);
 
 persistor.subscribe(() => {
-    console.log("main.jsx Persistor 상태:", store.getState());
+  console.log("main.jsx Persistor 상태:", store.getState());
 });
