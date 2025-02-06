@@ -28,7 +28,6 @@ public class ExpertQuestionController {
         this.expertQuestionService = expertQuestionService;
     }
 
-
     /**
      * 모든 전문가 질문 조회
      */
@@ -36,7 +35,6 @@ public class ExpertQuestionController {
     public ResponseEntity<List<ExpertQuestion>> getAllExpertQuestions() {
         return ResponseEntity.ok(expertQuestionService.getAllExpertQuestions());
     }
-
 
     /**
      * 전문가 질문 ID로 질문 조회

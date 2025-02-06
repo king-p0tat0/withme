@@ -38,6 +38,13 @@ public class ExpertQuestionService {
     }
 
     /**
+     * 특정 유저 ID 기반 전문가 질문 조회
+     */
+    public List<ExpertQuestion> getExpertQuestionsByUserId(String userId) {
+        return expertQuestionRepository.findAllByUser_UserId(userId);
+    }
+
+    /**
      * 새로운 전문가 질문 생성
      */
     public ExpertQuestion createExpertQuestion(ExpertQuestion expertQuestion) {
@@ -50,5 +57,4 @@ public class ExpertQuestionService {
     public void deleteExpertQuestion(Long expertQuestionId) {
         expertQuestionRepository.deleteById(expertQuestionId);
     }
-
 }
