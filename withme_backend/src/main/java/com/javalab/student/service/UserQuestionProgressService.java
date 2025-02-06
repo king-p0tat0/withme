@@ -8,38 +8,39 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * 유저 문진 진행 서비스
- * 유저 문진 진행 상태를 처리하는 서비스 클래스
+ * 📌 문진 진행 상태 서비스
+ * - userId 기반 문진 진행 상태 조회 및 관리
  */
-
 @Service
 public class UserQuestionProgressService {
 
     private final UserQuestionProgressRepository userQuestionProgressRepository;
 
     @Autowired
-    public UserQuestionProgressService(UserQuestionProgressRepository userQuestionProgressRepository){
+    public UserQuestionProgressService(UserQuestionProgressRepository userQuestionProgressRepository) {
         this.userQuestionProgressRepository = userQuestionProgressRepository;
     }
 
     /**
-     * 유저 문진 진행 상태 조회
+     * ✅ 특정 userId 기반 문진 진행 상태 조회
      */
     public List<UserQuestionProgress> getUserQuestionProgress(String userId) {
         return userQuestionProgressRepository.findAllByUserId(userId);
     }
 
     /**
-     * 유저 문진 진행 상태 생성
+     * ✅ 문진 진행 상태 저장
      */
-    public UserQuestionProgress createUserQuestionProgress(UserQuestionProgress userQuestionProgress){
+    public UserQuestionProgress createUserQuestionProgress(UserQuestionProgress userQuestionProgress) {
         return userQuestionProgressRepository.save(userQuestionProgress);
     }
 
     /**
-     * 유저 문진 진행 상태 삭제
+     * ✅ 특정 userId 기반 문진 진행 상태 삭제
      */
     public void deleteUserQuestionProgress(String userId, Long questionnaireId, Long questionId) {
-        userQuestionProgressRepository.deleteByUserIdAndQuestionnaireIdAndQuestionId(userId, questionnaireId, questionId);
+        userQuestionProgressRepository.deleteByUserIdAndQuestionnaire_QuestionnaireIdAndQuestion_QuestionId(
+                userId, questionnaireId, questionId
+        );
     }
 }

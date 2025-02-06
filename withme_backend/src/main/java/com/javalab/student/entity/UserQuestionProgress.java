@@ -2,14 +2,12 @@ package com.javalab.student.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.userdetails.User;
 
 /**
- * 유저 문진 진행 엔티티
- * 유저가 진행중인 문진의 각 질문에 대한 진행 상태를 저장하는 테이블과 매핑
- * 유저의 진행 상태, 진행 비율, 문진 ID 및 질문 ID 를 포함
+ * 📌 문진 진행 상태 (UserQuestionProgress)
+ * - 특정 문진(questionnaire)에서 질문(question) 진행 상태 저장
+ * - userId 기반 문진 진행
  */
-
 @Entity
 @Getter
 @Setter
@@ -17,29 +15,31 @@ import org.springframework.security.core.userdetails.User;
 @AllArgsConstructor
 @Builder
 @Table(name = "user_question_progress")
-
 public class UserQuestionProgress {
 
     @Id
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user; //유저 ID
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "user_id", nullable = false, length = 20)
+    private String userId;
 
     @ManyToOne
-    @JoinColumn(name = "questionnaire_id")
-    private Questionnaire questionnaire; // 문진 ID
+    @JoinColumn(name = "questionnaire_id", nullable = false)
+    private Questionnaire questionnaire;
 
     @ManyToOne
-    @JoinColumn(name = "question_id")
-    private Question question; // 질문 ID
+    @JoinColumn(name = "question_id", nullable = false)
+    private Question question;
 
     @Enumerated(EnumType.STRING)
-    private ProgressStatus status; // 진행상태 (NOT_STARTED, IN_PROGRESS, COMPLETED)
+    @Column(name = "status")
+    private ProgressStatus status;
 
-    private Integer progress; // 진행상태 비율(1~100)
+    @Column(name = "progress")
+    private Integer progress;
 
     public enum ProgressStatus {
         NOT_STARTED, IN_PROGRESS, COMPLETED
     }
-
 }
