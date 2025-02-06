@@ -1,21 +1,23 @@
 package com.javalab.student.controller;
 
-import com.javalab.student.dto.LoginFormDto;
-import com.javalab.student.dto.MemberFormDto;
+import com.javalab.student.dto.*;
 import com.javalab.student.entity.Member;
 import com.javalab.student.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
+@Log4j2
 public class MemberController {
 
     private final MemberService memberService;
@@ -77,5 +79,21 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response); // HTTP 401 Unauthorized
     }
 
+    // 페이징 처리된 학생 목록 조회
+    @GetMapping("/list")
+    //@PreAuthorize("hasRole('USER')")
+    public ResponseEntity<PageResponseDTO<MemberDto>> getAllStudents(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+
+        PageRequestDTO pageRequestDTO = PageRequestDTO.builder()
+                .page(page)
+                .size(size)
+                .build();
+        log.info("페이지 : " + pageRequestDTO.getPage() + " " + pageRequestDTO.getSize());
+
+        PageResponseDTO<MemberDto> responseDTO = memberService.getAllMembers(pageRequestDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
 
 }

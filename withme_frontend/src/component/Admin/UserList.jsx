@@ -33,7 +33,7 @@ export default function UserList() {
             // JWT 토큰을 localStorage에서 가져와서 Authorization 헤더에 포함
             const token = localStorage.getItem("token");
 
-            const response = await axios.get(`${API_URL}users/list`, {
+            const response = await axios.get(`${API_URL}members/list`, {
                 headers: {
                     Authorization: `Bearer ${token}`,  // Authorization 헤더에 토큰 추가
                     'Content-Type': 'application/json'

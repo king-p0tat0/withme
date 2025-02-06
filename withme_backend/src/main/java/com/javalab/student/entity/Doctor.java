@@ -18,11 +18,10 @@ public class Doctor {
     @Column(name = "doctor_id", nullable = false)
     private Long doctorId;
 
-//    @OneToOne  // User 엔티티와 1:1 관계
+
     @ManyToOne
     @JoinColumn(name = "user_id",referencedColumnName = "user_id", nullable = false)  // 외래키 설정
-//    @JoinColumn(name = "user_id", nullable = false)  // 외래키 설정
-    private User user;
+    private Member member;
 
     @Column(name = "subject", length = 50, nullable = false)
     private String subject;

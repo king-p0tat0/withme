@@ -1,12 +1,9 @@
 package com.javalab.student.service;
 
 import com.javalab.student.constant.Role;
-import com.javalab.student.constant.Status;
 import com.javalab.student.dto.DoctorFormDto;
 import com.javalab.student.entity.Doctor;
-import com.javalab.student.entity.User;
 import com.javalab.student.repository.DoctorRepository;
-import com.javalab.student.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

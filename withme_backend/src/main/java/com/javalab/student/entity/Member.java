@@ -26,7 +26,7 @@ import java.util.Collections;
 @AllArgsConstructor
 public class Member extends BaseEntity{
     @Id
-    @Column(name = "member_id")
+    @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
@@ -41,6 +41,8 @@ public class Member extends BaseEntity{
     private String phone;
 
     private String address;
+
+    private String age;
 
     @Builder
     public Member(String email, String password, String auth) {

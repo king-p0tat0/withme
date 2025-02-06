@@ -22,7 +22,7 @@ public class Pet {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Member member;
 
     @Column(name = "name", length = 50, nullable = false)
     private String name;

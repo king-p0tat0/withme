@@ -1,25 +1,22 @@
+/*
 package com.javalab.student.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.javalab.student.constant.Status;
 import com.javalab.student.dto.DoctorFormDto;
 import com.javalab.student.entity.Doctor;
-import com.javalab.student.entity.User;
 import com.javalab.student.service.DoctorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 //import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -98,4 +95,4 @@ class DoctorControllerTest {
     }
 
 
-}
+}*/

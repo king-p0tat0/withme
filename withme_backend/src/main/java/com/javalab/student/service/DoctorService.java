@@ -4,10 +4,9 @@ import com.javalab.student.constant.Role;
 import com.javalab.student.constant.Status;
 import com.javalab.student.dto.DoctorFormDto;
 import com.javalab.student.entity.Doctor;
-import com.javalab.student.entity.User;
+import com.javalab.student.entity.Member;
 import com.javalab.student.repository.DoctorRepository;
-import com.javalab.student.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.javalab.student.repository.MemberRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,19 +19,19 @@ import java.util.List;
 public class DoctorService {
 
     private final DoctorRepository doctorRepository;
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
 
     /**
      * Doctor 신청정보 저장
      * - doctor 테이블에 신청정보 저장
      * - 로그인 사용자 정보를 통해 user 정보 저장
      */
-    public Doctor saveDoctorApplication(DoctorFormDto doctorFormDto, String userId) {
-        User user = userRepository.findByUserId(userId);
+    public Doctor saveDoctorApplication(DoctorFormDto doctorFormDto, String email) {
+        Member member = memberRepository.findByEmail(email);
 
         // Doctor 객체 생성 및 저장
         Doctor doctor = Doctor.builder()
-                .user(user)
+                .member(member)
                 .subject(doctorFormDto.getSubject())
                 .hospital(doctorFormDto.getHospital())
                 .doctorNumber(doctorFormDto.getDoctorNumber())
@@ -47,16 +46,16 @@ public class DoctorService {
      * - doctor 테이블에서 신청정보 조회
      * - 로그인 사용자의 본인 신청정보만 조회
      */
-    public Doctor getDoctorApplication(String userId) {
-        return doctorRepository.findByUser_UserId(userId);
+    public Doctor getDoctorApplication(String email) {
+        return doctorRepository.findByMemberEmail(email);
     }
 
     /**
      * Doctor 신청정보 수정
      * - doctor 테이블에 신청정보 수정
      */
-    public Doctor updateDoctorApplication(String userId, DoctorFormDto doctorFormDto) {
-        Doctor doctor = getDoctorApplication(userId);
+    public Doctor updateDoctorApplication(String email, DoctorFormDto doctorFormDto) {
+        Doctor doctor = getDoctorApplication(email);
 
         doctor.setSubject(doctorFormDto.getSubject());
         doctor.setHospital(doctorFormDto.getHospital());
@@ -69,8 +68,8 @@ public class DoctorService {
      * Doctor 신청정보 삭제
      * - doctor 테이블에서 신청정보 삭제
      */
-    public void deleteDoctorApplication(String userId) {
-        Doctor doctor = getDoctorApplication(userId);
+    public void deleteDoctorApplication(String email) {
+        Doctor doctor = getDoctorApplication(email);
         doctorRepository.delete(doctor);
     }
 
@@ -79,15 +78,15 @@ public class DoctorService {
      * - doctor 테이블에서 신청 상태 변경
      * - 승인시 user 테이블에서 권한 DOCTOR로 변경
      */
-    public void approveDoctorApplication(String userId, String status) {
+    public void approveDoctorApplication(Long userId, String status) {
         Doctor doctor = getDoctorApplication(userId);
-        User user = doctor.getUser();
+        Member member = doctor.getMember();
         Status doctorStatus = Status.valueOf(status.toUpperCase());
 
         if(doctorStatus.equals(Status.APPROVED)) {
             doctor.setStatus(Status.APPROVED);
-            user.setRole(Role.DOCTOR);
-            userRepository.save(user);
+            member.setRole(Role.DOCTOR);
+            memberRepository.save(member);
         }
         else if(doctorStatus.equals(Status.REJECTED)) {
             doctor.setStatus(Status.REJECTED);
@@ -108,7 +107,7 @@ public class DoctorService {
      * Doctor 전체 리스트 조회
      */
     public List<Doctor> getDoctorList() {
-        return doctorRepository.findAllWithUser();
+        return doctorRepository.findAllWithMember();
     }
 
     /**

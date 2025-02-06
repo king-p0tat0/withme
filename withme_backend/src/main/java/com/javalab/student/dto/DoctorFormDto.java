@@ -1,7 +1,6 @@
 package com.javalab.student.dto;
 
-import com.javalab.student.entity.User;
-import com.nimbusds.jwt.JWTClaimsSet;
+import com.javalab.student.entity.Member;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -25,7 +24,7 @@ public class DoctorFormDto {
     @Size(max = 255, message = "병원 정보는 255자 이하로 입력해주세요.")
     private String hospital;
 
-    private User user;
+    private Member member;
 
 
 }

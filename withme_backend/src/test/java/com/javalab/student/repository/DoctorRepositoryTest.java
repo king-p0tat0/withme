@@ -3,12 +3,15 @@ package com.javalab.student.repository;
 import com.javalab.student.constant.Role;
 import com.javalab.student.constant.Status;
 import com.javalab.student.entity.Doctor;
-import com.javalab.student.entity.User;
+import com.javalab.student.entity.Member;
+import com.javalab.student.dto.MemberFormDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,25 +30,31 @@ class DoctorRepositoryTest {
     private DoctorRepository doctorRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private MemberRepository memberRepository;
+
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     /**
-     * 의사(Doctor)와 사용자(User) 생성 메소드
+     * Member 생성 메소드
      */
-    private User createUser(String id, String name, String password, String email, String address, String phone) {
-        return User.builder()
-                .userId(id)
-                .userName(name)
-                .password(password)
-                .email(email)
-                .address(address)
-                .phone(phone)
-                .build();
+    private Member createMember(String name, String email, String password, String address, String phone, Role role) {
+        MemberFormDto memberFormDto = new MemberFormDto();
+        memberFormDto.setName(name);
+        memberFormDto.setEmail(email);
+        memberFormDto.setPassword(password);
+        memberFormDto.setAddress(address);
+        memberFormDto.setPhone(phone);
+        memberFormDto.setRole(role);
+
+        return Member.createMember(memberFormDto, passwordEncoder);
     }
 
-    private Doctor createDoctor(User user, String subject, String hospital, String doctorNumber) {
+    /**
+     * Doctor 생성 메소드
+     */
+    private Doctor createDoctor(Member member, String subject, String hospital, String doctorNumber) {
         return Doctor.builder()
-                .user(user)
+                .member(member)
                 .subject(subject)
                 .hospital(hospital)
                 .doctorNumber(doctorNumber)
@@ -53,49 +62,47 @@ class DoctorRepositoryTest {
                 .build();
     }
 
-
-    /*더미데이터*/
+    /* 더미 데이터 추가 */
     public void insertDummyData() {
-        List<User> users = new ArrayList<>();
+        List<Member> members = new ArrayList<>();
         List<Doctor> doctors = new ArrayList<>();
 
         // 일반 사용자 10명 추가
         for (int i = 1; i <= 10; i++) {
-            User user = createUser(
-                    "user" + i, "사용자" + i, "password123",
-                    "user" + i + "@example.com", "서울시 어딘가 " + i, "010-1234-56" + String.format("%02d", i)
+            Member member = createMember(
+                    "사용자" + i, "user" + i + "@example.com", "password123",
+                    "서울시 어딘가 " + i, "010-1234-56" + String.format("%02d", i),
+                    Role.USER
             );
-            user.setRole(Role.USER);
-            users.add(user);
+            members.add(member);
         }
 
         // 의사 10명 추가
         for (int i = 1; i <= 10; i++) {
-            User doctorUser = createUser(
-                    "doctor" + i, "의사" + i, "password123",
-                    "doctor" + i + "@example.com", "서울시 병원가 " + i, "010-5678-90" + String.format("%02d", i)
+            Member doctorMember = createMember(
+                    "의사" + i, "doctor" + i + "@example.com", "password123",
+                    "서울시 병원가 " + i, "010-5678-90" + String.format("%02d", i),
+                    Role.DOCTOR
             );
-            doctorUser.setRole(Role.DOCTOR);
-            users.add(doctorUser);
+            members.add(doctorMember);
 
-            Doctor doctor = createDoctor(doctorUser, "과목" + i, "병원" + i, "D" + String.format("%03d", i));
+            Doctor doctor = createDoctor(doctorMember, "과목" + i, "병원" + i, "D" + String.format("%03d", i));
             doctors.add(doctor);
         }
 
         // 관리자 2명 추가
         for (int i = 1; i <= 2; i++) {
-            User admin = createUser(
-                    "admin" + i, "관리자" + i, "password123",
-                    "admin" + i + "@example.com", "서울시 본사 " + i, "010-9999-88" + i
+            Member admin = createMember(
+                    "관리자" + i, "admin" + i + "@example.com", "password123",
+                    "서울시 본사 " + i, "010-9999-88" + i,
+                    Role.ADMIN
             );
-            admin.setRole(Role.ADMIN);
-            users.add(admin);
+            members.add(admin);
         }
 
         // 저장
-        userRepository.saveAll(users);
+        memberRepository.saveAll(members);
         doctorRepository.saveAll(doctors);
-
     }
 
     @Test
@@ -109,10 +116,10 @@ class DoctorRepositoryTest {
     @DisplayName("의사 조회 테스트")
     void findDoctorByIdTest() {
         // Given
-        User user = createUser("doc2", "한의사", "password456", "doc2@example.com", "부산시 해운대구", "010-3333-4444");
-        userRepository.save(user);
+        Member member = createMember("한의사", "doc2@example.com", "password456", "부산시 해운대구", "010-3333-4444", Role.DOCTOR);
+        memberRepository.save(member);
 
-        Doctor doctor = createDoctor(user, "한의학", "부산한의원", "DOC56789");
+        Doctor doctor = createDoctor(member, "한의학", "부산한의원", "DOC56789");
         doctorRepository.save(doctor);
 
         // When
@@ -127,10 +134,10 @@ class DoctorRepositoryTest {
     @DisplayName("의사 업데이트 테스트")
     void updateDoctorTest() {
         // Given
-        User user = createUser("doc3", "외과의사", "password789", "doc3@example.com", "대구시 중구", "010-5555-6666");
-        userRepository.save(user);
+        Member member = createMember("외과의사", "doc3@example.com", "password789", "대구시 중구", "010-5555-6666", Role.DOCTOR);
+        memberRepository.save(member);
 
-        Doctor doctor = createDoctor(user, "외과", "대구병원", "DOC99999");
+        Doctor doctor = createDoctor(member, "외과", "대구병원", "DOC99999");
         Doctor savedDoctor = doctorRepository.save(doctor);
 
         // When
@@ -147,10 +154,10 @@ class DoctorRepositoryTest {
     @DisplayName("의사 삭제 테스트")
     void deleteDoctorTest() {
         // Given
-        User user = createUser("doc4", "치과의사", "password000", "doc4@example.com", "인천시 남동구", "010-7777-8888");
-        userRepository.save(user);
+        Member member = createMember("치과의사", "doc4@example.com", "password000", "인천시 남동구", "010-7777-8888", Role.DOCTOR);
+        memberRepository.save(member);
 
-        Doctor doctor = createDoctor(user, "치과", "인천치과", "DOC33333");
+        Doctor doctor = createDoctor(member, "치과", "인천치과", "DOC33333");
         Doctor savedDoctor = doctorRepository.save(doctor);
 
         // When

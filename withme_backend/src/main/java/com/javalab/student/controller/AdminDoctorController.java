@@ -42,7 +42,7 @@ public class AdminDoctorController {
      */
     @PutMapping("/approve/{userId}")
     public ResponseEntity<String> approveDoctor(
-            @PathVariable String userId,
+            @PathVariable Long userId,
             @RequestBody Map<String, String> requestBody) {
 
         String status = requestBody.get("status");
