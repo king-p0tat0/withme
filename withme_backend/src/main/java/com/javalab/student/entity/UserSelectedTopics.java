@@ -2,14 +2,11 @@ package com.javalab.student.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.userdetails.User;
 
 /**
- * 유저가 선택한 주제 엔티티
- * 유저가 선택한 주제를 저장하는 테이블과 매핑
- * 유저 ID와 주제 ID를 포함
+ * 📌 유저가 선택한 주제(UserSelectedTopics) 엔티티
+ * - userId 기반으로 유저가 선택한 주제를 저장
  */
-
 @Entity
 @Getter
 @Setter
@@ -17,15 +14,12 @@ import org.springframework.security.core.userdetails.User;
 @AllArgsConstructor
 @Builder
 @Table(name = "user_selected_topics")
-
 public class UserSelectedTopics {
 
     @Id
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user; // 유저ID
+    private String userId;
 
     @ManyToOne
-    @JoinColumn(name = "topic_id")
-    private SurveyTopic surveyTopic; // 선택한 주제 ID
+    @JoinColumn(name = "topic_id", nullable = false)
+    private SurveyTopic surveyTopic;
 }
