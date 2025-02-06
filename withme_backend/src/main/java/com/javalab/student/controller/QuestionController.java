@@ -6,13 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
- * 질문 컨트롤러
+ * 질문(Question) 컨트롤러
  * 설문에 포함된 질문에 대한 요청을 처리하는 REST API 컨트롤러
  */
-
 @RestController
 @RequestMapping("/api/questions")
 public class QuestionController {
@@ -25,29 +25,27 @@ public class QuestionController {
     }
 
     /**
-     * 모든 질문 조회
+     * ✅ 모든 질문 조회
      */
     @GetMapping
+    public ResponseEntity<List<Question>> getAllQuestions() {
+        return ResponseEntity.ok(questionService.getAllQuestions());
+    }
+
+    /**
+     * ✅ 질문 ID로 질문 조회
+     */
+    @GetMapping("/{questionId}")
     public ResponseEntity<Question> getQuestionById(@PathVariable Long questionId) {
         Optional<Question> question = questionService.getQuestionById(questionId);
-        return question.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return question.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
-     * 새로운 질문 생성
+     * ✅ 특정 유저 ID(userId)에 해당하는 질문 조회 (유료 회원 문진 진행)
      */
-    @PostMapping
-    public ResponseEntity<Question> createQuestion(@RequestBody Question question) {
-        return ResponseEntity.ok(questionService.createQuestion(question));
-    }
-
-    /**
-     * 질문 삭제
-     */
-    @DeleteMapping("/{questionId}")
-    public ResponseEntity<Void> deleteQuestion(@PathVariable Long questionId) {
-        questionService.deleteQuestion(questionId);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/paid/{userId}")
+    public ResponseEntity<List<Question>> getPaidQuestionsByUserId(@PathVariable String userId) {
+        return ResponseEntity.ok(questionService.getQuestionsByUserId(userId));
     }
 }
