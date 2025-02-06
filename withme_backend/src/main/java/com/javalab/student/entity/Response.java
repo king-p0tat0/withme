@@ -4,11 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * 응답 엔티티
- * 설문에 대한 유저의 응답을 저장하는 테이블과 매핑
- * 설문, 질문, 선택지 간의 관계를 저장
+ * 응답(Entity)
+ * 설문 응답 정보를 저장하는 테이블과 매핑
  */
-
 @Entity
 @Getter
 @Setter
@@ -20,17 +18,22 @@ public class Response {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long responseId;  // 응답 ID
+    @Column(name = "response_id")
+    private Long responseId;
 
-    @ManyToOne
-    @JoinColumn(name = "survey_id")
-    private Survey survey;  // 해당 응답이 속한 설문
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "survey_id", nullable = false)
+    private Survey survey;
 
-    @ManyToOne
-    @JoinColumn(name = "question_id")
-    private Question question;  // 해당 응답이 속한 질문
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_id", nullable = false)
+    private Question question;
 
-    @ManyToOne
-    @JoinColumn(name = "choice_id")
-    private Choice choice;  // 유저가 선택한 선택지
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "choice_id", nullable = false)
+    private Choice choice;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

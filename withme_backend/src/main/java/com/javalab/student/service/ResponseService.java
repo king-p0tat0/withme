@@ -10,9 +10,8 @@ import java.util.Optional;
 
 /**
  * 응답 서비스
- * 설문에 대한 유저 응답에 대한 비즈니스 로직을 처리하는 서비스 클래스
+ * 설문에 대한 응답을 처리하는 서비스 클래스
  */
-
 @Service
 public class ResponseService {
 
@@ -24,17 +23,10 @@ public class ResponseService {
     }
 
     /**
-     * 모든 응답 조회
+     * 모든 응답 조회 (디버깅용)
      */
     public List<Response> getAllResponses() {
         return responseRepository.findAll();
-    }
-
-    /**
-     * 응답 ID로 응답 조회
-     */
-    public Optional<Response> getResponseById(Long responseId) {
-        return responseRepository.findById(responseId);
     }
 
     /**
@@ -45,9 +37,9 @@ public class ResponseService {
     }
 
     /**
-     * 응답 삭제
+     * 특정 userId 기반으로 응답 조회
      */
-    public void deleteResponse(Long responseId) {
-        responseRepository.deleteById(responseId);
+    public List<Response> getResponsesByUserId(String userId) {
+        return responseRepository.findByUser_UserId(userId);
     }
 }
