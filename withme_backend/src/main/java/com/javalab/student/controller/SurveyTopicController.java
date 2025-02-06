@@ -28,7 +28,7 @@ public class SurveyTopicController {
     }
 
     /**
-     * 모든 설문 주제 조회
+     * ✅ 모든 설문 주제 조회
      */
     @GetMapping
     public ResponseEntity<List<SurveyTopic>> getAllTopics() {
@@ -36,7 +36,7 @@ public class SurveyTopicController {
     }
 
     /**
-     * 설문 주제 ID로 설문 주제 조회
+     * ✅ 특정 주제 ID로 조회
      */
     @GetMapping("/{topicId}")
     public ResponseEntity<SurveyTopic> getTopicById(@PathVariable Long topicId) {
@@ -46,7 +46,15 @@ public class SurveyTopicController {
     }
 
     /**
-     * 새로운 설문 주제 생성
+     * ✅ 유료 문진(PAID) 주제 목록 조회 (surveyId 기반)
+     */
+    @GetMapping("/paid/{surveyId}")
+    public ResponseEntity<List<SurveyTopic>> getPaidTopics(@PathVariable Long surveyId) {
+        return ResponseEntity.ok(surveyTopicService.getPaidTopics(surveyId));
+    }
+
+    /**
+     * ✅ 새로운 설문 주제 생성
      */
     @PostMapping
     public ResponseEntity<SurveyTopic> createTopic(@RequestBody SurveyTopic surveyTopic) {
@@ -54,7 +62,7 @@ public class SurveyTopicController {
     }
 
     /**
-     * 설문 주제 삭제
+     * ✅ 설문 주제 삭제
      */
     @DeleteMapping("/{topicId}")
     public ResponseEntity<Void> deleteTopic(@PathVariable Long topicId) {
@@ -62,7 +70,9 @@ public class SurveyTopicController {
         return ResponseEntity.noContent().build();
     }
 
-    // 예외 처리 - 유효하지 않은 주제 생성 요청
+    /**
+     * 🚨 예외 처리 - 유효하지 않은 주제 생성 요청
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
         return ResponseEntity.badRequest().body("잘못된 요청: " + ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
