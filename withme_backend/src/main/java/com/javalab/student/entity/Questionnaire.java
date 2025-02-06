@@ -2,16 +2,8 @@ package com.javalab.student.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.time.LocalDateTime;
-
-/**
- * 문진 엔티티
- * 문진에 대한 정보를 저장하는 테이블과 매핑
- * 설문 ID, 유저 ID, 반려동물 ID, 문진 상태 및 시작일 등을 포함
- */
 
 @Entity
 @Getter
@@ -20,26 +12,30 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Table(name = "questionnaire")
-
 public class Questionnaire {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long questionnaireId; //  문진 ID
+    @Column(name = "questionnaire_id")
+    private Long questionnaireId; // 문진 ID
 
-    @ManyToOne
-    @JoinColumn(name = "survey_id")
-    private Survey survey; // 해당 문진이 속한 설문
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "survey_id", nullable = false)
+    private Survey survey; // 설문 정보
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user; // 해당 문진을 진행하는 유저
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user; // 유저 정보
 
-    private Long petId; //반려동물 ID
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pet_id", nullable = false)
+    private Pet pet; // 반려동물 정보
 
     @Enumerated(EnumType.STRING)
-    private ResponseStatus responseStatus; // 문진 상태(PENDING, IN_PROGRESS, COMPLETED)
+    @Column(name = "response_status", nullable = false)
+    private ResponseStatus responseStatus; // 문진 상태
 
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt; // 문진 시작일
 
     public enum ResponseStatus {

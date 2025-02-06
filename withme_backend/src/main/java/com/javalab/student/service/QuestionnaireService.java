@@ -9,22 +9,20 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 문진 서비스
- * 문진에 대한 비즈니스 로직을 처리하는 서비스 클래스
+ * 문진(Questionnaire) 서비스
  */
-
 @Service
 public class QuestionnaireService {
 
     private final QuestionnaireRepository questionnaireRepository;
 
     @Autowired
-    public QuestionnaireService(QuestionnaireRepository questionnaireRepository){
+    public QuestionnaireService(QuestionnaireRepository questionnaireRepository) {
         this.questionnaireRepository = questionnaireRepository;
     }
 
     /**
-     *  모든 문진 조회
+     * 모든 문진 조회
      */
     public List<Questionnaire> getAllQuestionnaires() {
         return questionnaireRepository.findAll();
@@ -33,22 +31,28 @@ public class QuestionnaireService {
     /**
      * 문진 ID로 문진 조회
      */
-    public Optional<Questionnaire> getQuestionnaireById(Long questionnaireId){
+    public Optional<Questionnaire> getQuestionnaireById(Long questionnaireId) {
         return questionnaireRepository.findById(questionnaireId);
+    }
 
+    /**
+     * 특정 유저의 문진 조회
+     */
+    public List<Questionnaire> getQuestionnairesByUserId(String userId) {
+        return questionnaireRepository.findAllByUser_UserId(userId);
     }
 
     /**
      * 새로운 문진 생성
      */
-    public Questionnaire createQuestionnaire(Questionnaire questionnaire){
+    public Questionnaire createQuestionnaire(Questionnaire questionnaire) {
         return questionnaireRepository.save(questionnaire);
     }
 
     /**
      * 문진 삭제
      */
-    public void deleteQuestionnaire(Long questionnaireId){
+    public void deleteQuestionnaire(Long questionnaireId) {
         questionnaireRepository.deleteById(questionnaireId);
     }
 }

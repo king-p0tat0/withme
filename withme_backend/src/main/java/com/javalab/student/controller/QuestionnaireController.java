@@ -1,7 +1,6 @@
 package com.javalab.student.controller;
 
 import com.javalab.student.entity.Questionnaire;
-import com.javalab.student.service.QuestionService;
 import com.javalab.student.service.QuestionnaireService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -14,10 +13,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 문진 컨트롤러
- * 문진에 대한 요청을 처리하는 REST API 컨트롤러
+ * 문진(Questionnaire) 컨트롤러
+ * 문진 결과 조회 및 저장을 처리하는 REST API 컨트롤러
  */
-
 @RestController
 @RequestMapping("/api/questionnaires")
 public class QuestionnaireController {
@@ -30,16 +28,15 @@ public class QuestionnaireController {
     }
 
     /**
-     * 모든 문진 조회
+     * 모든 문진 조회 (디버깅용)
      */
     @GetMapping
     public ResponseEntity<List<Questionnaire>> getAllQuestionnaires() {
         return ResponseEntity.ok(questionnaireService.getAllQuestionnaires());
     }
 
-
     /**
-     * 문진 ID 로 문진 조회
+     * 특정 questionnaireId 기반으로 문진 조회
      */
     @GetMapping("/{questionnaireId}")
     public ResponseEntity<Questionnaire> getQuestionnaireById(@PathVariable @NotNull Long questionnaireId) {
@@ -49,7 +46,15 @@ public class QuestionnaireController {
     }
 
     /**
-     * 새로운 문진 생성
+     * 특정 userId 기반으로 문진 조회
+     */
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Questionnaire>> getQuestionnairesByUserId(@PathVariable String userId) {
+        return ResponseEntity.ok(questionnaireService.getQuestionnairesByUserId(userId));
+    }
+
+    /**
+     * 새로운 문진 생성 (무료 & 유료 공통)
      */
     @PostMapping
     public ResponseEntity<Questionnaire> createQuestionnaire(@Valid @RequestBody Questionnaire questionnaire) {
@@ -57,17 +62,11 @@ public class QuestionnaireController {
     }
 
     /**
-     * 문진 삭제
+     * 문진 삭제 (관리자 기능)
      */
     @DeleteMapping("/{questionnaireId}")
     public ResponseEntity<Void> deleteQuestionnaire(@PathVariable Long questionnaireId) {
         questionnaireService.deleteQuestionnaire(questionnaireId);
         return ResponseEntity.noContent().build();
-    }
-
-    // 예외 처리 - 유효하지 않은 문진 요청
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        return ResponseEntity.badRequest().body("잘못된 요청: " + ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
     }
 }
