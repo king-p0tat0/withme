@@ -3,6 +3,7 @@ package com.javalab.student.entity;
 import com.javalab.student.constant.Role;
 import com.javalab.student.dto.MemberFormDto;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,18 +20,19 @@ import java.util.Collections;
  * - 화면에서 데이터를 전달받는 용도로는 사용하지 않는게 관례이다.
  */
 @Entity
-@Table(name = "member")
+@Table(name = "user")
 @Getter @Setter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Member extends BaseEntity{
     @Id
-    @Column(name = "member_id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "user_id")
+    @GeneratedValue
     private Long id;
 
-    private String name;
+    private String user_name;
 
     // 이메일은 중복될 수 없다. unique = true
     @Column(unique = true)
@@ -41,6 +43,8 @@ public class Member extends BaseEntity{
     private String phone;
 
     private String address;
+
+    private String age;
 
     @Builder
     public Member(String email, String password, String auth) {
@@ -69,15 +73,17 @@ public class Member extends BaseEntity{
         * - 사용자가 입력한 암호는 "평문"이다. 즉 암호화가 안된 문자열이다.
      */
     public static Member createMember(MemberFormDto memberFormDto, PasswordEncoder passwordEncoder) {
+        String role = Role.USER.toString();
         Member member = new Member();
-        member.setName(memberFormDto.getName());
+        member.setUser_name(memberFormDto.getUser_name());
         member.setEmail(memberFormDto.getEmail());
         String password = passwordEncoder.encode(memberFormDto.getPassword()); // 비밀번호 암호화
         member.setPassword(password);
         member.setAddress(memberFormDto.getAddress());
         member.setPhone(memberFormDto.getPhone());
+        member.setAge(memberFormDto.getAge());
         member.setSocial(false); // 일반 회원가입이므로 소셜 로그인 여부는 false
-        member.setRole(memberFormDto.getRole());  // 회원가입 시 사용자의 권한 : USER
+        member.setRole(Role.USER);  // 회원가입 시 사용자의 권한 : USER  [수정]
         return member;
     }
 
@@ -94,4 +100,5 @@ public class Member extends BaseEntity{
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
     }
+
 }
