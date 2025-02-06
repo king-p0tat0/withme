@@ -2,6 +2,7 @@ package com.javalab.student.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.userdetails.User;
 
 import java.time.LocalDateTime;
 
@@ -30,7 +31,7 @@ public class ExpertQuestion {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // 질문을 등록한 사용자 ID
+//    private User user; // 질문을 등록한 사용자 ID
 
     @Lob
     @Column(name = "question_text", nullable = false)

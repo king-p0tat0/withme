@@ -2,6 +2,7 @@ package com.javalab.student.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.userdetails.User;
 
 import java.time.LocalDateTime;
 
@@ -27,9 +28,9 @@ public class Questionnaire {
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // 유저 정보
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pet_id", nullable = false)
-    private Pet pet; // 반려동물 정보
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "pet_id", nullable = false)
+//    private Pet pet; // 반려동물 정보
 
     @Enumerated(EnumType.STRING)
     @Column(name = "response_status", nullable = false)

@@ -45,12 +45,16 @@ public class QuestionService {
     /**
      * ✅ 특정 userId에 해당하는 유료 문진 질문 리스트 반환
      */
+    /**
+     * ✅ 특정 userId에 해당하는 유료 문진 질문 리스트 반환
+     */
     public List<Question> getQuestionsByUserId(String userId) {
-        List<UserSelectedTopics> selectedTopics = userSelectedTopicsRepository.findByUserId(userId);
+        List<UserSelectedTopics> selectedTopics = userSelectedTopicsRepository.findAllByUserId(userId);
 
         return selectedTopics.stream()
                 .map(UserSelectedTopics::getSurveyTopic)
                 .flatMap(topic -> questionRepository.findBySurveyTopic(topic).stream())
                 .collect(Collectors.toList());
     }
+
 }

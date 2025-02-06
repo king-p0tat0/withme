@@ -2,6 +2,7 @@ package com.javalab.student.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.userdetails.User;
 
 /**
  * 응답(Entity)
