@@ -79,7 +79,7 @@ export default function DoctorUpdate() {
                         pendingDoctors.map((doctor) => (
                         <tr key={doctor.doctorId}>
                             <td>{doctor.doctorId}</td>
-                            <td>{doctor.user.userName}</td>
+                            <td>{doctor.member.name}</td>
                             <td>{doctor.subject}</td>
                             <td>{doctor.hospital}</td>
                             <td>{getStatusText(doctor.status)}</td>

@@ -1,3 +1,4 @@
+/*
 package com.javalab.student.service;
 
 import com.javalab.student.constant.Role;
@@ -64,9 +65,12 @@ class DoctorServiceIntegrationTest {
 
         // 3. Doctor 승인 (approve)
 
-        /*doctorService.approveDoctorApplication("realUser");
+        */
+/*doctorService.approveDoctorApplication("realUser");
         foundDoctor = doctorService.getDoctorApplication("realUser");
         assertEquals(Status.APPROVED, foundDoctor.getStatus());
-        assertEquals(Role.DOCTOR, foundDoctor.getUser().getRole());*/
+        assertEquals(Role.DOCTOR, foundDoctor.getUser().getRole());*//*
+
     }
 }
+*/

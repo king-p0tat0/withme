@@ -2,7 +2,7 @@ package com.javalab.student.repository;
 
 import com.javalab.student.constant.Status;
 import com.javalab.student.entity.Doctor;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

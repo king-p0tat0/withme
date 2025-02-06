@@ -11,9 +11,9 @@ export default function DoctorViewAdmin({doctor, onClose, docList }) {
 /* 승인 상태 변경 버튼 이벤트
   - 승인 버튼을 누르면 해당 전문가의 userId와 승인 상태를 보내서 approveDoctorApplication 함수 실행
  */
-    const handleApprove = async (userId, status) => {
+    const handleApprove = async (email, status) => {
         try {
-            const response = await fetchWithAuth(`${API_URL}admin/doctor/approve/${userId}`, {
+            const response = await fetchWithAuth(`${API_URL}admin/doctor/approve/${email}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -60,28 +60,25 @@ const statuses = [
            <div className="modal">
                       <div className="modal-content">
                           <h2>전문가 상세 정보</h2>
-                          <p><strong>아이디:</strong> {doctor.user.userId}</p>
-                          <p><strong>이름:</strong> {doctor.user.userName}</p>
-                          <p><strong>이메일:</strong> {doctor.user.email}</p>
-                          <p><strong>연락처:</strong> {doctor.user.phone}</p>
+                          <p><strong>아이디:</strong> {doctor.member.userId}</p>
+                          <p><strong>이름:</strong> {doctor.member.name}</p>
+                          <p><strong>이메일:</strong> {doctor.member.email}</p>
+                          <p><strong>연락처:</strong> {doctor.member.phone}</p>
                           <p><strong>전문분야:</strong> {doctor.subject}</p>
                           <p><strong>병원:</strong> {doctor.hospital}</p>
-                          <p><strong>가입일:</strong> {doctor.user.createdAt}</p>
+                          <p><strong>가입일:</strong> {doctor.member.createdAt}</p>
                           <p><strong>상태:</strong> {getStatusText(doctor.status)}</p>
 
                            {statuses.map((status) => (
                                <button
                                    key={status.value}
                                    className={`modal-button modal-button-${status.value}`}
-                                   onClick={() => handleApprove(doctor.user.userId, status.value)}
+                                   onClick={() => handleApprove(doctor.member.email, status.value)}
                                >
                                    {status.label}
                                </button>
                            ))}
-                          {/* <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'approved')}>승인</button>
-                          <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'rejected')}>거절</button>
-                          <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'on_hold')}>보류</button>
-                          <button className="modal-button" onClick={() => handleApprove(doctor.user.userId, 'pending')}>대기</button> */}
+
                           <button className="modal-button" onClick={onClose}>닫기</button>
                       </div>
                   </div>

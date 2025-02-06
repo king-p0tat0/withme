@@ -38,16 +38,16 @@ public class AdminDoctorController {
 
     /**
      * 전문가 승인
-     * - Put으로 받은 userId를 사용해서 전문가 승인 및 user role을 doctor로 변경
+     * - Put으로 받은 email를 사용해서 전문가 승인 및 user role을 doctor로 변경
      */
-    @PutMapping("/approve/{userId}")
+    @PutMapping("/approve/{email}")
     public ResponseEntity<String> approveDoctor(
-            @PathVariable Long userId,
+            @PathVariable String email,
             @RequestBody Map<String, String> requestBody) {
 
         String status = requestBody.get("status");
 
-        doctorService.approveDoctorApplication(userId, status);
+        doctorService.approveDoctorApplication(email, status);
         return ResponseEntity.ok("Doctor application approved successfully");
     }
 }

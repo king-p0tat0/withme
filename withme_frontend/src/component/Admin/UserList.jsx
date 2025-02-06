@@ -1,92 +1,121 @@
 import React, { useState, useEffect } from 'react';
 import '../../css/DoctorList.css';
-import DoctorView from './DoctorView';
-import { useNavigate, Link } from 'react-router-dom';
 import axios from "axios";
-import { fetchWithAuth } from '../../common/fetchWithAuth';
 import { API_URL } from '../../constant';
 
-
-
-
 export default function UserList() {
-    const [users, setUsers] = useState([]); // 유저 리스트 상태
-    const [loading, setLoading] = useState(false); // 로딩 상태
-    const [error, setError] = useState(null); // 에러 상태
-    const [currentPage, setCurrentPage] = useState(1);  // 현재 보여줄 페이지
-    const [searchQuery, setSearchQuery] = useState({    // 검색 요소 상태
-        userName: '',
+    const [users, setUsers] = useState([]);  // 전체 유저 리스트 상태
+    const [loading, setLoading] = useState(false);  // 로딩 상태
+    const [error, setError] = useState(null);  // 에러 상태
+    const [currentPage, setCurrentPage] = useState(0);  // 현재 페이지 (백엔드 기준 0부터 시작)
+    const [totalPages, setTotalPages] = useState(1);  // 전체 페이지 수
+    const [searchQuery, setSearchQuery] = useState({  // 검색 요소 상태
+        name: '',
         email: '',
-        address: '',
         phone: '',
-        role: '',
-        points: '',
-        createdAt: ''
+        role: ''
     });
-    const itemsPerPage = 10;
 
-    // 유저 리스트 가져오기
-    const fetchUsers = async () => {
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+
+    // ✅ 검색어 디바운스 처리
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 500); // 500ms 후에 변경된 검색어로 API 호출
+
+        return () => clearTimeout(timer); // 타이머 정리
+    }, [searchQuery]);
+
+    // ✅ 유저 리스트 가져오기 (페이징 적용 및 검색 조건 포함)
+    const fetchUsers = async (page = 0, size = 10, query = {}) => {
         setLoading(true);
         setError(null);
         try {
-            // JWT 토큰을 localStorage에서 가져와서 Authorization 헤더에 포함
             const token = localStorage.getItem("token");
 
             const response = await axios.get(`${API_URL}members/list`, {
                 headers: {
-                    Authorization: `Bearer ${token}`,  // Authorization 헤더에 토큰 추가
+                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
+                },
+                params: {
+                    page,
+                    size,
+                    ...query
                 }
             });
-            setUsers(response.data); // 서버에서 받은 데이터로 상태 업데이트
+
+            if (response.data && response.data.dtoList) {
+                setUsers(response.data.dtoList);
+                setTotalPages(Math.ceil(response.data.total / size));  // 전체 페이지 수 계산
+            } else {
+                setUsers([]);
+                setTotalPages(1);
+            }
         } catch (err) {
-            setError('사용자 데이터를 가져오는 데 실패했습니다.'); // 오류 발생 시 오류 메시지 업데이트
+            setError('사용자 데이터를 가져오는 데 실패했습니다.');
+            console.error("API 요청 실패:", err);
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchUsers(); // 컴포넌트 마운트 시 유저 리스트 가져오기
-    }, []);
-
-    const filteredData = users.filter((user) => {
-        return (
-            (user.userName ?? '').includes(searchQuery.userName) &&
-            (user.email ?? '').includes(searchQuery.email) &&
-            (user.address ?? '').includes(searchQuery.address) &&
-            (user.phone ?? '').includes(searchQuery.phone) &&
-            (user.role ?? '').includes(searchQuery.role) &&
-            (user.points ?? '').toString().includes(searchQuery.points) &&
-            (user.createdAt ?? '').includes(searchQuery.createdAt)
-        );
-    });
-
-
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-    const currentData = filteredData.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
+    // ✅ 페이지 변경 핸들러
     const handlePageChange = (page) => {
-        if (page >= 1 && page <= totalPages) {
+        if (page >= 0 && page < totalPages) {
             setCurrentPage(page);
         }
     };
 
+    // ✅ 컴포넌트 마운트 및 페이지 변경 시 데이터 가져오기
+    useEffect(() => {
+        fetchUsers(currentPage, 10, debouncedSearchQuery);  // 디바운스된 검색어로 데이터 가져오기
+    }, [currentPage, debouncedSearchQuery]);  // currentPage와 debouncedSearchQuery가 변경될 때마다 호출
+
+    // ✅ 검색어 입력 핸들러
     const handleSearchChange = (e) => {
         const { name, value } = e.target;
-        setSearchQuery((prev) => ({ ...prev, [name]: value }));
+        setSearchQuery(prev => ({ ...prev, [name]: value }));
     };
 
     return (
         <div className="doctor-list-container">
             <h1 className="title">사용자 리스트</h1>
 
+            {/* ✅ 검색 입력창 */}
+            <div className="search-container">
+                <input
+                    type="text"
+                    name="name"
+                    placeholder="이름 검색"
+                    value={searchQuery.name}
+                    onChange={handleSearchChange}
+                />
+                <input
+                    type="text"
+                    name="email"
+                    placeholder="이메일 검색"
+                    value={searchQuery.email}
+                    onChange={handleSearchChange}
+                />
+                <input
+                    type="text"
+                    name="phone"
+                    placeholder="전화번호 검색"
+                    value={searchQuery.phone}
+                    onChange={handleSearchChange}
+                />
+                <input
+                    type="text"
+                    name="role"
+                    placeholder="권한 검색"
+                    value={searchQuery.role}
+                    onChange={handleSearchChange}
+                />
+            </div>
 
+            {/* 로딩 상태 처리 */}
             {loading ? (
                 <p className="loading">데이터를 불러오는 중...</p>
             ) : (
@@ -94,7 +123,6 @@ export default function UserList() {
                     <table className="doctor-table">
                         <thead>
                             <tr>
-                                <th>아이디</th>
                                 <th>이름</th>
                                 <th>이메일</th>
                                 <th>주소</th>
@@ -105,11 +133,10 @@ export default function UserList() {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentData.length > 0 ? (
-                                currentData.map((user) => (
+                            {users.length > 0 ? (
+                                users.map((user) => (
                                     <tr key={user.userId}>
-                                        <td>{user.userId}</td>
-                                        <td>{user.userName}</td>
+                                        <td>{user.name}</td>
                                         <td>{user.email}</td>
                                         <td>{user.address}</td>
                                         <td>{user.phone}</td>
@@ -120,7 +147,7 @@ export default function UserList() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center' }}>
+                                    <td colSpan="7" style={{ textAlign: 'center' }}>
                                         검색 결과가 없습니다.
                                     </td>
                                 </tr>
@@ -130,15 +157,19 @@ export default function UserList() {
 
                     {/* 페이징 버튼 */}
                     <div className="pagination">
-                        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 0}>
                             이전
                         </button>
                         {Array.from({ length: totalPages }, (_, index) => (
-                            <button key={index + 1} onClick={() => handlePageChange(index + 1)} className={currentPage === index + 1 ? 'active' : ''}>
+                            <button
+                                key={index}
+                                onClick={() => handlePageChange(index)}
+                                className={currentPage === index ? 'active' : ''}
+                            >
                                 {index + 1}
                             </button>
                         ))}
-                        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage + 1 >= totalPages}>
                             다음
                         </button>
                     </div>

@@ -13,9 +13,9 @@ export default function DoctorView({doctor, onClose, docList }) {
   - 승인 버튼을 누르면 해당 전문가의 userId와 승인 상태를 보내서 approveDoctorApplication 함수 실행
   - 여기있는 함수는 테스트용
  */
-    const handleApprove = async (userId, status) => {
+    const handleApprove = async (email, status) => {
         try {
-            const response = await fetchWithAuth(`{API_URL}admin/doctor/approve/${userId}`, {
+            const response = await fetchWithAuth(`${API_URL}admin/doctor/approve/${email}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -39,15 +39,15 @@ export default function DoctorView({doctor, onClose, docList }) {
            <div className="modal">
                       <div className="modal-content">
                           <h2>전문가 상세 정보</h2>
-                          <p><strong>이름:</strong> {doctor.user.userName}</p>
+                          <p><strong>이름:</strong> {doctor.member.name}</p>
                           <p><strong>전문분야:</strong> {doctor.subject}</p>
                           <p><strong>병원:</strong> {doctor.hospital}</p>
-                          <p><strong>이메일:</strong> {doctor.user.email}</p>
+                          <p><strong>이메일:</strong> {doctor.member.email}</p>
 
-                        <button onClick={() => handleApprove(doctor.user.userId, 'approved')}>승인</button>
-                        <button onClick={() => handleApprove(doctor.user.userId, 'rejected')}>거절</button>
-                        <button onClick={() => handleApprove(doctor.user.userId, 'on_hold')}>보류</button>
-                        <button onClick={() => handleApprove(doctor.user.userId, 'pending')}>대기</button>
+                        <button onClick={() => handleApprove(doctor.member.email, 'approved')}>승인</button>
+                        <button onClick={() => handleApprove(doctor.member.email, 'rejected')}>거절</button>
+                        <button onClick={() => handleApprove(doctor.member.email, 'on_hold')}>보류</button>
+                        <button onClick={() => handleApprove(doctor.member.email, 'pending')}>대기</button>
 
                           <button onClick={onClose}>닫기</button>
                       </div>

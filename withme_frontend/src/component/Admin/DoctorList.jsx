@@ -29,6 +29,7 @@ export default function DoctorList() {
         hospital: '',
         status: '',
     });
+    const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
     const itemsPerPage = 10;
     // 모달 상태
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,15 +61,31 @@ export default function DoctorList() {
         fetchDoctors(); // 컴포넌트 마운트 시 전문가 리스트 가져오기
     }, []);
 
+    // 검색딜레이 - 입력이 멈추면 검색
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedQuery(searchQuery);
+        }, 500);
+
+    return () => clearTimeout(timer); // 기존 타이머 제거 (연속 입력 시 딜레이 유지)
+}, [searchQuery]);
+
     // 검색기능
     const filteredData = doctors.filter((doctor) => {
         return (
-            doctor.user.userName.includes(searchQuery.name) &&
-            doctor.subject.includes(searchQuery.subject) &&
-            doctor.hospital.includes(searchQuery.hospital) &&
-            (searchQuery.status === '' || doctor.status === searchQuery.status)
+            doctor.member.name.includes(debouncedQuery.name) &&
+            doctor.subject.includes(debouncedQuery.subject) &&
+            doctor.hospital.includes(debouncedQuery.hospital) &&
+            (debouncedQuery.status === '' || doctor.status === debouncedQuery.status)
         );
     });
+
+    // debouncedQuery 값이 변경될 때만 API 호출
+    useEffect(() => {
+        if (debouncedQuery.keyword) {
+            fetchData(debouncedQuery);
+        }
+    }, [debouncedQuery]);
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
@@ -152,7 +169,7 @@ export default function DoctorList() {
                                 currentData.map((doctor) => (
                                     <tr key={doctor.doctorId}>
                                         <td>{doctor.doctorId}</td>
-                                        <td>{doctor.user.userName}</td>
+                                        <td>{doctor.member.name}</td>
                                         <td>{doctor.subject}</td>
                                         <td>{doctor.hospital}</td>
                                         <td>{getStatusText(doctor.status)}</td>

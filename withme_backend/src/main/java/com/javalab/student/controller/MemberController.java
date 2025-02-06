@@ -79,12 +79,12 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response); // HTTP 401 Unauthorized
     }
 
-    // 페이징 처리된 학생 목록 조회
+    // 페이징 처리된 유저 목록 조회
     @GetMapping("/list")
     //@PreAuthorize("hasRole('USER')")
-    public ResponseEntity<PageResponseDTO<MemberDto>> getAllStudents(
+    public ResponseEntity<PageResponseDTO<MemberDto>> getAllmembers(
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "20") int size) {
+            @RequestParam(name = "size", defaultValue = "10") int size) {
 
         PageRequestDTO pageRequestDTO = PageRequestDTO.builder()
                 .page(page)

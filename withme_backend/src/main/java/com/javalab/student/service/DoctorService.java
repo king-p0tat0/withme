@@ -78,8 +78,8 @@ public class DoctorService {
      * - doctor 테이블에서 신청 상태 변경
      * - 승인시 user 테이블에서 권한 DOCTOR로 변경
      */
-    public void approveDoctorApplication(Long userId, String status) {
-        Doctor doctor = getDoctorApplication(userId);
+    public void approveDoctorApplication(String email, String status) {
+        Doctor doctor = getDoctorApplication(email);
         Member member = doctor.getMember();
         Status doctorStatus = Status.valueOf(status.toUpperCase());
 
@@ -106,6 +106,7 @@ public class DoctorService {
     /**
      * Doctor 전체 리스트 조회
      */
+
     public List<Doctor> getDoctorList() {
         return doctorRepository.findAllWithMember();
     }
