@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class QuestionnaireDTO {
     private Long questionnaireId;  // 문진 ID
     private Long surveyId;  // 설문 ID
-    private String userId;  // 유저 ID
+    private Long userId;  // 유저 ID
     private Long petId;  // 반려동물 ID
     private ResponseStatus responseStatus;  // 문진 상태 (PENDING, IN_PROGRESS, COMPLETED)
     private LocalDateTime createdAt;  // 문진 시작일

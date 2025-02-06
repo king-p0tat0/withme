@@ -39,7 +39,7 @@ public class ResponseService {
     /**
      * 특정 userId 기반으로 응답 조회
      */
-    public List<Response> getResponsesByUserId(String userId) {
+    public List<Response> getResponsesByUserId(Long userId) {
         return responseRepository.findByUser_UserId(userId);
     }
 }

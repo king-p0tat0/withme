@@ -45,7 +45,7 @@ public class QuestionController {
      * ✅ 특정 유저 ID(userId)에 해당하는 질문 조회 (유료 회원 문진 진행)
      */
     @GetMapping("/paid/{userId}")
-    public ResponseEntity<List<Question>> getPaidQuestionsByUserId(@PathVariable String userId) {
+    public ResponseEntity<List<Question>> getPaidQuestionsByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(questionService.getQuestionsByUserId(userId));
     }
 }

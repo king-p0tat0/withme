@@ -49,7 +49,7 @@ public class QuestionnaireController {
      * 특정 userId 기반으로 문진 조회
      */
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Questionnaire>> getQuestionnairesByUserId(@PathVariable String userId) {
+    public ResponseEntity<List<Questionnaire>> getQuestionnairesByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(questionnaireService.getQuestionnairesByUserId(userId));
     }
 

@@ -28,9 +28,10 @@ import java.util.Collections;
 @Builder
 public class Member extends BaseEntity{
     @Id
-    @Column(name = "user_id")
-    @GeneratedValue
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")  // ✅ user_id로 명확히 지정
+    private Long userId;
+
 
     private String user_name;
 

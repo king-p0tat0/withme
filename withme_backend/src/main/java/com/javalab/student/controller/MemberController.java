@@ -143,7 +143,7 @@ public class MemberController {
             // 8. 사용자 정보와 상태 반환
             responseBody.put("status", "success");
             responseBody.put("message", "사용자 정보가 수정되고 JWT가 갱신되었습니다.");
-            responseBody.put("id", updatedMember.getId());
+            responseBody.put("id", updatedMember.getUserId());
             responseBody.put("email", updatedMember.getEmail());
             responseBody.put("name", updatedMember.getUser_name());
             responseBody.put("roles", updatedMember.getAuthorities());

@@ -15,7 +15,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserQuestionProgressDTO {
-    private String userId;  // 유저 ID
+    private Long userId;  // 유저 ID
     private Long questionnaireId;  // 문진 ID
     private Long questionId;  // 질문 ID
     private ProgressStatus status;  // 진행 상태 (NOT_STARTED, IN_PROGRESS, COMPLETED)

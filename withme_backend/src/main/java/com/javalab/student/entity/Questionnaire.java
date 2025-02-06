@@ -2,7 +2,7 @@ package com.javalab.student.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.userdetails.User;
+
 
 import java.time.LocalDateTime;
 
@@ -26,7 +26,7 @@ public class Questionnaire {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // 유저 정보
+    private Member user; // 유저 정보
 
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "pet_id", nullable = false)

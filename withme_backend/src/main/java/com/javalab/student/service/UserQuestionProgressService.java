@@ -1,6 +1,7 @@
 package com.javalab.student.service;
 
 import com.javalab.student.entity.UserQuestionProgress;
+import com.javalab.student.entity.UserQuestionProgress.UserQuestionProgressId;
 import com.javalab.student.repository.UserQuestionProgressRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,8 +25,8 @@ public class UserQuestionProgressService {
     /**
      * ✅ 특정 userId 기반 문진 진행 상태 조회
      */
-    public List<UserQuestionProgress> getUserQuestionProgress(String userId) {
-        return userQuestionProgressRepository.findAllByUserId(userId);
+    public List<UserQuestionProgress> getUserQuestionProgress(Long userId) {
+        return userQuestionProgressRepository.findAllByMember_UserId(userId);
     }
 
     /**
@@ -36,11 +37,10 @@ public class UserQuestionProgressService {
     }
 
     /**
-     * ✅ 특정 userId 기반 문진 진행 상태 삭제
+     * ✅ 특정 userId, questionnaireId, questionId 기반 문진 진행 상태 삭제
      */
-    public void deleteUserQuestionProgress(String userId, Long questionnaireId, Long questionId) {
-        userQuestionProgressRepository.deleteByUserIdAndQuestionnaire_QuestionnaireIdAndQuestion_QuestionId(
-                userId, questionnaireId, questionId
-        );
+    public void deleteUserQuestionProgress(Long userId, Long questionnaireId, Long questionId) {
+        UserQuestionProgressId id = new UserQuestionProgressId(userId, questionnaireId, questionId);
+        userQuestionProgressRepository.deleteById(id);
     }
 }

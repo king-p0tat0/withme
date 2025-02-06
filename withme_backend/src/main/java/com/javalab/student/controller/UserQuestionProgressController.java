@@ -29,7 +29,7 @@ public class UserQuestionProgressController {
      * ✅ 특정 userId 기반 문진 진행 상태 조회
      */
     @GetMapping("/{userId}")
-    public ResponseEntity<List<UserQuestionProgress>> getUserQuestionProgress(@PathVariable @NotNull String userId) {
+    public ResponseEntity<List<UserQuestionProgress>> getUserQuestionProgress(@PathVariable @NotNull Long userId) {
         return ResponseEntity.ok(userQuestionProgressService.getUserQuestionProgress(userId));
     }
 
@@ -46,7 +46,7 @@ public class UserQuestionProgressController {
      */
     @DeleteMapping("/{userId}/{questionnaireId}/{questionId}")
     public ResponseEntity<Void> deleteUserQuestionProgress(
-            @PathVariable String userId,
+            @PathVariable Long userId,
             @PathVariable Long questionnaireId,
             @PathVariable Long questionId) {
         userQuestionProgressService.deleteUserQuestionProgress(userId, questionnaireId, questionId);

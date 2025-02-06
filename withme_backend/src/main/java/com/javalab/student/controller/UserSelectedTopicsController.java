@@ -28,7 +28,7 @@ public class UserSelectedTopicsController {
      * ✅ 특정 userId 기반 선택한 주제 조회
      */
     @GetMapping("/{userId}")
-    public ResponseEntity<List<UserSelectedTopics>> getUserSelectedTopics(@PathVariable @NotNull String userId) {
+    public ResponseEntity<List<UserSelectedTopics>> getUserSelectedTopics(@PathVariable @NotNull Long userId) {
         return ResponseEntity.ok(userSelectedTopicsService.getSelectedTopicsByUserId(userId));
     }
 
@@ -37,7 +37,7 @@ public class UserSelectedTopicsController {
      */
     @PostMapping("/{userId}/{topicId}")
     public ResponseEntity<UserSelectedTopics> saveUserSelectedTopic(
-            @PathVariable String userId,
+            @PathVariable Long userId,
             @PathVariable Long topicId) {
         return ResponseEntity.ok(userSelectedTopicsService.saveUserSelectedTopic(userId, topicId));
     }
@@ -46,7 +46,7 @@ public class UserSelectedTopicsController {
      * ✅ 특정 userId와 topicId 기반 주제 삭제
      */
     @DeleteMapping("/{userId}/{topicId}")
-    public ResponseEntity<Void> deleteUserSelectedTopic(@PathVariable String userId, @PathVariable Long topicId) {
+    public ResponseEntity<Void> deleteUserSelectedTopic(@PathVariable Long userId, @PathVariable Long topicId) {
         userSelectedTopicsService.deleteUserSelectedTopic(userId, topicId);
         return ResponseEntity.noContent().build();
     }

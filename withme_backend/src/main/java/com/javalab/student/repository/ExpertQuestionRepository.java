@@ -16,5 +16,7 @@ public interface ExpertQuestionRepository extends JpaRepository<ExpertQuestion, 
     /**
      * 특정 유저의 전문가 질문 목록 조회
      */
-    List<ExpertQuestion> findAllByUser_UserId(String userId);
+    List<ExpertQuestion> findAllByMember_UserId(Long userId);
+
+
 }

@@ -12,5 +12,5 @@ public class QuestionDTO {
     private Integer seq;  // 문항 순서
     private String questionText;  // 질문 내용
     private Long surveyId; // 설문 ID (무료 문진)
-    private String userId; // 유료 회원 문진을 위한 userId
+    private Long userId; // 유료 회원 문진을 위한 userId
 }

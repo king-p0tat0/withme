@@ -17,5 +17,5 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     /**
      * ✅ 특정 설문 주제에 속한 질문 조회
      */
-    List<Question> findBySurveyTopic(SurveyTopic surveyTopic);
+    List<Question> findBySurveyTopic_TopicId(Long topicId);
 }

@@ -40,7 +40,7 @@ public class ExpertAnswerService {
     /**
      * 특정 유저 ID 기반 전문가 답변 조회
      */
-    public List<ExpertAnswer> getExpertAnswersByUserId(String userId) {
+    public List<ExpertAnswer> getExpertAnswersByUserId(Long userId) {
         return expertAnswerRepository.findAllByUserId(userId);
     }
 

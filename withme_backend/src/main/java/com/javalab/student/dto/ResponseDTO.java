@@ -12,5 +12,5 @@ public class ResponseDTO {
     private Long survey_id;  // 설문 ID
     private Long question_id;  // 질문 ID
     private Long choice_id;  // 선택지 ID
-    private String user_id; // 유저 ID
+    private Long user_id; // 유저 ID
 }

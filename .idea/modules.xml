@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.javalab.withme.iml" filepath="$PROJECT_DIR$/.idea/modules/com.javalab.withme.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.javalab.withme.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.javalab.withme.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/withme.iml" filepath="$PROJECT_DIR$/.idea/withme.iml" />
     </modules>
   </component>
 </project>

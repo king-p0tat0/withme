@@ -45,16 +45,15 @@ public class QuestionService {
     /**
      * ✅ 특정 userId에 해당하는 유료 문진 질문 리스트 반환
      */
-    /**
-     * ✅ 특정 userId에 해당하는 유료 문진 질문 리스트 반환
-     */
-    public List<Question> getQuestionsByUserId(String userId) {
-        List<UserSelectedTopics> selectedTopics = userSelectedTopicsRepository.findAllByUserId(userId);
+    public List<Question> getQuestionsByUserId(Long userId) {
+        // ✅ 복합 키를 사용한 엔티티이므로 `findAllByMember_UserId`로 변경
+        List<UserSelectedTopics> selectedTopics = userSelectedTopicsRepository.findAllByMember_UserId(userId);
 
+        // ✅ selectedTopics에서 topicId를 추출하고, 이를 기반으로 질문을 찾음
         return selectedTopics.stream()
-                .map(UserSelectedTopics::getSurveyTopic)
-                .flatMap(topic -> questionRepository.findBySurveyTopic(topic).stream())
+                .map(UserSelectedTopics::getSurveyTopic)  // SurveyTopic 가져오기
+                .map(SurveyTopic::getTopicId) // topicId 가져오기
+                .flatMap(topicId -> questionRepository.findBySurveyTopic_TopicId(topicId).stream()) // topicId 기반 질문 조회
                 .collect(Collectors.toList());
     }
-
 }

@@ -29,7 +29,7 @@ public class ExpertAnswer {
     private ExpertQuestion expertQuestion; // 전문가 질문 ID
 
     @Column(name = "user_id", nullable = false, length = 20)
-    private String userId; // 전문가 ID
+    private Long userId; // 전문가 ID
 
     @Lob
     @Column(name = "answer_text", nullable = false)

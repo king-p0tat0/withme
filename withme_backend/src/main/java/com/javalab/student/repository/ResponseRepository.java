@@ -16,5 +16,5 @@ public interface ResponseRepository extends JpaRepository<Response, Long> {
     /**
      * 특정 userId 기반으로 응답 목록 조회
      */
-    List<Response> findByUser_UserId(String userId);
+    List<Response> findByUser_UserId(Long userId);
 }

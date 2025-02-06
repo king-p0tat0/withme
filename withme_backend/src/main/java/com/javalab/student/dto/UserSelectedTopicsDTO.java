@@ -12,6 +12,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserSelectedTopicsDTO {
-    private String userId;  // 유저 세션 ID
+    private Long userId;  // 유저 세션 ID
     private Long topicId;  // 선택한 주제 ID
 }

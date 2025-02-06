@@ -62,14 +62,15 @@ public class TokenProvider {
         Date now = new Date();
         return Jwts.builder()
                 .setHeaderParam(Header.TYPE, Header.JWT_TYPE)   // 헤더 설정(TYPE: JWT, ALG: HS256)
-                .setIssuer(jwtProperties.getIssuer()) // 발급자(properties에서 받아온 발급자)
-                .setIssuedAt(now)   // 토큰 발급 시간
-                .setExpiration(expiry)  // 토큰 만료 시간
-                .setSubject(user.getEmail())        // 토큰 주제, User 객체에서 받아온 email
-                .claim("id", user.getId())        // 토큰 id, User 객체에서 받아온 id
+                .setIssuer(jwtProperties.getIssuer())           // 발급자 (properties에서 받아온 발급자)
+                .setIssuedAt(now)                               // 토큰 발급 시간
+                .setExpiration(expiry)                          // 토큰 만료 시간
+                .setSubject(user.getEmail())                    // 토큰 주제, user 객체에서 받아온 email
+                .claim("id", user.getUserId())                  // 토큰 id, user 객체에서 받아온 id
                 .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecretKey()) // 토큰 서명, 시크릿 키
-                .compact(); // 토큰 생성
+                .compact();                                     // 토큰 생성
     }
+
 
     /**
      * 토큰 유효성 검사

@@ -38,7 +38,7 @@ public class QuestionnaireService {
     /**
      * 특정 유저의 문진 조회
      */
-    public List<Questionnaire> getQuestionnairesByUserId(String userId) {
+    public List<Questionnaire> getQuestionnairesByUserId(Long userId) {
         return questionnaireRepository.findAllByUser_UserId(userId);
     }
 
