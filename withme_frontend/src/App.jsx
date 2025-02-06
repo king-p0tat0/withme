@@ -8,6 +8,7 @@ import MyPage from "./component/member/MyPage.jsx";
 import ViewStudent from "./component/ViewStudent";
 import EditStudent from "./component/EditStudent";
 import RegisterMember from "./component/member/RegisterMember";
+import PostList from "./component/posts/PostList";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUserInfo } from "./redux/authSlice";
 import { clearUser } from "./redux/authSlice";
@@ -88,6 +89,9 @@ function App() {
                 마이페이지
               </Button>
             )}
+            <Button color="inherit" component={Link} to="/posts">
+              커뮤니티
+            </Button>
           </Typography>
           {isLoggedIn ? (
             <>
@@ -131,6 +135,7 @@ function App() {
         <Route path="/registerMember" element={<RegisterMember />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
+        <Route path="/posts" element={<PostList />} />
         {/* React Router는 상단부터 Routes에 정의된 Route를 순차적으로 검사. 모든 요청을 UnauthorizedPage로 리디렉션, 위에서 부터 순차적으로 진행됨 */}
         {/*<Route path="*" element={<UnauthorizedPage />} />*/}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
