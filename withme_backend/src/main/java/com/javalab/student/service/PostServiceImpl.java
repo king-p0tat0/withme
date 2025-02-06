@@ -46,21 +46,44 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostDto updatePost(Long id, PostDto postDto) {
-        Post existingPost = postRepository.findById(id)
+    public PostDto updatePost(Long id, PostDto postDto, String currentUserId) {
+        Post post = postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        existingPost.setPostTitle(postDto.getPostTitle());
-        existingPost.setPostContent(postDto.getPostContent());
-        existingPost.setUpdatedAt(new Date());
-        existingPost.setCategory(postDto.getCategory());
-        return modelMapper.map(postRepository.save(existingPost), PostDto.class);
+
+        // 작성자 확인
+        if (!post.getUserId().equals(currentUserId)) {
+            throw new SecurityException("작성자만 게시글을 수정할 수 있습니다.");
+        }
+
+        // 게시글 수정
+        post.setPostTitle(postDto.getPostTitle());
+        post.setPostContent(postDto.getPostContent());
+        post.setCategory(postDto.getCategory());
+        return mapToDto(postRepository.save(post));
     }
 
     @Override
-    public void deletePost(Long id) {
-        if (!postRepository.existsById(id)) {
-            throw new IllegalArgumentException("게시글을 찾을 수 없습니다.");
+    public void deletePost(Long id, String currentUserId) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        // 작성자 확인
+        if (!post.getUserId().equals(currentUserId)) {
+            throw new SecurityException("작성자만 게시글을 삭제할 수 있습니다.");
         }
-        postRepository.deleteById(id);
+
+        // 게시글 삭제
+        postRepository.delete(post);
+    }
+
+    private PostDto mapToDto(Post post) {
+        return PostDto.builder()
+                .postId(post.getPostId())
+                .userId(post.getUserId())
+                .postTitle(post.getPostTitle())
+                .postContent(post.getPostContent())
+                .category(post.getCategory())
+                .viewCount(post.getViewCount())
+                .build();
     }
 }
