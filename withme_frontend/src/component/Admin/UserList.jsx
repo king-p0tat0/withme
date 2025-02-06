@@ -10,7 +10,7 @@ import { API_URL } from '../../constant';
 
 
 export default function UserList() {
-    const [users, setUsers] = useState([]); // 전문가 리스트 상태
+    const [users, setUsers] = useState([]); // 유저 리스트 상태
     const [loading, setLoading] = useState(false); // 로딩 상태
     const [error, setError] = useState(null); // 에러 상태
     const [currentPage, setCurrentPage] = useState(1);  // 현재 보여줄 페이지
@@ -25,8 +25,8 @@ export default function UserList() {
     });
     const itemsPerPage = 10;
 
-    // 전문가 리스트 가져오기
-    const fetchDoctors = async () => {
+    // 유저 리스트 가져오기
+    const fetchUsers = async () => {
         setLoading(true);
         setError(null);
         try {
@@ -41,14 +41,14 @@ export default function UserList() {
             });
             setUsers(response.data); // 서버에서 받은 데이터로 상태 업데이트
         } catch (err) {
-            setError('전문가 데이터를 가져오는 데 실패했습니다.'); // 오류 발생 시 오류 메시지 업데이트
+            setError('사용자 데이터를 가져오는 데 실패했습니다.'); // 오류 발생 시 오류 메시지 업데이트
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchDoctors(); // 컴포넌트 마운트 시 전문가 리스트 가져오기
+        fetchUsers(); // 컴포넌트 마운트 시 유저 리스트 가져오기
     }, []);
 
     const filteredData = users.filter((user) => {
@@ -81,10 +81,6 @@ export default function UserList() {
         const { name, value } = e.target;
         setSearchQuery((prev) => ({ ...prev, [name]: value }));
     };
-
-
-
-
 
     return (
         <div className="doctor-list-container">
@@ -120,7 +116,6 @@ export default function UserList() {
                                         <td>{user.role}</td>
                                         <td>{user.points}</td>
                                         <td>{new Date(user.createdAt).toLocaleDateString('ko-KR')}</td>
-
                                     </tr>
                                 ))
                             ) : (
