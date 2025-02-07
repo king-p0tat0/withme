@@ -99,6 +99,9 @@ export default function Login({ onLogin }) {
                 <Button variant="outlined" onClick={() => navigate("/registerMember")}>
                     회원가입
                 </Button>
+                <Button variant="outlined" onClick={() => navigate("/registerDoctor")}>
+                    의사 회원가입
+                </Button>
             </div>
         </div>
     );

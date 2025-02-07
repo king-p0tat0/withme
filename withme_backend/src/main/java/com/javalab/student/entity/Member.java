@@ -20,7 +20,7 @@ import java.util.Collections;
  * - 화면에서 데이터를 전달받는 용도로는 사용하지 않는게 관례이다.
  */
 @Entity
-@Table(name = "user")
+@Table(name = "member")
 @Getter @Setter
 @ToString
 @NoArgsConstructor
@@ -28,12 +28,11 @@ import java.util.Collections;
 @Builder
 public class Member extends BaseEntity{
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")  // ✅ user_id로 명확히 지정
-    private Long userId;
+    @Column(name = "user_id")
+    @GeneratedValue
+    private Long id;
 
-
-    private String user_name;
+    private String username;
 
     // 이메일은 중복될 수 없다. unique = true
     @Column(unique = true)
@@ -44,8 +43,6 @@ public class Member extends BaseEntity{
     private String phone;
 
     private String address;
-
-    private String age;
 
     @Builder
     public Member(String email, String password, String auth) {
@@ -74,17 +71,16 @@ public class Member extends BaseEntity{
         * - 사용자가 입력한 암호는 "평문"이다. 즉 암호화가 안된 문자열이다.
      */
     public static Member createMember(MemberFormDto memberFormDto, PasswordEncoder passwordEncoder) {
-        String role = Role.USER.toString();
+        String role = String.valueOf(memberFormDto.getRole() != null ? memberFormDto.getRole() : Role.USER);
         Member member = new Member();
-        member.setUser_name(memberFormDto.getUser_name());
+        member.setUsername(memberFormDto.getUsername());
         member.setEmail(memberFormDto.getEmail());
         String password = passwordEncoder.encode(memberFormDto.getPassword()); // 비밀번호 암호화
         member.setPassword(password);
         member.setAddress(memberFormDto.getAddress());
         member.setPhone(memberFormDto.getPhone());
-        member.setAge(memberFormDto.getAge());
         member.setSocial(false); // 일반 회원가입이므로 소셜 로그인 여부는 false
-        member.setRole(Role.USER);  // 회원가입 시 사용자의 권한 : USER  [수정]
+        member.setRole(Role.valueOf(role));  // 회원가입 시 사용자의 권한 : USER  [수정]
         return member;
     }
 

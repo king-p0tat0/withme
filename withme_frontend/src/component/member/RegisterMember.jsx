@@ -12,13 +12,12 @@ import { useEffect } from "react";
 export default function RegisterMember() {
     // 입력된 회원 정보를 저장할 상태 변수
     const [member, setMember] = useState({
-        user_id : "",
-        user_name: "",
+        username: "",
         email: "",
         password: "",
+        passwordre: "",
         phone: "",
         address: "",
-        age: "",
     });
     const [email, setEmail] = useState("");
     const debouncedEmail = useDebounce(email, 500); // 500ms 디바운스 적용
@@ -71,22 +70,26 @@ export default function RegisterMember() {
 
     // 회원가입 처리
     const handleOnSubmit = () => {
-        fetch(API_URL + "members/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(member),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    alert("회원가입이 완료되었습니다.");
-                    navigate("/login");
-                } else {
-                    return response.text().then((text) => {
-                        alert("회원가입 실패: " + text);
-                    });
-                }
+        if(member.password == member.passwordre){
+            fetch(API_URL + "members/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(member),
             })
-            .catch((error) => console.error("회원가입 중 오류 발생:", error));
+                .then((response) => {
+                    if (response.ok) {
+                        alert("회원가입이 완료되었습니다.");
+                        navigate("/login");
+                    } else {
+                        return response.text().then((text) => {
+                            alert("회원가입 실패: " + text);
+                        });
+                    }
+                })
+                .catch((error) => console.error("회원가입 중 오류 발생:", error));
+        }else{
+            alert("비밀번호가 다릅니다");
+        }
     };
 
     return (
@@ -95,21 +98,7 @@ export default function RegisterMember() {
                 회원가입
             </Typography>
             <TextField
-                label="User_id"
-                name="user_id"
-                value={member.user_id}
-                onChange={onMemberChange}
-                style={{ width: "400px", marginBottom: "10px" }}
-            />
-            <TextField
-                label="User_name"
-                name="user_name"
-                value={member.user_name}
-                onChange={onMemberChange}
-                style={{ width: "400px", marginBottom: "10px" }}
-            />
-            <TextField
-                label="Email"
+                label="이메일 입력"
                 name="email"
                 value={member.email}
                 onChange={onMemberChange}
@@ -118,7 +107,7 @@ export default function RegisterMember() {
                 helperText={emailError} // 오류 메시지 표시
             />
             <TextField
-                label="Password"
+                label="비밀번호 입력"
                 name="password"
                 type="password"
                 value={member.password}
@@ -126,26 +115,34 @@ export default function RegisterMember() {
                 style={{ width: "400px", marginBottom: "10px" }}
             />
             <TextField
-                label="Phone"
+                label="비밀번호 입력"
+                name="passwordre"
+                type="passwordre"
+                value={member.passwordre}
+                onChange={onMemberChange}
+                style={{ width: "400px", marginBottom: "10px" }}
+            />
+            <TextField
+                label="이름 입력"
+                name="username"
+                value={member.username}
+                onChange={onMemberChange}
+                style={{ width: "400px", marginBottom: "10px" }}
+            />
+            <TextField
+                label="전화번호 입력"
                 name="phone"
                 value={member.phone}
                 onChange={onMemberChange}
                 style={{ width: "400px", marginBottom: "10px" }}
             />
             <TextField
-                label="Address"
+                label="주소입력"
                 name="address"
                 value={member.address}
                 onChange={onMemberChange}
                 style={{ width: "400px", marginBottom: "10px" }}
             />
-             <TextField
-                 label="Age"
-                 name="age"
-                 value={member.age}
-                 onChange={onMemberChange}
-                 style={{ width: "400px", marginBottom: "10px" }}
-             />
             <Button variant="contained" onClick={handleOnSubmit} disabled={!!emailError}>
                 회원가입
             </Button>
