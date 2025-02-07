@@ -7,6 +7,12 @@ import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../../../common/fetchWithAuth";
 import { API_URL } from '../../../constant';
 
+/**
+ * 전문가 상세 정보 페이지 모달
+ * - 해당 전문가 상세 정보 출력
+ * - 승인 상태 변경 버튼( 삭제 예정 )
+ * - 일반 유저도 접근 가능
+ */
 export default function DoctorView({doctor, onClose, docList }) {
 
      // ESC 키 입력 시 모달 닫기
