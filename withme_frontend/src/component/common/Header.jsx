@@ -37,7 +37,7 @@ const Header = () => {
   return (
     <>
       <Helmet>
-          <title>행복한 반려생활의 시작, 위드미</title>
+        <title>행복한 반려생활의 시작, 위드미</title>
         <link
           href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap"
           rel="stylesheet"
@@ -50,6 +50,11 @@ const Header = () => {
             {isLoggedIn ? (
               <>
                 <li>{user.name}님</li>
+                {user.role === "ADMIN" && (
+                  <li>
+                    <Link to="/admin">관리자 페이지</Link>
+                  </li>
+                )}
                 <li>
                   <Link to="/" onClick={handleLogout} className="logout-btn">
                     로그아웃
@@ -73,9 +78,9 @@ const Header = () => {
             )}
 
             <li>
-                <Link to="/cart" className="cart-btn" onClick={handleCartClick}>
-                  <FontAwesomeIcon icon={faShoppingBasket} />
-                </Link>
+              <Link to="/cart" className="cart-btn" onClick={handleCartClick}>
+                <FontAwesomeIcon icon={faShoppingBasket} />
+              </Link>
             </li>
           </ul>
         </div>
