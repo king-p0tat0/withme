@@ -22,6 +22,11 @@ import { API_URL } from "./constant";
 import Home from "./component/Home";
 import HomeIcon from "@mui/icons-material/Home";
 import { fetchWithAuth } from "./common/fetchWithAuth.js"; // 홈 아이콘 추가
+import Header from "./component/common/Header";
+import Footer from "./component/common/Footer";
+
+//관리자
+// import Admin from "./component/admin/Admin";
 //관리자
 import Admin from "./component/admin/Admin";
 
@@ -82,44 +87,7 @@ function App() {
   return (
     <div className="App">
       {/*헤더 부분*/}
-      <AppBar position="static">
-        <Toolbar>
-          <HomeIcon />
-          <Typography variant="h3" style={{ flexGrow: 1 }}>
-            {isLoggedIn && (
-              <Button
-                color="inherit"
-                component={Link}
-                to={`/mypage/${user?.id}`}>
-                마이페이지
-              </Button>
-            )}
-            <Button color="inherit" component={Link} to="/posts">
-              커뮤니티
-            </Button>
-            <Button color="inherit" component={Link} to="/admin">
-              관리자
-            </Button>
-          </Typography>
-          {isLoggedIn ? (
-            <>
-              <Typography
-                variant="body1"
-                style={{ marginRight: "10px", fontSize: "14px" }}>
-                {user.name}{" "}
-                {user.roles?.includes("ROLE_ADMIN") ? "(관리자)" : "(사용자)"}
-              </Typography>
-              <Button color="inherit" onClick={handleLogout}>
-                로그아웃
-              </Button>
-            </>
-          ) : (
-            <Button color="inherit" component={Link} to="/login">
-              로그인
-            </Button>
-          )}
-        </Toolbar>
-      </AppBar>
+      <Header />
       {/*라우팅 부분*/}
       <Routes>
         <Route path="/" element={<Home />} />
@@ -157,6 +125,7 @@ function App() {
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/admin" element={<Admin />} />
       </Routes>
+      <Footer />
     </div>
   );
 }
