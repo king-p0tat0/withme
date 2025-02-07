@@ -19,7 +19,7 @@ public class MemberSecurityDto extends User implements OAuth2User {
     private String email;
     private boolean social;
     private String provider;
-    private String userName;
+    private String name;
     private Map<String, Object> attributes; // 소셜 사용자 정보
 
     public MemberSecurityDto(Long id,   // 사용자 ID 추가[수정]
@@ -33,7 +33,7 @@ public class MemberSecurityDto extends User implements OAuth2User {
         super(username, password, authorities);
         this.email = username;
         this.id = id;   // 사용자 ID 추가[수정]
-        this.userName = name;
+        this.name = name;
         this.social = social;
         this.provider = provider;
         this.attributes = attributes;
@@ -54,6 +54,6 @@ public class MemberSecurityDto extends User implements OAuth2User {
      * @return 사용자 이름
      */
     public String getRealName() {
-        return userName;
+        return name;
     }
 }

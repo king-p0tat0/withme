@@ -58,7 +58,7 @@ public class MemberService {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        member.setUserName(memberFormDto.getUserName());
+        member.setName(memberFormDto.getName());
         member.setPhone(memberFormDto.getPhone());
         member.setAddress(memberFormDto.getAddress());
 

@@ -22,6 +22,8 @@ import { API_URL } from "./constant";
 import Home from "./component/Home";
 import HomeIcon from "@mui/icons-material/Home";
 import { fetchWithAuth } from "./common/fetchWithAuth.js"; // 홈 아이콘 추가
+//관리자
+import Admin from "./component/admin/Admin";
 
 /**
  * App 컴포넌트
@@ -95,6 +97,9 @@ function App() {
             <Button color="inherit" component={Link} to="/posts">
               커뮤니티
             </Button>
+            <Button color="inherit" component={Link} to="/admin">
+              관리자
+            </Button>
           </Typography>
           {isLoggedIn ? (
             <>
@@ -150,6 +155,7 @@ function App() {
         {/* React Router는 상단부터 Routes에 정의된 Route를 순차적으로 검사. 모든 요청을 UnauthorizedPage로 리디렉션, 위에서 부터 순차적으로 진행됨 */}
         {/*<Route path="*" element={<UnauthorizedPage />} />*/}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </div>
   );

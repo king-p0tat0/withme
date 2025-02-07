@@ -114,8 +114,8 @@ public class SecurityConfig {
                         "/**/*.html",
                         "/ping.js"
                 ).permitAll() // 정적 리소스는 모두 허용
-                .anyRequest().authenticated()
-                //.anyRequest().permitAll() // 임시로 모든 요청에 대해 접근을 허용 나중에 제거
+                //.anyRequest().authenticated()
+                .anyRequest().permitAll() // 임시로 모든 요청에 대해 접근을 허용 나중에 제거
         );
 
         /*

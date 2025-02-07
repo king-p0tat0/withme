@@ -70,7 +70,7 @@ class DoctorRepositoryTest {
         // 일반 사용자 10명 추가
         for (int i = 1; i <= 10; i++) {
             Member member = createMember(
-                    "사용자" + i, "user" + i + "@example.com", "password123",
+                    "사용자" + i, "user" + i + "@example.com", "1234",
                     "서울시 어딘가 " + i, "010-1234-56" + String.format("%02d", i),
                     Role.USER
             );
@@ -80,7 +80,7 @@ class DoctorRepositoryTest {
         // 의사 10명 추가
         for (int i = 1; i <= 10; i++) {
             Member doctorMember = createMember(
-                    "의사" + i, "doctor" + i + "@example.com", "password123",
+                    "의사" + i, "doctor" + i + "@example.com", "1234",
                     "서울시 병원가 " + i, "010-5678-90" + String.format("%02d", i),
                     Role.DOCTOR
             );
@@ -93,7 +93,7 @@ class DoctorRepositoryTest {
         // 관리자 2명 추가
         for (int i = 1; i <= 2; i++) {
             Member admin = createMember(
-                    "관리자" + i, "admin" + i + "@example.com", "password123",
+                    "관리자" + i, "admin" + i + "@example.com", "1234",
                     "서울시 본사 " + i, "010-9999-88" + i,
                     Role.ADMIN
             );
