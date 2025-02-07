@@ -22,6 +22,8 @@ import { API_URL } from "./constant";
 import Home from "./component/Home";
 import HomeIcon from "@mui/icons-material/Home";
 import { fetchWithAuth } from "./common/fetchWithAuth.js"; // 홈 아이콘 추가
+// 헤더
+import Header from "./component/common/Header";
 
 /**
  * App 컴포넌트
@@ -80,6 +82,7 @@ function App() {
   return (
     <div className="App">
       {/*헤더 부분*/}
+      <Header />
       <AppBar position="static">
         <Toolbar>
           <HomeIcon />
