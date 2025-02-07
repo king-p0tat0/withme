@@ -47,6 +47,7 @@ const Header = () => {
       <header>
         <div className="gnb-container">
           <ul className="gnb">
+              <Link to="/"><img src="/assets/images/text_logo.png" alt="텍스트 로고" className="textLogo" /></Link>
             {isLoggedIn ? (
               <>
                 <li>{user.name}님</li>
