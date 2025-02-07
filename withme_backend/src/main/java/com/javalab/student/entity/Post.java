@@ -21,7 +21,7 @@ public class Post {
     private long postId;
 
     @Column(name = "user_id", nullable = false, length = 20)
-    private String userId;
+    private Long userId;
 
     @Column(name = "post_title", nullable = false, length = 100)
     private String postTitle;

@@ -1,62 +1,53 @@
 package com.javalab.student.controller;
 
-import com.javalab.student.entity.Notice;
-import com.javalab.student.repository.NoticeRepository;
+import com.javalab.student.dto.NoticeDto;
+import com.javalab.student.service.NoticeService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/notices")
+@RequiredArgsConstructor
 public class NoticeController {
 
-    private final NoticeRepository noticeRepository;
+    private final NoticeService noticeService;
 
-    // 생성자를 통해 Repository 주입
-    public NoticeController(NoticeRepository noticeRepository) {
-        this.noticeRepository = noticeRepository;
-    }
+    // 공지사항 등록 (관리자만 가능)
+    // @PostMapping
+    // public ResponseEntity<NoticeDto> createNotice(@RequestBody NoticeDto noticeDto) {
+    //     return ResponseEntity.ok(noticeService.createNotice(noticeDto));
+    // }
 
-    // 공지사항 등록 (POST)
     @PostMapping
-    public ResponseEntity<Notice> createNotice(@RequestBody Notice notice) {
-        notice.setCreatedAt(LocalDateTime.now()); // 생성 시간 설정
-        return ResponseEntity.ok(noticeRepository.save(notice)); // 저장 후 반환
-    }
+public ResponseEntity<NoticeDto> createNotice(@RequestBody NoticeDto noticeDto) {
+    return ResponseEntity.ok(noticeService.createNotice(noticeDto));
+}
 
-    // 공지사항 수정 (PUT)
+    // 공지사항 수정 (관리자만 가능)
     @PutMapping("/{id}")
-    public ResponseEntity<Notice> updateNotice(@PathVariable Long id, @RequestBody Notice updatedNotice) {
-        return noticeRepository.findById(id).map(notice -> {
-            notice.setTitle(updatedNotice.getTitle());
-            notice.setContent(updatedNotice.getContent());
-            notice.setCategory(updatedNotice.getCategory());
-            notice.setUpdatedAt(LocalDateTime.now()); // 수정 시간 설정
-            return ResponseEntity.ok(noticeRepository.save(notice)); // 수정 후 저장
-        }).orElse(ResponseEntity.notFound().build()); // 공지사항이 없으면 404 반환
+    public ResponseEntity<NoticeDto> updateNotice(@PathVariable Long id, @RequestBody NoticeDto noticeDto) {
+        return ResponseEntity.ok(noticeService.updateNotice(id, noticeDto));
     }
 
-    // 공지사항 삭제 (DELETE)
+    // 공지사항 삭제 (관리자만 가능)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotice(@PathVariable Long id) {
-        return noticeRepository.findById(id).map(notice -> {
-            noticeRepository.delete(notice); // 공지사항 삭제
-            return ResponseEntity.ok().<Void>build(); // 명시적으로 Void 타입 설정
-        }).orElse(ResponseEntity.notFound().build()); // 공지사항이 없으면 404 반환
+        noticeService.deleteNotice(id);
+        return ResponseEntity.noContent().build();
     }
 
-    // 공지사항 조회 (GET)
+    // 단일 공지사항 조회 (모든 사용자 가능)
     @GetMapping("/{id}")
-    public ResponseEntity<Notice> getNoticeById(@PathVariable Long id) {
-        return noticeRepository.findById(id)
-                .map(ResponseEntity::ok) // 공지사항이 있으면 반환
-                .orElse(ResponseEntity.notFound().build()); // 없으면 404 반환
+    public ResponseEntity<NoticeDto> getNoticeById(@PathVariable Long id) {
+        return ResponseEntity.ok(noticeService.getNoticeById(id));
     }
 
-    // 모든 공지사항 조회 (GET)
+    // 모든 공지사항 조회 (모든 사용자 가능)
     @GetMapping
-    public ResponseEntity<Iterable<Notice>> getAllNotices() {
-        return ResponseEntity.ok(noticeRepository.findAll()); // 모든 공지사항 반환
+    public ResponseEntity<List<NoticeDto>> getAllNotices() {
+        return ResponseEntity.ok(noticeService.getAllNotices());
     }
 }
