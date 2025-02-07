@@ -29,7 +29,7 @@ import java.util.Collections;
 public class Member extends BaseEntity{
     @Id
     @Column(name = "user_id")
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     private String username;

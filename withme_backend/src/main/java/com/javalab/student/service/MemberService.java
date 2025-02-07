@@ -1,13 +1,19 @@
 package com.javalab.student.service;
 
-import com.javalab.student.dto.LoginFormDto;
-import com.javalab.student.dto.MemberFormDto;
+import com.javalab.student.dto.*;
 import com.javalab.student.entity.Member;
+import com.javalab.student.entity.Student;
 import com.javalab.student.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
