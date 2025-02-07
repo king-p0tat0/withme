@@ -145,7 +145,7 @@ public class MemberController {
             responseBody.put("message", "사용자 정보가 수정되고 JWT가 갱신되었습니다.");
             responseBody.put("id", updatedMember.getId());
             responseBody.put("email", updatedMember.getEmail());
-            responseBody.put("name", updatedMember.getUser_name());
+            responseBody.put("name", updatedMember.getUserName());
             responseBody.put("roles", updatedMember.getAuthorities());
             return ResponseEntity.ok(responseBody);
         } catch (IllegalArgumentException e) {

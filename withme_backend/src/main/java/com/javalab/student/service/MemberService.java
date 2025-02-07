@@ -52,7 +52,7 @@ public class MemberService {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        member.setUser_name(memberFormDto.getUser_name());
+        member.setUserName(memberFormDto.getUserName());
         member.setPhone(memberFormDto.getPhone());
         member.setAddress(memberFormDto.getAddress());
 

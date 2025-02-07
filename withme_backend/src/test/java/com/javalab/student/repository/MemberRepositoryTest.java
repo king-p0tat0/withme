@@ -35,7 +35,7 @@ class MemberRepositoryTest {
         MemberFormDto memberFormDto = MemberFormDto.builder()
                 .email("test@example.com")
                 //.email("test1@example.com") // DB에 없는 이메일로 변경
-                .user_name("홍길동")
+                .userName("홍길동")
                 .address("서울시 강남구")
                 .password("1234") // 원래 비밀번호
                 .phone("010-1234-5678")
@@ -61,7 +61,7 @@ class MemberRepositoryTest {
 
         // Then : 저장된 회원 정보 확인
         assertEquals(member.getEmail(), savedMember.getEmail());
-        assertEquals(member.getUser_name(), savedMember.getUser_name());
+        assertEquals(member.getUserName(), savedMember.getUserName());
         assertEquals(member.getAddress(), savedMember.getAddress());
 
         // 비밀번호가 암호화되어 저장되었는지 확인
