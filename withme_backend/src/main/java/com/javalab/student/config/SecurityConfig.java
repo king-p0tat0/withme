@@ -91,8 +91,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/students/add").hasRole("ADMIN") // 학생 등록 API에 ROLE_ADMIN 요구
                 .requestMatchers("/images/**", "/static-images/**", "/css/**", "/favicon.ico", "/error", "/img/**").permitAll()
                 //.requestMatchers("/admin/**").hasRole("ADMIN")
-//                .anyRequest().authenticated()
-                .anyRequest().permitAll() // 임시로 모든 요청에 대해 접근을 허용 나중에 제거
+                .anyRequest().authenticated()
+                //.anyRequest().permitAll() // 임시로 모든 요청에 대해 접근을 허용 나중에 제거
         );
 
 
