@@ -8,6 +8,7 @@ import MyPage from "./component/member/MyPage.jsx";
 import ViewStudent from "./component/ViewStudent";
 import EditStudent from "./component/EditStudent";
 import RegisterMember from "./component/member/RegisterMember";
+import RegisterDoctor from "./component/doctor/RegisterDoctor";
 //커뮤니티
 import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
@@ -141,6 +142,7 @@ function App() {
           </>
         )}
         <Route path="/registerMember" element={<RegisterMember />} />
+        <Route path="/registerDoctor" element={<RegisterDoctor />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
         {/* 게시글 목록 */}
