@@ -6,7 +6,7 @@ const Footer = () => {
     <footer className="footer">
       <div className="footer-container">
         <div className="footer-top">
-          <img src="/images/logo.png" alt="로고" className="footer-logo" />
+          <img src="/assets/images/logo.png" alt="로고" className="footer-logo" />
           <p>
             (주)위드미 : 경기도 안산시 상록구 광덕1로 375, 5층
             <br /> 대표 : 홍길동 사업자등록번호 : 123-45-67890

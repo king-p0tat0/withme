@@ -1,4 +1,4 @@
-import './Header.css';
+import "./Header.css";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -35,48 +35,52 @@ const Header = () => {
   };
 
   return (
-    <Helmet>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap"
-        rel="stylesheet"
-      />
-    </Helmet>
-    <header>
-      <div className="gnb-container">
-        <ul className="gnb">
-          {isLoggedIn ? (
-            <>
-              <li>{user.name}님</li>
+    <>
+      <Helmet>
+          <title>행복한 반려생활의 시작, 위드미</title>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap"
+          rel="stylesheet"
+        />
+        <link rel="icon" href="/assets/images/favicon.ico" />
+      </Helmet>
+      <header>
+        <div className="gnb-container">
+          <ul className="gnb">
+            {isLoggedIn ? (
+              <>
+                <li>{user.name}님</li>
+                <li>
+                  <Link to="/" onClick={handleLogout} className="logout-btn">
+                    로그아웃
+                  </Link>
+                </li>
+                <li>
+                  <Link to={`/mypage/${user.id}`}>마이페이지</Link>
+                </li>
+              </>
+            ) : (
               <li>
-                <Link to="/" onClick={handleLogout} className="logout-btn">
-                  로그아웃
-                </Link>
+                <Link to="/login">로그인</Link>
               </li>
-              <li>
-                <Link to={`/mypage/${user.id}`}>마이페이지</Link>
+            )}
+
+            {!isLoggedIn && (
+              <li className="join-us">
+                <Link to="/register">회원가입</Link>
+                <span className="tooltip">+2,000P</span>
               </li>
-            </>
-          ) : (
+            )}
+
             <li>
-              <Link to="/login">로그인</Link>
+                <Link to="/cart" className="cart-btn" onClick={handleCartClick}>
+                  <FontAwesomeIcon icon={faShoppingBasket} />
+                </Link>
             </li>
-          )}
-
-          {!isLoggedIn && (
-            <li className="join-us">
-              <Link to="/register">회원가입</Link>
-              <span className="tooltip">+2,000P</span>
-            </li>
-          )}
-
-          <li>
-            <Link to="/cart" className="cart-btn" onClick={handleCartClick}>
-              <FontAwesomeIcon icon={faShoppingBasket} />
-            </Link>
-          </li>
-        </ul>
-      </div>
-    </header>
+          </ul>
+        </div>
+      </header>
+    </>
   );
 };
 
