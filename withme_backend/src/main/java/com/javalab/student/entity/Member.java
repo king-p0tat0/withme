@@ -29,10 +29,10 @@ import java.util.Collections;
 public class Member extends BaseEntity{
     @Id
     @Column(name = "user_id")
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String userName;
+    private String name;
 
     // 이메일은 중복될 수 없다. unique = true
     @Column(unique = true)
@@ -73,9 +73,8 @@ public class Member extends BaseEntity{
         * - 사용자가 입력한 암호는 "평문"이다. 즉 암호화가 안된 문자열이다.
      */
     public static Member createMember(MemberFormDto memberFormDto, PasswordEncoder passwordEncoder) {
-        String role = memberFormDto.getRole().toString();
         Member member = new Member();
-        member.setUserName(memberFormDto.getUserName());
+        member.setName(memberFormDto.getName());
         member.setEmail(memberFormDto.getEmail());
         String password = passwordEncoder.encode(memberFormDto.getPassword()); // 비밀번호 암호화
         member.setPassword(password);
@@ -100,5 +99,4 @@ public class Member extends BaseEntity{
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
     }
-
 }
