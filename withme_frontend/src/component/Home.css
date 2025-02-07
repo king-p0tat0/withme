@@ -59,7 +59,7 @@ nav a.active {
     font-size: 1.1em;
 }
 
-.search-box i {
+.fa-search {
     position: absolute;
     right: 15px;
     color: #aaa;

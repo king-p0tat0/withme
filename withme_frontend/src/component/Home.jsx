@@ -3,6 +3,8 @@ import { Box, Card, CardContent, Typography, Button } from "@mui/material";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import MainNotice from "./notice/MainNotice";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch  } from "@fortawesome/free-solid-svg-icons";
 import './Home.css';
 
 function Home() {
@@ -19,7 +21,7 @@ function Home() {
             <li><Link to="/posts">커뮤니티</Link></li>
             <li className="search-box">
               <input type="text" placeholder="어떤 상품을 찾아볼까요?" className="search-input" />
-              <i className="fas fa-search"></i>
+              <FontAwesomeIcon icon={faSearch} className="fas fa-search" />
             </li>
             <li><img src="/assets/images/logo.png" alt="로고 이미지" className="footer-logo" /></li>
           </ul>
