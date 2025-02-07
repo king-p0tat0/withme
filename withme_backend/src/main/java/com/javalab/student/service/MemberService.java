@@ -1,13 +1,19 @@
 package com.javalab.student.service;
 
-import com.javalab.student.dto.LoginFormDto;
-import com.javalab.student.dto.MemberFormDto;
+import com.javalab.student.dto.*;
 import com.javalab.student.entity.Member;
+import com.javalab.student.entity.Student;
 import com.javalab.student.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +58,7 @@ public class MemberService {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        member.setUser_name(memberFormDto.getUser_name());
+        member.setName(memberFormDto.getName());
         member.setPhone(memberFormDto.getPhone());
         member.setAddress(memberFormDto.getAddress());
 
@@ -93,4 +99,45 @@ public class MemberService {
     public Member findByEmail(String email) {
         return memberRepository.findByEmail(email);
     }
+
+    /*모든 사용자 조회(페이징)*/
+    public PageResponseDTO<MemberDto> getAllMembers(PageRequestDTO pageRequestDTO) {
+        // Pageable 생성
+        Pageable pageable = pageRequestDTO.getPageable("id");
+
+        // 데이터 조회 (Page 객체 사용)
+        Page<Member> result = memberRepository.findAll(pageable);
+
+        // Page -> PageResponseDTO 변환
+        List<MemberDto> dtoList = result.getContent().stream()
+                .map(this::convertEntityToDto)
+                .collect(Collectors.toList());
+
+        return PageResponseDTO.<MemberDto>builder()
+                .dtoList(dtoList)
+                .total((int) result.getTotalElements())
+                .pageRequestDTO(pageRequestDTO)
+                .build();
+    }
+
+    public List<Member> getMember() {
+        return memberRepository.findAll();
+    }
+
+
+    private MemberDto convertEntityToDto(Member member) {
+        return MemberDto.builder()
+                .id(member.getId())
+                .name(member.getName())
+                .email(member.getEmail())
+                .phone(member.getPhone())
+                .address(member.getAddress())
+                .age(member.getAge())
+                .role(member.getRole())
+                .social(member.isSocial())
+                .provider(member.getProvider())
+                .build();
+    }
+
+
 }

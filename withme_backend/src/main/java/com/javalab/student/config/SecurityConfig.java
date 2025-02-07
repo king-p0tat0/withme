@@ -9,6 +9,7 @@ import com.javalab.student.security.handler.CustomAuthenticationEntryPoint;
 import com.javalab.student.security.handler.CustomAuthenticationSuccessHandler;
 import com.javalab.student.security.handler.CustomLogoutSuccessHandler;
 import com.javalab.student.security.oauth.CustomOAuth2UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -77,8 +79,6 @@ public class SecurityConfig {
                 .permitAll()
         );
 
-
-
         /*
             * 정적 자원 및 URL에 대한 접근 제어 설정(인가) 로드맵
             * authorizeRequests() : 애플리케이션의 접근 제어(Authorization) 정책을 정의
@@ -88,7 +88,6 @@ public class SecurityConfig {
             * anyRequest() : 모든 요청에 대해 접근을 허용
             * authenticated() : 인증된 사용자만 접근을 허용
             * favicon.ico : 파비콘 요청은 인증 없이 접근 가능, 이코드 누락시키면 계속 서버에 요청을 보내서 서버에 부하를 줄 수 있다.
-            *
          */
         http.authorizeHttpRequests(request -> request
                 .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail").permitAll() // 로그인 API 허용 [수정]
@@ -115,7 +114,8 @@ public class SecurityConfig {
                         "/**/*.html",
                         "/ping.js"
                 ).permitAll() // 정적 리소스는 모두 허용
-                .anyRequest().authenticated()
+                //.anyRequest().authenticated()
+                .anyRequest().permitAll() // 임시로 모든 요청에 대해 접근을 허용 나중에 제거
         );
 
         /*

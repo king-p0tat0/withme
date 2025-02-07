@@ -1,8 +1,10 @@
 import DoctorUpdate from './DoctorUpdate';
 import DoctorList from './DoctorList';
-import React, { useState } from 'react';
-
-import '../css/Admin.css';
+import DoctorView from './Modal/DoctorView';
+import UserList from './UserList';
+import Dashboard from './Dashboard';
+import React, { useState  } from 'react';
+import '../../css/Admin.css';
 
 export default function Admin() {
     // 드롭다운 상태 관리
@@ -39,6 +41,11 @@ export default function Admin() {
                                 >
                                     전문가 리스트
                                 </li>
+                                <li
+                                    className="menu-item"
+                                    onClick={() => setCurrentPage(<DoctorView />)}
+                                >
+                                </li>
                             </ul>
                         )}
                     </div>
@@ -51,7 +58,12 @@ export default function Admin() {
                         </p>
                         {showCustomerMenu && (
                             <ul className="menu-items">
-                                <li className="menu-item">고객 리스트</li>
+                                <li className="menu-item"
+                                 onClick={() => setCurrentPage(<UserList />)}
+                                 >고객 리스트</li>
+                                <li className="menu-item"
+                                 onClick={() => setCurrentPage(<Dashboard />)}
+                                 >대시보드</li>
                             </ul>
                         )}
                     </div>
