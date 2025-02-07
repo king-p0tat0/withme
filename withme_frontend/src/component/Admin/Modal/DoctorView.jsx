@@ -1,13 +1,27 @@
 import { useParams } from "react-router-dom";
 import React, { useState, useEffect } from "react";
-import '../../css/DoctorList.css';
+import '../../../css/DoctorList.css';
 // import '../css/DoctorView.css';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { fetchWithAuth } from "../../common/fetchWithAuth";
-import { API_URL } from '../../constant';
+import { fetchWithAuth } from "../../../common/fetchWithAuth";
+import { API_URL } from '../../../constant';
 
 export default function DoctorView({doctor, onClose, docList }) {
+
+     // ESC 키 입력 시 모달 닫기
+        useEffect(() => {
+            const handleKeyDown = (event) => {
+                if (event.key === "Escape") {
+                    onClose();
+                }
+            };
+
+            document.addEventListener("keydown", handleKeyDown);
+            return () => {
+                document.removeEventListener("keydown", handleKeyDown);
+            };
+        }, [onClose]);
 
 /* 승인 상태 변경 버튼 이벤트
   - 승인 버튼을 누르면 해당 전문가의 userId와 승인 상태를 보내서 approveDoctorApplication 함수 실행

@@ -2,6 +2,7 @@ package com.javalab.student.controller;
 
 import com.javalab.student.dto.*;
 import com.javalab.student.entity.Member;
+import com.javalab.student.repository.MemberRepository;
 import com.javalab.student.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -79,7 +80,7 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response); // HTTP 401 Unauthorized
     }
 
-    // 페이징 처리된 유저 목록 조회
+   /* // 페이징 처리된 유저 목록 조회
     @GetMapping("/list")
     //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<PageResponseDTO<MemberDto>> getAllmembers(
@@ -94,6 +95,11 @@ public class MemberController {
 
         PageResponseDTO<MemberDto> responseDTO = memberService.getAllMembers(pageRequestDTO);
         return ResponseEntity.ok(responseDTO);
+    }*/
+
+    @GetMapping("/list")
+    public ResponseEntity<List<Member>> getAllMembers() {
+        return ResponseEntity.ok(memberService.getMember());
     }
 
 }

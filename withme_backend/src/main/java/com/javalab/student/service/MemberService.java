@@ -73,7 +73,7 @@ public class MemberService {
         return memberRepository.findByEmail(email);
     }
 
-    /*모든 사용자 조회*/
+    /*모든 사용자 조회(페이징)*/
     public PageResponseDTO<MemberDto> getAllMembers(PageRequestDTO pageRequestDTO) {
         // Pageable 생성
         Pageable pageable = pageRequestDTO.getPageable("id");
@@ -92,6 +92,11 @@ public class MemberService {
                 .pageRequestDTO(pageRequestDTO)
                 .build();
     }
+
+    public List<Member> getMember() {
+        return memberRepository.findAll();
+    }
+
 
     private MemberDto convertEntityToDto(Member member) {
         return MemberDto.builder()
