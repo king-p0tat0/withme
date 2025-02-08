@@ -8,11 +8,6 @@ import MyPage from "./component/member/MyPage.jsx";
 import ViewStudent from "./component/ViewStudent";
 import EditStudent from "./component/EditStudent";
 import RegisterMember from "./component/member/RegisterMember";
-//공지사항
-import NoticeList from "./component/notice/NoticeList";
-import NoticeForm from "./component/notice/NoticeForm";
-import NoticeView from "./component/notice/NoticeView";
-import RegisterDoctor from "./component/doctor/RegisterDoctor";
 //커뮤니티
 import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
@@ -27,13 +22,16 @@ import { API_URL } from "./constant";
 import Home from "./component/Home";
 import HomeIcon from "@mui/icons-material/Home";
 import { fetchWithAuth } from "./common/fetchWithAuth.js"; // 홈 아이콘 추가
+<<<<<<< HEAD
+//관리자
+import Admin from "./component/admin/Admin";
+=======
 import Header from "./component/common/Header";
 import Footer from "./component/common/Footer";
 
 //관리자
 // import Admin from "./component/admin/Admin";
-//관리자
-import Admin from "./component/admin/Admin";
+>>>>>>> yuni
 
 /**
  * App 컴포넌트
@@ -92,7 +90,48 @@ function App() {
   return (
     <div className="App">
       {/*헤더 부분*/}
+<<<<<<< HEAD
+      <AppBar position="static">
+        <Toolbar>
+          <HomeIcon />
+          <Typography variant="h3" style={{ flexGrow: 1 }}>
+            {isLoggedIn && (
+              <Button
+                color="inherit"
+                component={Link}
+                to={`/mypage/${user?.id}`}>
+                마이페이지
+              </Button>
+            )}
+            <Button color="inherit" component={Link} to="/posts">
+              커뮤니티
+            </Button>
+            <Button color="inherit" component={Link} to="/admin">
+              관리자
+            </Button>
+          </Typography>
+          {isLoggedIn ? (
+            <>
+              <Typography
+                variant="body1"
+                style={{ marginRight: "10px", fontSize: "14px" }}>
+                {user.name}{" "}
+                {user.roles?.includes("ROLE_ADMIN") ? "(관리자)" : "(사용자)"}
+              </Typography>
+              <Button color="inherit" onClick={handleLogout}>
+                로그아웃
+              </Button>
+            </>
+          ) : (
+            <Button color="inherit" component={Link} to="/login">
+              로그인
+            </Button>
+          )}
+        </Toolbar>
+      </AppBar>
+=======
       <Header />
+>>>>>>> yuni
       {/*라우팅 부분*/}
       <Routes>
         <Route path="/" element={<Home />} />
@@ -114,14 +153,8 @@ function App() {
           </>
         )}
         <Route path="/registerMember" element={<RegisterMember />} />
-        <Route path="/registerDoctor" element={<RegisterDoctor />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
-        {/* 공지사항 목록 */}
-        <Route path="/notices" element={<NoticeList />} />
-        <Route path="/notices/new" element={<NoticeForm />} />
-        <Route path="/notices/:id" element={<NoticeView />} />
-
         {/* 게시글 목록 */}
         <Route path="/posts" element={<PostList />} />
 
@@ -131,11 +164,14 @@ function App() {
         <Route path="/posts/edit/:id" element={<PostForm />} />
         {/* 게시글 상세 보기 */}
         <Route path="/posts/:id" element={<PostView />} />
-
         {/* React Router는 상단부터 Routes에 정의된 Route를 순차적으로 검사. 모든 요청을 UnauthorizedPage로 리디렉션, 위에서 부터 순차적으로 진행됨 */}
         {/*<Route path="*" element={<UnauthorizedPage />} />*/}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+<<<<<<< HEAD
         <Route path="/admin" element={<Admin />} />
+=======
+{/*         <Route path="/admin" element={<Admin />} /> */}
+>>>>>>> yuni
       </Routes>
       <Footer />
     </div>

@@ -14,7 +14,7 @@ public class PostDto {
     
     private long postId;
     
-    private String userId;
+    private Long userId;
     
     private String postTitle;
     
