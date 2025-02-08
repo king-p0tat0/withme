@@ -12,8 +12,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class ChoiceDTO {
-    private Long choiceId; // 선택지 ID
-    private Long questionId; // 해당 선택지가 속한 질문 ID
+    private Long choiceId;   // 선택지 ID
+    private Long questionId; // ✅ 해당 선택지가 속한 질문 ID (필드명 확인 완료)
     private String choiceText; // 선택지 텍스트
     private Integer seq; // 선택지 순서
     private Integer score; // 선택지 점수

@@ -2,6 +2,7 @@ package com.javalab.student.controller;
 
 import com.javalab.student.entity.UserQuestionProgress;
 import com.javalab.student.service.UserQuestionProgressService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +38,16 @@ public class UserQuestionProgressController {
      * ✅ 새로운 문진 진행 상태 생성
      */
     @PostMapping
-    public ResponseEntity<UserQuestionProgress> createUserQuestionProgress(@Valid @RequestBody UserQuestionProgress userQuestionProgress) {
-        return ResponseEntity.ok(userQuestionProgressService.createUserQuestionProgress(userQuestionProgress));
+    public ResponseEntity<UserQuestionProgress> createUserQuestionProgress(@Valid @RequestBody UserQuestionProgress userQuestionProgress,
+                                                                           @RequestParam Long userId) {
+        UserQuestionProgress savedProgress = userQuestionProgressService.createUserQuestionProgress(userQuestionProgress);
+        return ResponseEntity.ok(savedProgress);
     }
 
     /**
      * ✅ 특정 userId 기반 문진 진행 상태 삭제
      */
+    @Transactional
     @DeleteMapping("/{userId}/{questionnaireId}/{questionId}")
     public ResponseEntity<Void> deleteUserQuestionProgress(
             @PathVariable Long userId,

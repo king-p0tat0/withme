@@ -2,8 +2,9 @@ package com.javalab.student.service;
 
 import com.javalab.student.entity.SurveyTopic;
 import com.javalab.student.repository.SurveyTopicRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,18 +14,15 @@ import java.util.Optional;
  * 설문 주제에 대한 비즈니스 로직을 처리하는 서비스 클래스
  */
 @Service
+@RequiredArgsConstructor  // ✅ 생성자 주입 자동 생성
 public class SurveyTopicService {
 
     private final SurveyTopicRepository surveyTopicRepository;
 
-    @Autowired
-    public SurveyTopicService(SurveyTopicRepository surveyTopicRepository) {
-        this.surveyTopicRepository = surveyTopicRepository;
-    }
-
     /**
      * ✅ 모든 설문 주제 조회
      */
+    @Transactional(readOnly = true)
     public List<SurveyTopic> getAllTopics() {
         return surveyTopicRepository.findAll();
     }
@@ -32,6 +30,7 @@ public class SurveyTopicService {
     /**
      * ✅ 특정 주제 ID로 조회
      */
+    @Transactional(readOnly = true)
     public Optional<SurveyTopic> getTopicById(Long topicId) {
         return surveyTopicRepository.findById(topicId);
     }
@@ -39,13 +38,16 @@ public class SurveyTopicService {
     /**
      * ✅ 특정 설문(surveyId)에 속한 유료 문진(PAID) 주제 목록 조회
      */
+    @Transactional(readOnly = true)
     public List<SurveyTopic> getPaidTopics(Long surveyId) {
-        return surveyTopicRepository.findBySurvey_SurveyId(surveyId);
+        return surveyTopicRepository.findAllBySurvey_SurveyId(surveyId);  // Survey의 surveyId로 관련된 SurveyTopic 조회
     }
+
 
     /**
      * ✅ 새로운 설문 주제 생성
      */
+    @Transactional
     public SurveyTopic createTopic(SurveyTopic surveyTopic) {
         return surveyTopicRepository.save(surveyTopic);
     }
@@ -53,6 +55,7 @@ public class SurveyTopicService {
     /**
      * ✅ 설문 주제 삭제
      */
+    @Transactional
     public void deleteTopic(Long topicId) {
         surveyTopicRepository.deleteById(topicId);
     }

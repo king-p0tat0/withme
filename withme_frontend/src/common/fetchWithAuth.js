@@ -10,11 +10,18 @@
 
 import { API_URL } from "../constant";
 
-// 리프레시 토큰을 사용해 새로운 액세스 토큰 발급
+/**
+ * 리프레시 토큰을 사용해 새로운 액세스 토큰 발급
+ * - 기존 액세스 토큰이 만료된 경우 실행
+ * - 리프레시 토큰이 유효하면 새로운 액세스 토큰을 발급받아 저장
+ * - 리프레시 토큰도 만료된 경우, localStorage 초기화 후 로그인 페이지로 이동
+ */
 const refreshAccessToken = async () => {
     try {
         const refreshToken = localStorage.getItem("refreshToken"); // 리프레시 토큰 가져오기
-        if (!refreshToken) throw new Error("리프레시 토큰 없음");
+        if (!refreshToken) {
+            throw new Error("리프레시 토큰 없음");
+        }
 
         const response = await fetch(`${API_URL}auth/refresh`, {
             method: "POST",
@@ -30,36 +37,44 @@ const refreshAccessToken = async () => {
         localStorage.setItem("token", data.accessToken); // 새 액세스 토큰 저장
         return data.accessToken;
     } catch (error) {
-        console.error("리프레시 토큰 처리 오류:", error.message);
+        console.error("🔴 리프레시 토큰 처리 오류:", error.message);
+
+        // [🚀 추가] 리프레시 토큰까지 만료되었을 경우, 강제 로그아웃 처리
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        window.location.href = "/login"; // 로그인 페이지로 리디렉트
+
         return null;
     }
 };
 
 /**
-* API 요청을 보내는 함수
-* 요청을 보낼 때 헤더와 JWT 토큰을 포함하여 요청
-* Options 객체에 method, body등을 설정하여 전달
-* @param{string} url요청할 URL
-* @param {Object} optons fetch API의 두번째 인자로 전달할 옵션 객체
-*/
-
+ * API 요청을 보내는 함수
+ * 요청을 보낼 때 헤더와 JWT 토큰을 포함하여 요청
+ * Options 객체에 method, body등을 설정하여 전달
+ * @param {string} url 요청할 URL
+ * @param {Object} options fetch API의 두번째 인자로 전달할 옵션 객체
+ */
 export const fetchWithAuth = async (url, options = {}) => {
-        //1. 로컬 스토리지에서 토큰 가져오기
+    // ✅ 1. 로컬 스토리지에서 토큰 가져오기
     const token = localStorage.getItem("token");
-    //2. 서버에 보낼 때 전달할 헤더 설정(사용자 정의 헤더)
+
+    // ✅ 2. 서버에 보낼 때 전달할 헤더 설정 (🚀 token이 있을 때만 Authorization 추가)
     const headers = {
-        ...options.headers, //...options.headers :  options 객체의 headers 속성을 복사
-        Authorization: `Bearer ${token}`, // "Authorization": 'Bearer 토큰값' 형태로 설정
-        "Content-Type": "application/json", // 기본 Content-Type
+        ...options.headers,
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}), // ✅ 토큰이 있는 경우만 Authorization 추가
     };
-    // 3. options 객체와 headers 객체를 합쳐서 새로운 config 객체 생성
-    const config = { ...options, headers }; // 기본 설정과 사용자 설정 합치기
-    //4. fetch API로 요청 보내기
+
+    // ✅ 3. options 객체와 headers 객체를 합쳐서 새로운 config 객체 생성
+    const config = { ...options, headers };
+
+    // ✅ 4. fetch API로 요청 보내기
     try {
-        let response = await fetch(url, config); // fetch API로 요청 보내기(response: 학생 한명 정보)
+        let response = await fetch(url, config);
 
         if (response.status === 401) {
-            console.warn("401 Unauthorized: Access token might be expired.");
+            console.warn("⚠️ 401 Unauthorized: 액세스 토큰 만료 가능");
 
             const newToken = await refreshAccessToken(); // 리프레시 토큰 사용
             if (newToken) {
@@ -72,21 +87,18 @@ export const fetchWithAuth = async (url, options = {}) => {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(`API 오류: ${errorData.message || response.status}`);
+            throw new Error(`🔴 API 오류: ${errorData.message || response.status}`);
         }
 
-        //return await response.json(); // JSON 데이터 반환
-
-        // [수정] 응답 본문이 있는 경우에만 JSON으로 파싱
+        // ✅ [수정] 응답 본문이 있는 경우에만 JSON으로 파싱
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
-            return await response.json();// 서버에서 받은 JSON 데이터를 자바스크립트 객체로 변환
+            return await response.json(); // 서버에서 받은 JSON 데이터를 자바스크립트 객체로 변환
         } else {
             return response; // JSON이 아닌 경우 response 객체 그대로 반환
         }
     } catch (error) {
-        console.error("API 요청 실패:", error.message);
+        console.error("🔴 API 요청 실패:", error.message);
         throw error;
     }
 };
-

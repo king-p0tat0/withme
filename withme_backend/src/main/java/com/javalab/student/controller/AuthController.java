@@ -41,7 +41,6 @@ public class AuthController {
      */
     @GetMapping("/userInfo") // api/auth/userInfo
     public ResponseEntity<Map<String, Object>> getUserInfo(Authentication authentication) {
-
         Map<String, Object> response = new HashMap<>();
 
         // 인증 객체가 없는 경우 처리
@@ -54,19 +53,19 @@ public class AuthController {
         // 인증 객체에서 사용자 이메일 추출
         String email = authentication.getName();
 
-        // 사용자 정보 가져오기
-        Member member = memberService.findByEmail(email);
-        if (member == null) {
-            response.put("status", "error");
-            response.put("message", "사용자를 찾을 수 없습니다.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+        // 사용자 정보 가져오기 (Optional 처리)
+        Member member = memberService.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // 사용자 정보 응답
         response.put("status", "success");
         response.put("data", member);
         return ResponseEntity.ok(response);
     }
+
+
+
+
 
     /*
     getUserInfo() 메소드의 응답 예시
@@ -93,6 +92,6 @@ public class AuthController {
         response.put("error", "로그인에 실패했습니다.");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
-
 }
+
 

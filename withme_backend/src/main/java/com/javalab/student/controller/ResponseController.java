@@ -34,8 +34,12 @@ public class ResponseController {
     /**
      * 응답 저장
      */
-    @PostMapping
-    public ResponseEntity<Response> saveResponse(@RequestBody Response response) {
-        return ResponseEntity.ok(responseService.createResponse(response));
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Response>> getResponsesByUserId(@PathVariable Long userId) {
+        List<Response> responses = responseService.getResponsesByUserId(userId);
+        return ResponseEntity.ok(responses);
     }
+
+
+
 }

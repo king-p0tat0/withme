@@ -7,8 +7,9 @@ import com.javalab.student.entity.UserSelectedTopics.UserSelectedTopicsId;
 import com.javalab.student.repository.MemberRepository;
 import com.javalab.student.repository.SurveyTopicRepository;
 import com.javalab.student.repository.UserSelectedTopicsRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,31 +18,25 @@ import java.util.List;
  * - userId 기반 주제 저장 및 조회
  */
 @Service
+@RequiredArgsConstructor  // ✅ 생성자 주입 자동 생성
 public class UserSelectedTopicsService {
 
     private final UserSelectedTopicsRepository userSelectedTopicsRepository;
     private final SurveyTopicRepository surveyTopicRepository;
     private final MemberRepository memberRepository;
 
-    @Autowired
-    public UserSelectedTopicsService(UserSelectedTopicsRepository userSelectedTopicsRepository,
-                                     SurveyTopicRepository surveyTopicRepository,
-                                     MemberRepository memberRepository) {
-        this.userSelectedTopicsRepository = userSelectedTopicsRepository;
-        this.surveyTopicRepository = surveyTopicRepository;
-        this.memberRepository = memberRepository;
-    }
-
     /**
      * ✅ 특정 userId 기반 선택한 주제 조회
      */
+    @Transactional(readOnly = true)
     public List<UserSelectedTopics> getSelectedTopicsByUserId(Long userId) {
-        return userSelectedTopicsRepository.findAllByMember_UserId(userId);
+        return userSelectedTopicsRepository.findAllByMember_Id(userId);  // ✅ 필드명 수정
     }
 
     /**
      * ✅ 선택한 주제 저장
      */
+    @Transactional
     public UserSelectedTopics saveUserSelectedTopic(Long userId, Long topicId) {
         // 사용자 정보 확인
         Member user = memberRepository.findById(userId)
@@ -59,22 +54,16 @@ public class UserSelectedTopicsService {
             throw new IllegalStateException("이미 선택한 주제입니다: userId=" + userId + ", topicId=" + topicId);
         }
 
-        // 새로운 UserSelectedTopics 생성
-        UserSelectedTopics userSelectedTopics = new UserSelectedTopics(user, surveyTopic);
-
-        return userSelectedTopicsRepository.save(userSelectedTopics);
+        // 새로운 UserSelectedTopics 생성 후 저장
+        return userSelectedTopicsRepository.save(new UserSelectedTopics(user, surveyTopic));
     }
 
     /**
      * ✅ 특정 userId와 topicId 기반으로 선택한 주제 삭제
      */
+    @Transactional
     public void deleteUserSelectedTopic(Long userId, Long topicId) {
         UserSelectedTopicsId id = new UserSelectedTopicsId(userId, topicId);
-
-        if (!userSelectedTopicsRepository.existsById(id)) {
-            throw new IllegalArgumentException("해당 데이터가 존재하지 않습니다: userId=" + userId + ", topicId=" + topicId);
-        }
-
         userSelectedTopicsRepository.deleteById(id);
     }
 }

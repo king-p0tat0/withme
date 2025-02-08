@@ -50,9 +50,12 @@ public class ExpertAnswerController {
      * 새로운 전문가 답변 생성
      */
     @PostMapping
-    public ResponseEntity<ExpertAnswer> createExpertAnswer(@Valid @RequestBody ExpertAnswer expertAnswer) {
-        return ResponseEntity.ok(expertAnswerService.createExpertAnswer(expertAnswer));
+    public ResponseEntity<ExpertAnswer> createExpertAnswer(@Valid @RequestBody ExpertAnswer expertAnswer,
+                                                           @RequestParam Long userId) {
+        ExpertAnswer savedAnswer = expertAnswerService.createExpertAnswer(expertAnswer, userId);
+        return ResponseEntity.ok(savedAnswer);
     }
+
 
     /**
      * 전문가 답변 삭제

@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class ExpertQuestionDTO {
     private Long expertQuestionId; // 전문가 질문 ID
     private Long questionnaireId; //  해당 문진 ID
+    private Long userId; // ✅ 전문가(의사) ID (Member 참조)
     private String questionText; // 질문 내용
     private LocalDateTime createdAt; // 질문 작성일
 }

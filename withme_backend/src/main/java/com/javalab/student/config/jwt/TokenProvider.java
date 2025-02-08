@@ -59,17 +59,29 @@ public class TokenProvider {
      * - Jwts : JWT를 생성하는 클래스
      */
     private String makeToken(Date expiry, Member user) {
-        Date now = new Date();
-        return Jwts.builder()
-                .setHeaderParam(Header.TYPE, Header.JWT_TYPE)   // 헤더 설정(TYPE: JWT, ALG: HS256)
-                .setIssuer(jwtProperties.getIssuer())           // 발급자 (properties에서 받아온 발급자)
-                .setIssuedAt(now)                               // 토큰 발급 시간
-                .setExpiration(expiry)                          // 토큰 만료 시간
-                .setSubject(user.getEmail())                    // 토큰 주제, user 객체에서 받아온 email
-                .claim("id", user.getUserId())                  // 토큰 id, user 객체에서 받아온 id
-                .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecretKey()) // 토큰 서명, 시크릿 키
-                .compact();                                     // 토큰 생성
-    }
+        try {
+            if (user == null || user.getId() == null || user.getEmail() == null) {
+                throw new IllegalArgumentException("사용자 정보가 없습니다.");
+            }
+
+            Date now = new Date();
+            return Jwts.builder()
+                    .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
+                    .setIssuer(jwtProperties.getIssuer())
+                    .setIssuedAt(now)
+                    .setExpiration(expiry)
+                    .setSubject(user.getEmail())
+                    .claim("id", user.getId())  // 수정된 부분
+                    .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecretKey())
+                    .compact();
+        } catch (Exception e) {
+            System.err.println("JWT 생성 오류: " + e.getMessage());
+            throw new RuntimeException("JWT 생성 중 오류 발생", e);
+        }
+
+
+}
+
 
 
     /**

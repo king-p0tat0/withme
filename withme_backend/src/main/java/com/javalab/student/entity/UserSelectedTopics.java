@@ -43,7 +43,7 @@ public class UserSelectedTopics {
     private SurveyTopic surveyTopic;
 
     public UserSelectedTopics(Member member, SurveyTopic surveyTopic) {
-        this.id = new UserSelectedTopicsId(member.getUserId(), surveyTopic.getTopicId());
+        this.id = new UserSelectedTopicsId(member.getId(), surveyTopic.getTopicId());
         this.member = member;
         this.surveyTopic = surveyTopic;
     }

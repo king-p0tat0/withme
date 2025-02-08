@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -33,31 +34,26 @@ public class RedisService {
     public void cacheUserAuthorities(String email) {
         log.info("사용자 [{}]의 권한 정보를 Redis에 캐싱합니다.", email);
 
-        // 1. 전달받은 이메일로 데이터베이스 조회
-        Member member = memberRepository.findByEmail(email);
-        if (member == null) {
-            throw new IllegalArgumentException("해당 이메일을 가진 사용자가 존재하지 않습니다.");
-        }
-
+        // 1. 이메일로 데이터베이스에서 사용자 정보 조회
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이메일을 가진 사용자가 존재하지 않습니다."));
 
         // 2. 사용자의 권한 정보를 SimpleGrantedAuthority 리스트로 변환
         // - 결과 예시 : ["ROLE_USER", "ROLE_ADMIN"]
         List<String> authorities = member.getAuthorities().stream()
-                .map(role -> role.getAuthority()) // GrantedAuthority에서 권한 문자열 추출
+                .map(authority -> authority.getAuthority()) // GrantedAuthority에서 권한 문자열 추출
                 .collect(Collectors.toList());
 
-
-        // 3️Redis에 저장 (Key: "AUTH:사용자이메일", Value: 권한 리스트, 유효시간: 6시간)
+        // 3. Redis에 저장 (Key: "AUTH:사용자이메일", Value: 권한 리스트, 유효시간: 6시간)
         redisTemplate.opsForValue().set("AUTH:" + email, authorities, Duration.ofHours(6));
         /*
-            Redis에 저장된 예시: 권한이 여러개일 경우에는 List로 저장됨
+            Redis에 저장된 예시: 권한이 여러 개일 경우에는 List로 저장됨
             AUTH:test@example.com : Redis의 고유 식별자, 사용자 이메일로 설정
             ["ROLE_USER", "ROLE_ADMIN"] : value로 사용자의 권한 리스트를 저장
             {
                 "AUTH:test@example.com": ["ROLE_USER", "ROLE_ADMIN"]
             }
         */
-
 
         log.info("사용자 [{}]의 권한 정보가 Redis에 성공적으로 저장되었습니다: {}", email, authorities);
     }
@@ -67,6 +63,7 @@ public class RedisService {
      * @param email 사용자 이메일
      * @return 사용자 권한 리스트
      */
+    @SuppressWarnings("unchecked") // Redis에서 List<String>을 가져올 때 경고 방지
     public List<String> getUserAuthoritiesFromCache(String email) {
         return (List<String>) redisTemplate.opsForValue().get("AUTH:" + email);
     }
@@ -79,5 +76,4 @@ public class RedisService {
         redisTemplate.delete("AUTH:" + email);
         log.info("사용자 [{}]의 권한 정보가 Redis에서 삭제되었습니다.", email);
     }
-
 }

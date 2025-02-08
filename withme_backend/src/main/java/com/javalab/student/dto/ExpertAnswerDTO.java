@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class ExpertAnswerDTO {
     private Long answerId; // 답변 ID
     private Long expertQuestionId; // 전문가 질문 ID
-    private String doctorId; // 전문가 ID
+    private Long userId; // ✅ 전문가(의사) ID (doctorId → userId로 수정)
     private String answerText; // 답변 내용
     private LocalDateTime createdAt; // 답변 작성일
 }

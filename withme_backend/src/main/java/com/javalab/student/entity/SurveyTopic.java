@@ -15,12 +15,12 @@ public class SurveyTopic {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "topic_id")
-    private Long topicId; // 주제 ID
-
-    @Column(name = "topic_name", nullable = false, length = 255)
-    private String topicName; // 주제명
+    private Long topicId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "survey_id", nullable = false) // ✅ Survey와 연관 관계 설정
-    private Survey survey;
+    @JoinColumn(name = "survey_id", nullable = false)  // survey_id와 연결
+    private Survey survey;  // 연관된 설문
+
+    @Column(name = "topic_name", nullable = false, length = 255)
+    private String topicName;  // 주제명
 }

@@ -55,8 +55,9 @@ public class UserQuestionProgress {
     @AllArgsConstructor
     @EqualsAndHashCode
     public static class UserQuestionProgressId implements Serializable {
-        private Long member;  // `user_id`
+        private Long member;  // `user_id` -> member.getId()를 사용해야 함
         private Long questionnaire;  // `questionnaire_id`
         private Long question;  // `question_id`
     }
 }
+

@@ -15,5 +15,5 @@ public interface ChoiceRepository extends JpaRepository<Choice, Long> {
     /**
      * ✅ 특정 질문 ID에 해당하는 선택지 조회
      */
-    List<Choice> findByQuestion_QuestionId(Long questionId);
+    List<Choice> findByQuestion_QuestionId(Long questionId); // ✅ 변경 불필요
 }

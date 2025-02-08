@@ -8,13 +8,13 @@ import java.util.List;
 
 /**
  * 응답 Repository
- * Response 엔티티에 대한 CRUD 작업을 처리하는 리포지토리
+ * 응답 엔티티에 대한 CRUD 작업을 처리하는 리포지토리
  */
 @Repository
 public interface ResponseRepository extends JpaRepository<Response, Long> {
 
     /**
-     * 특정 userId 기반으로 응답 목록 조회
+     * 특정 유저 ID 기반으로 응답 조회
      */
-    List<Response> findByUser_UserId(Long userId);
+    List<Response> findByUser_Id(Long userId);  // userId 기반 응답 조회
 }

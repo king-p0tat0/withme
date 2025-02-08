@@ -6,17 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-/**
- * 전문가 질문 Repository
- * ExpertQuestion 엔티티에 대한 CRUD 작업을 처리하는 리포지토리
- */
-
 @Repository
 public interface ExpertQuestionRepository extends JpaRepository<ExpertQuestion, Long> {
-    /**
-     * 특정 유저의 전문가 질문 목록 조회
-     */
-    List<ExpertQuestion> findAllByMember_UserId(Long userId);
-
-
+    List<ExpertQuestion> findAllByMember_Id(Long userId);  // ✅ `findAllByUserId` → `findAllByMember_Id` 변경
 }

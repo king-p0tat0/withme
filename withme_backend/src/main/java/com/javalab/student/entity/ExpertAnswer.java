@@ -28,8 +28,9 @@ public class ExpertAnswer {
     @JoinColumn(name = "expert_question_id", nullable = false)
     private ExpertQuestion expertQuestion; // 전문가 질문 ID
 
-    @Column(name = "user_id", nullable = false, length = 20)
-    private Long userId; // 전문가 ID
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false) // 기존 Long userId -> Member 연관관계로 변경
+    private Member user; // 전문가 (Member 엔티티와 매핑)
 
     @Lob
     @Column(name = "answer_text", nullable = false)

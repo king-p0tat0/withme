@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -34,7 +36,7 @@ class MemberRepositoryTest {
     public Member createMember() {
         MemberFormDto memberFormDto = MemberFormDto.builder()
                 .email("test2@example.com")
-                .name("김길동")
+                .userName("김길동")
                 .address("서울시 마포구")
                 .password("1234") // 원래 비밀번호
                 .phone("010-1234-5678")
@@ -59,7 +61,7 @@ class MemberRepositoryTest {
 
         // Then : 저장된 회원 정보 확인
         assertEquals(member.getEmail(), savedMember.getEmail());
-        assertEquals(member.getName(), savedMember.getName());
+        assertEquals(member.getUserName(), savedMember.getUserName());
         assertEquals(member.getAddress(), savedMember.getAddress());
 
         // 비밀번호가 암호화되어 저장되었는지 확인
@@ -67,10 +69,6 @@ class MemberRepositoryTest {
         assertEquals(true, passwordEncoder.matches("1234", savedMember.getPassword())); // 원래 비밀번호와 매칭
     }
 
-    /**
-     * 중복 이메일 회원 저장 테스트
-     * - 중복된 이메일로 저장하려고 하면 예외 발생
-     */
     /**
      * 이메일 중복 여부 확인 테스트
      */
@@ -81,15 +79,14 @@ class MemberRepositoryTest {
         String existingEmail = "test@example.com";
 
         // When: 이메일을 조회
-        Member foundMember = memberRepository.findByEmail(existingEmail);
+        Optional<Member> foundMember = memberRepository.findByEmail(existingEmail);
 
         // Then: 중복 여부 확인 및 메시지 출력
-        if (foundMember != null) {
+        if (foundMember.isPresent()) {
             System.out.println("이미 존재하는 이메일입니다: " + existingEmail);
-            assertEquals(existingEmail, foundMember.getEmail()); // 중복 이메일이 존재해야 함
+            assertEquals(existingEmail, foundMember.get().getEmail()); // 중복 이메일이 존재해야 함
         } else {
             System.out.println("사용 가능한 이메일입니다: " + existingEmail);
         }
     }
-
 }

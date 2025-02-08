@@ -7,7 +7,7 @@ import { setUser } from "../redux/authSlice"; // Redux 액션을 생성하는 �
 
 /**
  * 로그인 컴포넌트
- - 부모로 부터 onLogin 함수를 프롭스로 전달 받음
+ * - 부모로 부터 onLogin 함수를 프롭스로 전달 받음
  */
 export default function Login({ onLogin }) {
     // 사용자가 입력하는 아이디와 비밀번호를 저장할 상태 변수
@@ -17,10 +17,10 @@ export default function Login({ onLogin }) {
     // useDispatch 훅을 사용하여 디스패치 함수를 가져옴, 디스패치 함수는 액션을 스토어에 전달하는 함수,
     // 액션은 스토어의 상태를 변경하는 객체, 스토어는 액션을 받아 상태를 변경하는 역할
     const dispatch = useDispatch();
+
     const handleChange = (event) => {
         setCredentials({ ...credentials, [event.target.name]: event.target.value });
     };
-
 
     /**
      * 로그인 요청을 보내는 함수
@@ -50,11 +50,11 @@ export default function Login({ onLogin }) {
                 alert("로그인 실패");
                 setErrorMessage(data.message); // ❗ 로그인 실패 메시지 설정
                 return;
-            }else if(data.status === undefined){
-                 alert("로그인 실패");
-                 setErrorMessage(data.message); // ❗ 로그인 실패 메시지 설정
-                 return;
-            }else{
+            } else if (data.status === undefined) {
+                alert("로그인 실패");
+                setErrorMessage(data.message); // ❗ 로그인 실패 메시지 설정
+                return;
+            } else {
                 console.log(data.status);
                 // ✅ 로그인 성공 시 사용자 정보를 Redux에 저장
                 dispatch(setUser({
@@ -63,15 +63,14 @@ export default function Login({ onLogin }) {
                     email: credentials.email,
                     roles: data.roles,
                 }));
-                navigate("/");
+                navigate("/");  // 성공하면 홈으로 리디렉션
             }
-
 
         } catch (error) {
             console.error("로그인 요청 실패:", error.message);
+            setErrorMessage("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
         }
     };
-
 
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "20px" }}>

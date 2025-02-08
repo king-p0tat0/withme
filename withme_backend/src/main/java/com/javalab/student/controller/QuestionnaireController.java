@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -57,8 +56,11 @@ public class QuestionnaireController {
      * 새로운 문진 생성 (무료 & 유료 공통)
      */
     @PostMapping
-    public ResponseEntity<Questionnaire> createQuestionnaire(@Valid @RequestBody Questionnaire questionnaire) {
-        return ResponseEntity.ok(questionnaireService.createQuestionnaire(questionnaire));
+    public ResponseEntity<Questionnaire> createQuestionnaire(@Valid @RequestBody Questionnaire questionnaire,
+                                                             @RequestParam Long userId,
+                                                             @RequestParam Long petId) {  // ✅ petId 추가
+        Questionnaire savedQuestionnaire = questionnaireService.createQuestionnaire(questionnaire, userId, petId);
+        return ResponseEntity.ok(savedQuestionnaire);
     }
 
     /**

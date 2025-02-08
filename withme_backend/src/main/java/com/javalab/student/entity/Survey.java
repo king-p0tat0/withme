@@ -26,8 +26,8 @@ public class Survey {
     @Column(name = "survey_title", nullable = false, length = 255)
     private String surveyTitle;
 
-    @Lob
-    @Column(name = "description", nullable = false)
+    // @Lob을 사용하지 않고 기본 String 타입을 사용하여 데이터베이스 처리
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "type", nullable = false)
@@ -36,6 +36,7 @@ public class Survey {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // 엔티티 생성 시 현재 시간으로 createdAt 값을 설정
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

@@ -2,7 +2,6 @@ package com.javalab.student.repository;
 
 import com.javalab.student.constant.Role;
 import com.javalab.student.constant.Status;
-import com.javalab.student.entity.Doctor;
 import com.javalab.student.entity.Member;
 import com.javalab.student.dto.MemberFormDto;
 import org.junit.jupiter.api.DisplayName;

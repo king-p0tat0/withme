@@ -14,9 +14,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class SurveyDTO {
-    private Long survey_id;  // 설문 ID
-    private String survey_title;  // 설문 제목
-    private String description;  // 설문 설명
-    private String type;  // 설문 유형
-    private LocalDateTime created_at;  // 설문 생성일
+    private Long surveyId;  // ✅ 설문 ID (camelCase로 변경)
+    private String surveyTitle;  // ✅ 설문 제목
+    private String description;  // ✅ 설문 설명
+    private String type;  // ✅ 설문 유형
+    private LocalDateTime createdAt;  // ✅ 설문 생성일 (camelCase로 변경)
 }

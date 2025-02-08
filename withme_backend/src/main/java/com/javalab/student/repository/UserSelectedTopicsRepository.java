@@ -6,21 +6,16 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-/**
- * 📌 사용자 선택 주제 레포지토리 (UserSelectedTopicsRepository)
- * - 특정 사용자의 선택한 주제 목록 조회
- * - 특정 userId & topicId 기반 데이터 삭제
- */
 @Repository
 public interface UserSelectedTopicsRepository extends JpaRepository<UserSelectedTopics, UserSelectedTopics.UserSelectedTopicsId> {
 
     /**
-     * ✅ 특정 userId 기반 선택한 주제 목록 조회
+     * ✅ 특정 회원(userId)이 선택한 모든 주제 조회
      */
-    List<UserSelectedTopics> findAllByMember_UserId(Long userId);
+    List<UserSelectedTopics> findAllByMember_Id(Long userId);
 
     /**
-     * ✅ 특정 userId와 topicId를 기반으로 데이터 삭제
+     * ✅ 특정 회원(userId)이 특정 주제(topicId)를 선택했는지 조회
      */
-    void deleteByMember_UserIdAndSurveyTopic_TopicId(Long userId, Long topicId);
+    boolean existsByMember_IdAndSurveyTopic_TopicId(Long userId, Long topicId);
 }

@@ -12,7 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class SurveyTopicDTO {
-    private Long topicId; // 주제 ID
-    private String topicName; // 주제명
-    private Long surveyId; // 연관된 설문 ID
+    private Long topicId; // ✅ 주제 ID
+    private String topicName; // ✅ 주제명
+    private Long surveyId; // ✅ 연관된 설문 ID
 }

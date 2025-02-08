@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 소셜 로그인을 통해서 인증을 진행하는 클래스
@@ -29,11 +30,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     /**
      * 소셜 로그인 인증 진행 메소드
-     *  - 일반 인증에서는 loadUserByUsername 메소드가 진행.
+     * - 일반 인증에서는 loadUserByUsername 메소드가 진행.
      * 파라미터인 OAuth2UserRequest 에 포함된 정보
-     *   1. Registration ID : 여러 소셜 로그인 업체 중에서 어떤 업체를 사용할지 정보
-     *   2. Client ID & Client Secret, Redirect URI 정보등
-     *   3. 이 모든 정보는 application.properties 에 설정 해놓을것.
+     * 1. Registration ID : 여러 소셜 로그인 업체 중에서 어떤 업체를 사용할지 정보
+     * 2. Client ID & Client Secret, Redirect URI 정보등
+     * 3. 이 모든 정보는 application.properties 에 설정 해놓을것.
      */
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
@@ -77,16 +78,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
      */
     private MemberSecurityDto createSecurityDto(Member member, Map<String, Object> attributes) {
         return new MemberSecurityDto(
-                member.getId(),
+                member.getId(),  // 수정: getUserId() -> getId()로 변경
                 member.getEmail(),
                 member.getPassword() == null ? "N/A" : member.getPassword(),
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + member.getRole().toString())),
-                member.getUsername(),
-                member.isSocial(),
-                member.getProvider(),
-                attributes
+                member.getUserName(),  // 사용자 이름
+                member.isSocial(),     // 소셜 로그인 여부
+                member.getProvider(),  // 소셜 로그인 제공자
+                attributes            // 추가적인 속성(예: 소셜 로그인 서비스에서 받은 정보)
         );
     }
+
 
     private String extractEmail(Map<String, Object> attributes, String provider) {
         if ("kakao".equals(provider)) {
@@ -117,17 +119,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
      * 사용자 저장 또는 업데이트
      */
     private Member saveOrUpdateMember(String email, String name, String provider) {
-        Member member = memberRepository.findByEmail(email);
-        if (member == null) {   // 최초로 소셜 로그인하는 사용자
-            member = Member.createSocialMember(email, provider);    // 소셜 로그인 사용자 생성
-            member.setUsername(name);   // 이름 설정
-            member = memberRepository.save(member);     // 저장
-        } else {    // 이미 소셜 로그인으로 데이터베이스에 관련 정보가 있는 사용자
-            // 사용자가 소셜 로그인 카카오, 구글에서 이름 또는 이메일과 같은 정보를 변경했을 수 있기 때문에 업데이트
-            member.setProvider(provider);               // 소셜 로그인 제공자 업데이트
-            member.setUsername(name);                       // 이름 업데이트
-            member = memberRepository.save(member);     // 업데이트(영속화)
+        // 이메일로 사용자 조회
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+
+        // 최초로 소셜 로그인하는 사용자
+        if (optionalMember.isEmpty()) {
+            Member member = Member.createSocialMember(email, provider); // 소셜 로그인 사용자 생성
+            member.setUserName(name); // 이름 설정 (수정)
+            member = memberRepository.save(member); // 저장
+            return member;
+        } else {
+            // 이미 소셜 로그인으로 데이터베이스에 관련 정보가 있는 사용자
+            Member member = optionalMember.get(); // Optional에서 실제 객체 가져오기
+            member.setProvider(provider); // 소셜 로그인 제공자 업데이트
+            member.setUserName(name); // 이름 업데이트 (수정)
+            member = memberRepository.save(member); // 업데이트(영속화)
+            return member;
         }
-        return member;  // 사용자 반환
     }
+
 }
+
