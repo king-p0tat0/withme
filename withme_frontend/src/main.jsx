@@ -5,6 +5,9 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store, persistor } from "./redux/store"; // Redux 스토어 및 Persistor 가져오기
 import { PersistGate } from "redux-persist/integration/react"; // PersistGate 가져오기
+//mui custom
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "./assets/css/mui/theme";
 /**
  * 리액트 앱이 시작되는 지점으로 App 컴포넌트를 렌더링한다.
  * - App 컴포넌트를 BrowserRouter로 감싸 라우팅 기능을 사용할 수 있도록 한다.[수정]
@@ -18,11 +21,13 @@ import { PersistGate } from "redux-persist/integration/react"; // PersistGate �
 
 createRoot(document.getElementById("root")).render(
   <Provider store={store}>
-    <PersistGate loading={null} persistor={persistor}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </PersistGate>
+    <ThemeProvider theme={theme}>
+      <PersistGate loading={null} persistor={persistor}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </PersistGate>
+    </ThemeProvider>
   </Provider>
 );
 

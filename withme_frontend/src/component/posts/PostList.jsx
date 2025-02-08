@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { API_URL } from "../../constant";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Tabs, Tab, Button, Pagination } from "@mui/material";
+import TabPanel from "../elements/TabPanel";
 
 const categories = [
   "전체",
@@ -15,17 +17,18 @@ const categories = [
 const PostList = () => {
   const [posts, setPosts] = useState([]); // 전체 게시글
   const [filteredPosts, setFilteredPosts] = useState([]); // 필터링된 게시글
-  const [activeCategory, setActiveCategory] = useState("전체"); // 현재 활성화된 카테고리
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState(0); // 현재 활성화된 카테고리 인덱스
   const [currentUserId, setCurrentUserId] = useState(null); // 현재 로그인한 사용자 ID
   const [totalRows, setTotalRows] = useState(0); // 전체 게시글 수
   const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 10
+    page: 1, // 현재 페이지 (1부터 시작)
+    pageSize: 10 // 한 페이지에 표시할 게시글 수
   }); // 페이지네이션 상태
   const navigate = useNavigate();
 
   /**
-   * 컴포넌트가 마운트될 때 한 번 실행되며, paginationModel 또는 posts가 변경될 때도 실행됩니다.
+   * 컴포넌트가 마운트될 때 한 번 실행되며,
+   * paginationModel 또는 posts가 변경될 때도 실행됩니다.
    */
   useEffect(() => {
     fetchCurrentUser();
@@ -52,7 +55,7 @@ const PostList = () => {
 
     try {
       const response = await axios.get(
-        `${API_URL}/posts?page=${page}&size=${pageSize}`
+        `${API_URL}/posts?page=${page - 1}&size=${pageSize}` // 서버에서 요청 시 페이지는 보통 0부터 시작
       );
       if (response.status === 200) {
         const data = response.data; // 서버에서 받아온 데이터
@@ -70,136 +73,94 @@ const PostList = () => {
   };
 
   // 카테고리 변경 시 필터링 처리
-  const handleCategoryChange = (category) => {
-    setActiveCategory(category);
-    if (category === "전체") {
+  const handleCategoryChange = (event, newValue) => {
+    setActiveCategoryIndex(newValue);
+    const selectedCategory = categories[newValue];
+    if (selectedCategory === "전체") {
       setFilteredPosts(posts); // 전체 게시글 표시
     } else {
-      setFilteredPosts(posts.filter((post) => post.category === category)); // 선택된 카테고리의 게시글만 표시
+      setFilteredPosts(
+        posts.filter((post) => post.category === selectedCategory)
+      ); // 선택된 카테고리의 게시글만 표시
     }
   };
 
-  // 게시글 삭제
-  const deletePost = async (id) => {
-    if (window.confirm("정말로 삭제하시겠습니까?")) {
-      try {
-        const response = await axios.delete(`${API_URL}/posts/${id}`);
-        if (response.status === 204) {
-          alert("게시글이 삭제되었습니다.");
-          fetchPosts(); // 목록 갱신
-        } else {
-          alert("게시글 삭제 실패");
-        }
-      } catch (error) {
-        console.error("게시글 삭제 중 오류 발생:", error.message);
-        alert("게시글 삭제 실패: 네트워크 또는 서버 오류");
-      }
-    }
+  // 페이지네이션 변경 처리
+  const handlePageChange = (event, newPage) => {
+    setPaginationModel((prev) => ({ ...prev, page: newPage }));
   };
 
   return (
     <div style={{ padding: "20px" }}>
       <h1>커뮤니티</h1>
 
-      {/* 카테고리 탭 */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-        {categories.map((category) => (
-          <button
-            key={category}
-            onClick={() => handleCategoryChange(category)}
-            style={{
-              padding: "10px",
-              cursor: "pointer",
-              backgroundColor:
-                activeCategory === category ? "#007BFF" : "#f0f0f0",
-              color: activeCategory === category ? "#fff" : "#000",
-              border: "none",
-              borderRadius: "5px"
-            }}>
-            {category}
-          </button>
+      {/* MUI Tabs */}
+      <Tabs
+        value={activeCategoryIndex}
+        onChange={handleCategoryChange}
+        variant="scrollable"
+        scrollButtons="auto"
+        aria-label="posts-category-tabs">
+        {categories.map((category, index) => (
+          <Tab key={index} label={category} />
         ))}
-      </div>
+      </Tabs>
 
-      {/* 게시글 목록 */}
-      <ul>
-        {filteredPosts.map((post) => (
-          <li key={post.postId} style={{ marginBottom: "20px" }}>
-            <h2>{post.postTitle}</h2>
-            <p>{post.postContent}</p>
-            <p>
-              <strong>카테고리:</strong> {post.category}
-            </p>
-            {/* 작성자만 수정/삭제 버튼 표시 */}
-            {currentUserId === post.userId && (
-              <>
-                <button
-                  onClick={() => navigate(`/posts/edit/${post.postId}`)}
-                  style={{
-                    padding: "8px",
-                    marginRight: "10px",
-                    backgroundColor: "#28a745",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer"
-                  }}>
-                  수정
-                </button>
-                <button
-                  onClick={() => deletePost(post.postId)}
-                  style={{
-                    padding: "8px",
-                    backgroundColor: "#dc3545",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer"
-                  }}>
-                  삭제
-                </button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+      {/* TabPanels */}
+      {categories.map((category, index) => (
+        <TabPanel key={index} value={activeCategoryIndex} index={index}>
+          <ul>
+            {filteredPosts.map((post) => (
+              <li key={post.postId} style={{ marginBottom: "20px" }}>
+                <h2>{post.postTitle}</h2>
+                <p>{post.postContent}</p>
+                <p>
+                  <strong>카테고리:</strong> {post.category}
+                </p>
+                {/* 작성자만 수정/삭제 버튼 표시 */}
+                {currentUserId === post.userId && (
+                  <>
+                    <Button
+                      onClick={() => navigate(`/posts/edit/${post.postId}`)}
+                      style={{
+                        padding: "8px",
+                        marginRight: "10px",
+                        backgroundColor: "#28a745",
+                        color: "#fff",
+                        borderRadius: "5px"
+                      }}>
+                      수정
+                    </Button>
+                    <Button
+                      onClick={() => deletePost(post.postId)}
+                      style={{
+                        padding: "8px",
+                        backgroundColor: "#dc3545",
+                        color: "#fff",
+                        borderRadius: "5px"
+                      }}>
+                      삭제
+                    </Button>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+          {filteredPosts.length === 0 && (
+            <p>해당 카테고리에 게시물이 없습니다.</p>
+          )}
+        </TabPanel>
+      ))}
 
-      {/* 페이지네이션 버튼 */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          marginTop: "20px"
-        }}>
-        <button
-          disabled={paginationModel.page === 0}
-          onClick={() =>
-            setPaginationModel((prev) => ({ ...prev, page: prev.page - 1 }))
-          }
-          style={{
-            padding: "10px",
-            marginRight: "10px",
-            cursor: paginationModel.page === 0 ? "not-allowed" : "pointer"
-          }}>
-          이전 페이지
-        </button>
-        <button
-          disabled={
-            (paginationModel.page + 1) * paginationModel.pageSize >= totalRows
-          }
-          onClick={() =>
-            setPaginationModel((prev) => ({ ...prev, page: prev.page + 1 }))
-          }
-          style={{
-            padding: "10px",
-            cursor:
-              (paginationModel.page + 1) * paginationModel.pageSize >= totalRows
-                ? "not-allowed"
-                : "pointer"
-          }}>
-          다음 페이지
-        </button>
-      </div>
+      {/* 페이지네이션 */}
+      <Pagination
+        // count={Math.ceil(totalRows / paginationModel.pageSize)} // 총 페이지 수 계산
+        // page={paginationModel.page}
+        count={10}
+        onChange={handlePageChange}
+        color="primary"
+        size="small"
+      />
     </div>
   );
 };

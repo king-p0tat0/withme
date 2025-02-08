@@ -25,7 +25,7 @@ public class Comment {
     private Post post;
 
     @Column(name = "user_id", nullable = false, length = 20)
-    private String userId;
+    private Long userId;
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
