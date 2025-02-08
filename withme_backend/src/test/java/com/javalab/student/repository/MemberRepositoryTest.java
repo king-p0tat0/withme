@@ -33,15 +33,13 @@ class MemberRepositoryTest {
      */
     public Member createMember() {
         MemberFormDto memberFormDto = MemberFormDto.builder()
-                .email("test@example.com")
-                //.email("test1@example.com") // DB에 없는 이메일로 변경
-                .user_name("홍길동")
-                .address("서울시 강남구")
+                .email("test2@example.com")
+                .name("김길동")
+                .address("서울시 마포구")
                 .password("1234") // 원래 비밀번호
                 .phone("010-1234-5678")
                 .role(Role.ADMIN)
                 .build();
-
         return Member.createMember(memberFormDto, passwordEncoder); // 비밀번호 암호화 포함
     }
 
@@ -61,7 +59,7 @@ class MemberRepositoryTest {
 
         // Then : 저장된 회원 정보 확인
         assertEquals(member.getEmail(), savedMember.getEmail());
-        assertEquals(member.getUser_name(), savedMember.getUser_name());
+        assertEquals(member.getName(), savedMember.getName());
         assertEquals(member.getAddress(), savedMember.getAddress());
 
         // 비밀번호가 암호화되어 저장되었는지 확인
