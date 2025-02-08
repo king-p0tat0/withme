@@ -55,7 +55,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         MemberSecurityDto userDetails = (MemberSecurityDto) authentication.getPrincipal();
 
         // 2️⃣ Redis에 사용자 권한 정보 캐싱(이메일을 전달하면 권한 정보를 데이터베이스에서 조회한 뒤 Redis에 저장)
-        redisService.cacheUserAuthorities(userDetails.getEmail());
+        redisService.cacheUserAuthorities(userDetails.getName());
         log.info("사용자의 권한 정보가 Redis에 성공적으로 저장되었습니다.");
 
         // redis에 저장된 사용자 권한 정보 확인하기 위한 로그
