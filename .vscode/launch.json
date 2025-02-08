@@ -9,6 +9,16 @@
       "projectName": "withme-withme_backend",
       "args": "",
       "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-StudentBackendApplication<withme_backend>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.javalab.student.StudentBackendApplication",
+      "projectName": "withme_backend",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
     }
   ]
 }
