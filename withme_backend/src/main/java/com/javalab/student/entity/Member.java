@@ -24,9 +24,10 @@ import java.util.Collections;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Member extends BaseEntity{
     @Id
-    @Column(name = "member_id")
+    @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
@@ -41,6 +42,8 @@ public class Member extends BaseEntity{
     private String phone;
 
     private String address;
+
+    private String age;
 
     @Builder
     public Member(String email, String password, String auth) {
@@ -69,15 +72,17 @@ public class Member extends BaseEntity{
         * - 사용자가 입력한 암호는 "평문"이다. 즉 암호화가 안된 문자열이다.
      */
     public static Member createMember(MemberFormDto memberFormDto, PasswordEncoder passwordEncoder) {
+        String role = Role.USER.toString();
         Member member = new Member();
         member.setName(memberFormDto.getName());
         member.setEmail(memberFormDto.getEmail());
+        member.setAge(memberFormDto.getAge());
         String password = passwordEncoder.encode(memberFormDto.getPassword()); // 비밀번호 암호화
         member.setPassword(password);
         member.setAddress(memberFormDto.getAddress());
         member.setPhone(memberFormDto.getPhone());
         member.setSocial(false); // 일반 회원가입이므로 소셜 로그인 여부는 false
-        member.setRole(memberFormDto.getRole());  // 회원가입 시 사용자의 권한 : USER
+        member.setRole(Role.USER);  // 회원가입 시 사용자의 권한 : USER  [수정]
         return member;
     }
 

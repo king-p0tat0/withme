@@ -35,12 +35,13 @@ class MemberRepositoryTest {
         MemberFormDto memberFormDto = MemberFormDto.builder()
                 .email("test2@example.com")
                 //.email("test1@example.com") // DB에 없는 이메일로 변경
-                .name("김길동")
-                .address("서울시 마포구")
+                .name("홍길동")
+                .address("서울시 강남구")
                 .password("1234") // 원래 비밀번호
                 .phone("010-1234-5678")
                 .role(Role.ADMIN)
                 .build();
+
         return Member.createMember(memberFormDto, passwordEncoder); // 비밀번호 암호화 포함
     }
 
