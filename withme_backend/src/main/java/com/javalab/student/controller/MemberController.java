@@ -4,23 +4,27 @@ import com.javalab.student.config.jwt.TokenProvider;
 import com.javalab.student.dto.LoginFormDto;
 import com.javalab.student.dto.MemberFormDto;
 import com.javalab.student.entity.Member;
+import com.javalab.student.repository.MemberRepository;
 import com.javalab.student.service.MemberService;
 import com.javalab.student.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
+@Log4j2
 public class MemberController {
 
     private final MemberService memberService;
@@ -145,7 +149,7 @@ public class MemberController {
             responseBody.put("message", "사용자 정보가 수정되고 JWT가 갱신되었습니다.");
             responseBody.put("id", updatedMember.getId());
             responseBody.put("email", updatedMember.getEmail());
-            responseBody.put("name", updatedMember.getUser_name());
+            responseBody.put("name", updatedMember.getUsername());
             responseBody.put("roles", updatedMember.getAuthorities());
             return ResponseEntity.ok(responseBody);
         } catch (IllegalArgumentException e) {
@@ -190,8 +194,6 @@ public class MemberController {
             return ResponseEntity.ok(response); // 오류도 200 OK로 응답
         }
     }
-
-
 
     /**
      * 로그인 처리[미사용-일반 시큐리티 로그인]

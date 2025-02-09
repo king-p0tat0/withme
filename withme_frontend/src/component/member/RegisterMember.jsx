@@ -3,8 +3,8 @@ import { useState } from "react";
 import { API_URL } from "../../constant";
 import { useNavigate } from "react-router-dom";
 import {fetchWithAuth} from "../../common/fetchWithAuth";
-// import { fetchWithoutAuth } from "../../common/fetchWithAuth";
-import axios from "axios";
+import useDebounce from '../../hook/useDebounce'; // useDebounce 훅을 임포트합니다
+import { useEffect } from "react";
 
 /**
  * 회원가입 컴포넌트
@@ -12,80 +12,83 @@ import axios from "axios";
 export default function RegisterMember() {
     // 입력된 회원 정보를 저장할 상태 변수
     const [member, setMember] = useState({
-        name: "",
+        username: "",
         email: "",
         password: "",
+        passwordre: "",
         phone: "",
         address: "",
     });
+    const [email, setEmail] = useState("");
+    const debouncedEmail = useDebounce(email, 500); // 500ms 디바운스 적용
 
-    // 이메일 중복 체크 오류 메시지 상태
-    const [emailError, setEmailError] = useState(""); // 이메일 중복 체크 메시지 상태
-
+    const [emailError, setEmailError] = useState(""); // 이메일 중복 메시지
     const navigate = useNavigate();
 
-    // 회원 정보 입력 시 상태 변경
+    // debounce된 이메일 값이 변경될 때마다 실행, 사용자가 입력할 때마다 실행되지 않고 500ms 후에 실행됩니다
+    // 즉, 사용자가 입력을 멈추고 500ms 후에 실행됩니다
+    useEffect(() => {
+        if (debouncedEmail) {
+            checkEmail(debouncedEmail);
+        }
+    }, [debouncedEmail]);
+
+    // 입력 필드 변경 처리
+    // const onMemberChange = (event) => {
+    //     const { name, value } = event.target;
+    //     setMember({ ...member, [name]: value });
+    //
+    //     if (name === "email") {
+    //         checkEmail(value);
+    //     }
+    // };
+    // 입력 필드 변경 처리
     const onMemberChange = (event) => {
         const { name, value } = event.target;
-        setMember({ ...member, [name]: value });
-
+        setMember({ ...member, [name]: value }); // 입력 필드 값 업데이트
         if (name === "email") {
-            checkEmailDuplicate(value); // 이메일 입력 시 중복 체크 실행
+            setEmail(value); // 이 부분을 추가
         }
     };
 
-    // 이메일 중복 체크 함수(fetch 대신 axios 사용)
-    const checkEmailDuplicate = async (email) => {
-        if (!email.includes("@")) return;
-
-        try {
-            // 🔹 `await`를 사용하여 서버 응답을 기다림
-            const response = await axios.get(`${API_URL}members/checkEmail`, { params: { email } });
-
-            // 🔹 응답에서 JSON 데이터 추출 (가독성 향상)
-            const result = await response.data;
-
-            // 🔹 상태 값 확인 후 처리
-            if (result.status === "available") {
-                setEmailError(""); // 사용 가능한 이메일이면 오류 메시지 초기화
-            } else if (result.status === "duplicate") {
-                setEmailError(result.message); // "이미 존재하는 이메일입니다."
-            }
-        } catch (error) {
-            console.error("이메일 중복 체크 실패:", error.message);
-        }
+    // 이메일 중복 체크
+    const checkEmail = (email) => {
+        fetch(`${API_URL}members/checkEmail?email=${email}`)
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.status === "duplicate") {
+                    setEmailError(data.message);
+                } else {
+                    setEmailError("");
+                }
+            })
+            .catch((error) => {
+                console.error("이메일 중복 체크 중 오류 발생:", error);
+                setEmailError("이메일 확인 중 오류가 발생했습니다.");
+            });
     };
-
-
-
 
     // 회원가입 처리
-    const handleOnSubmit = async () => {
-        if (emailError) {
-            alert("이메일을 확인해 주세요."); // 이메일 오류가 있으면 진행하지 않음
-            return;
-        }
-
-        try {
-            console.log("회원가입 시작");
-
-            const requestOptions = {
+    const handleOnSubmit = () => {
+        if(member.password == member.passwordre){
+            fetch(API_URL + "members/register", {
                 method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(member),
-            };
-
-            const response = await fetchWithoutAuth(`${API_URL}members/register`, requestOptions);
-
-            if (response.ok) {
-                alert("회원가입이 완료되었습니다.");
-                navigate("/login");
-            } else {
-                const errorData = await response.json();
-                alert(`회원가입 실패: ${errorData.message || "오류 발생"}`);
-            }
-        } catch (error) {
-            console.error("회원가입 중 오류 발생:", error.message);
-            alert("회원가입 실패: 네트워크 또는 서버 오류");
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        alert("회원가입이 완료되었습니다.");
+                        navigate("/login");
+                    } else {
+                        return response.text().then((text) => {
+                            alert("회원가입 실패: " + text);
+                        });
+                    }
+                })
+                .catch((error) => console.error("회원가입 중 오류 발생:", error));
+        }else{
+            alert("비밀번호가 다릅니다");
         }
     };
 
@@ -95,14 +98,7 @@ export default function RegisterMember() {
                 회원가입
             </Typography>
             <TextField
-                label="Name"
-                name="name"
-                value={member.name}
-                onChange={onMemberChange}
-                style={{ width: "400px", marginBottom: "10px" }}
-            />
-            <TextField
-                label="Email"
+                label="이메일 입력"
                 name="email"
                 value={member.email}
                 onChange={onMemberChange}
@@ -111,7 +107,7 @@ export default function RegisterMember() {
                 helperText={emailError} // 오류 메시지 표시
             />
             <TextField
-                label="Password"
+                label="비밀번호 입력"
                 name="password"
                 type="password"
                 value={member.password}
@@ -119,14 +115,29 @@ export default function RegisterMember() {
                 style={{ width: "400px", marginBottom: "10px" }}
             />
             <TextField
-                label="Phone"
+                label="비밀번호 입력"
+                name="passwordre"
+                type="passwordre"
+                value={member.passwordre}
+                onChange={onMemberChange}
+                style={{ width: "400px", marginBottom: "10px" }}
+            />
+            <TextField
+                label="이름 입력"
+                name="username"
+                value={member.username}
+                onChange={onMemberChange}
+                style={{ width: "400px", marginBottom: "10px" }}
+            />
+            <TextField
+                label="전화번호 입력"
                 name="phone"
                 value={member.phone}
                 onChange={onMemberChange}
                 style={{ width: "400px", marginBottom: "10px" }}
             />
             <TextField
-                label="Address"
+                label="주소입력"
                 name="address"
                 value={member.address}
                 onChange={onMemberChange}

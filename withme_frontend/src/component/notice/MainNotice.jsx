@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -30,7 +31,6 @@ const MainNotice = () => {
           {notices.map((notice) => (
             <li key={notice.id}>
               <h3>{notice.title}</h3>
-              <p>{notice.content}</p>
             </li>
           ))}
         </ul>

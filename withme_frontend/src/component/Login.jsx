@@ -45,22 +45,28 @@ export default function Login({ onLogin }) {
             });
 
             const data = await response.json(); // ✅ 항상 JSON 응답을 받음
-
             // ✅ 상태 값을 기반으로 로그인 성공 여부 확인
             if (data.status === "failed") {
+                alert("로그인 실패");
                 setErrorMessage(data.message); // ❗ 로그인 실패 메시지 설정
                 return;
+            }else if(data.status === undefined){
+                 alert("로그인 실패");
+                 setErrorMessage(data.message); // ❗ 로그인 실패 메시지 설정
+                 return;
+            }else{
+                console.log(data.status);
+                // ✅ 로그인 성공 시 사용자 정보를 Redux에 저장
+                dispatch(setUser({
+                    id: data.id,
+                    name: data.name,
+                    email: credentials.email,
+                    roles: data.roles,
+                }));
+                navigate("/");
             }
 
-            // ✅ 로그인 성공 시 사용자 정보를 Redux에 저장
-            dispatch(setUser({
-                id: data.id,
-                name: data.name,
-                email: credentials.email,
-                roles: data.roles,
-            }));
 
-            navigate("/");
         } catch (error) {
             console.error("로그인 요청 실패:", error.message);
         }
@@ -92,6 +98,9 @@ export default function Login({ onLogin }) {
                 </Button>
                 <Button variant="outlined" onClick={() => navigate("/registerMember")}>
                     회원가입
+                </Button>
+                <Button variant="outlined" onClick={() => navigate("/registerDoctor")}>
+                    의사 회원가입
                 </Button>
             </div>
         </div>

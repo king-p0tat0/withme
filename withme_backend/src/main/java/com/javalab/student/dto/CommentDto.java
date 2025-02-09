@@ -15,7 +15,7 @@ public class CommentDto {
     
     private long postId; // 게시글 ID
     
-    private String userId;
+    private Long userId;
     
     private String content;
     

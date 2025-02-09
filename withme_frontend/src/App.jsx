@@ -8,6 +8,11 @@ import MyPage from "./component/member/MyPage.jsx";
 import ViewStudent from "./component/ViewStudent";
 import EditStudent from "./component/EditStudent";
 import RegisterMember from "./component/member/RegisterMember";
+//공지사항
+import NoticeList from "./component/notice/NoticeList";
+import NoticeForm from "./component/notice/NoticeForm";
+import NoticeView from "./component/notice/NoticeView";
+import RegisterDoctor from "./component/doctor/RegisterDoctor";
 //커뮤니티
 import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
@@ -27,6 +32,8 @@ import Footer from "./component/common/Footer";
 
 //관리자
 // import Admin from "./component/admin/Admin";
+//관리자
+import Admin from "./component/admin/Admin";
 
 /**
  * App 컴포넌트
@@ -107,8 +114,14 @@ function App() {
           </>
         )}
         <Route path="/registerMember" element={<RegisterMember />} />
+        <Route path="/registerDoctor" element={<RegisterDoctor />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
+        {/* 공지사항 목록 */}
+        <Route path="/notices" element={<NoticeList />} />
+        <Route path="/notices/new" element={<NoticeForm />} />
+        <Route path="/notices/:id" element={<NoticeView />} />
+
         {/* 게시글 목록 */}
         <Route path="/posts" element={<PostList />} />
 
@@ -118,10 +131,11 @@ function App() {
         <Route path="/posts/edit/:id" element={<PostForm />} />
         {/* 게시글 상세 보기 */}
         <Route path="/posts/:id" element={<PostView />} />
+
         {/* React Router는 상단부터 Routes에 정의된 Route를 순차적으로 검사. 모든 요청을 UnauthorizedPage로 리디렉션, 위에서 부터 순차적으로 진행됨 */}
         {/*<Route path="*" element={<UnauthorizedPage />} />*/}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
-{/*         <Route path="/admin" element={<Admin />} /> */}
+        <Route path="/admin" element={<Admin />} />
       </Routes>
       <Footer />
     </div>
