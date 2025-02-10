@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import "../../assets/css/member/SignupSuccess.css";
 
@@ -7,8 +7,15 @@ function SignupSuccess() {
   const location = useLocation();
   const { username } = location.state || {}; // 이전 페이지에서 state로 전달된 username
 
+   useEffect(() => {
+      document.body.style.backgroundColor = "#FEF9F6";
+      return () => {
+        document.body.style.backgroundColor = "";
+      };
+    }, []);
+
   return (
-    <div className="container">
+    <div className="container" style={{ backgroundColor: "#FEF9F6" }}>
       <img src="assets/images/dog.png" alt="dog image" />
       <div className="message">
         <p className="title">
