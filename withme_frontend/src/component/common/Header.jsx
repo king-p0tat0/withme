@@ -1,4 +1,3 @@
-import "./Header.css";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -6,8 +5,9 @@ import { clearUser } from "../../redux/authSlice";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingBasket } from "@fortawesome/free-solid-svg-icons";
 import { API_URL } from "../../constant";
-import { fetchWithAuth } from "../../common/fetchWithAuth";
+import { fetchWithAuth } from "../../utils/fetchWithAuth";
 import { Helmet } from "react-helmet"; // 폰트
+import "./Header.css";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -16,14 +16,28 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      await fetchWithAuth(`${API_URL}auth/logout`, {
-        method: "POST",
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.warn("JWT 토큰이 없습니다.");
+        dispatch(clearUser());
+        window.location.href = "/";
+        return;
+      }
+
+      const response = await fetchWithAuth(`${API_URL}auth/logout`, {
+        method: "POST"
       });
+
+      if (!response.ok) {
+        alert("로그아웃 중 오류가 발생했습니다.");
+        return;
+      }
+
       dispatch(clearUser());
-      window.location.href = "/"; // 홈으로 이동
+      localStorage.removeItem("token");
+      window.location.href = "/";
     } catch (error) {
       console.error("로그아웃 실패:", error.message);
-      alert("로그아웃 중 오류가 발생했습니다.");
     }
   };
 

@@ -1,24 +1,16 @@
 {
+  "version": "0.2.0",
   "configurations": [
     {
       "type": "java",
-      "name": "Spring Boot-WithmeBackendApplication<withme-withme_backend>",
+      "name": "Spring Boot-WithMeBackendApplication",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "mainClass": "com.javalab.student.WithmeBackendApplication",
-      "projectName": "withme-withme_backend",
+      "mainClass": "com.javalab.withme.WithMeBackendApplication", // 메인 클래스 경로
+      "projectName": "withme_backend", // 프로젝트 이름
       "args": "",
-      "envFile": "${workspaceFolder}/.env"
-    },
-    {
-      "type": "java",
-      "name": "Spring Boot-StudentBackendApplication<withme_backend>",
-      "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "mainClass": "com.javalab.student.StudentBackendApplication",
-      "projectName": "withme_backend",
-      "args": "",
-      "envFile": "${workspaceFolder}/.env"
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": "-Dserver.port=8080" // 서버 포트를 명시적으로 설정 (필요 시 수정)
     }
   ]
 }

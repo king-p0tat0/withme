@@ -21,7 +21,7 @@ import UnauthorizedPage from "./component/UnAuthorizedPage.jsx";
 import { API_URL } from "./constant";
 import Home from "./component/Home";
 import HomeIcon from "@mui/icons-material/Home";
-import { fetchWithAuth } from "./common/fetchWithAuth.js"; // 홈 아이콘 추가
+import { fetchWithAuth } from "./utils/fetchWithAuth.js"; // 홈 아이콘 추가
 <<<<<<< HEAD
 //관리자
 import Admin from "./component/admin/Admin";

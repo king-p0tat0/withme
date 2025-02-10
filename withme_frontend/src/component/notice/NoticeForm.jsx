@@ -8,7 +8,7 @@ import {
   MenuItem,
   TextField
 } from "@mui/material";
-import { NormalButton, DeleteButton } from "../elements/Button"; // 커스텀 버튼 가져오기
+import { PrimaryButton } from "../elements/CustomComponents.jsx"; // 커스텀 버튼 가져오기
 
 const NoticeCreate = () => {
   const [formData, setFormData] = useState({
@@ -83,7 +83,7 @@ const NoticeCreate = () => {
         </FormControl>
 
         {/* 등록 버튼 */}
-        <NormalButton type="submit">등록하기</NormalButton>
+        <PrimaryButton type="submit">등록하기</PrimaryButton>
       </form>
     </div>
   );

@@ -1,13 +1,14 @@
 import React, { useEffect } from "react";
-import { AppBar, Toolbar, Typography, Button } from "@mui/material";
+//import { AppBar, Toolbar, Typography, Button } from "@mui/material";
 import { Routes, Route, Link, Navigate } from "react-router-dom";
-import StudentList from "./component/StudentList";
-import AddStudent from "./component/AddStudent";
-import Login from "./component/Login";
+
+import Login from "./component/member/Login";
 import MyPage from "./component/member/MyPage.jsx";
-import ViewStudent from "./component/ViewStudent";
-import EditStudent from "./component/EditStudent";
-import RegisterMember from "./component/member/RegisterMember";
+import MemberForm from "./component/member/MemberForm";
+
+//ui
+import UiComponents from "./component/elements/UiComponents";
+
 //공지사항
 import NoticeList from "./component/notice/NoticeList";
 import NoticeForm from "./component/notice/NoticeForm";
@@ -25,7 +26,7 @@ import UnauthorizedPage from "./component/UnAuthorizedPage.jsx";
 import { API_URL } from "./constant";
 import Home from "./component/Home";
 import HomeIcon from "@mui/icons-material/Home";
-import { fetchWithAuth } from "./common/fetchWithAuth.js"; // 홈 아이콘 추가
+import { fetchWithAuth } from "./utils/fetchWithAuth.js"; // 홈 아이콘 추가
 import Header from "./component/common/Header";
 import Footer from "./component/common/Footer";
 
@@ -95,7 +96,7 @@ function App() {
       {/*라우팅 부분*/}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/listStudent" element={<StudentList />} />
+        {/* <Route path="/listStudent" element={<StudentList />} />
         <Route
           path="/addStudent"
           element={
@@ -105,14 +106,17 @@ function App() {
               <Navigate to="/unauthorized" replace />
             )
           }
-        />
-        <Route path="/viewStudent/:id" element={<ViewStudent />} />
+        /> */}
+        {/* <Route path="/viewStudent/:id" element={<ViewStudent />} />
         {isLoggedIn && user?.roles?.includes("ROLE_ADMIN") && (
           <>
             <Route path="/editStudent/:id" element={<EditStudent />} />
           </>
-        )}
-        <Route path="/registerMember" element={<RegisterMember />} />
+        )} */}
+
+        <Route path="/ui" element={<UiComponents />} />
+
+        <Route path="/register" element={<MemberForm />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
         {/* 공지사항 목록 */}
