@@ -24,51 +24,49 @@ public class DoctorController {
     /**
      * 새로운 의사 신청을 저장하는 API
      */
-    @PostMapping("/apply")
+    @PostMapping("/apply/{email}")
     public ResponseEntity<DoctorApplication> applyDoctor(
-            @RequestBody DoctorFormDto doctorFormDto) {  // @Valid 유지
+            @RequestBody DoctorFormDto doctorFormDto,
+            @PathVariable String email) {
+        log.info("컨트롤러 사용자 신청 요청 수신: {}", doctorFormDto);
+        log.info("컨트롤러  사용자 정보: {}", email);
+        log.info("신청 컨트롤러 실행");
 
-        log.info("사용자 신청 요청 수신: {}", doctorFormDto);
-
-        // doctorFormDto에서 직접 사용자 ID/이메일을 가져옵니다
-        String userEmail = doctorFormDto.getEmail();
-        log.info("신청 사용자 이메일: {}", userEmail);
-
-        DoctorApplication doctor = doctorService.saveDoctorApplication(doctorFormDto, userEmail);
+        DoctorApplication doctor = doctorService.saveDoctorApplication(doctorFormDto, email);
         return ResponseEntity.ok(doctor);
     }
 
     /**
      * 현재 로그인한 사용자의 의사 신청 정보를 조회하는 API
      */
-    @GetMapping("/application")
-    public ResponseEntity<Doctor> getApplication(
-            @RequestParam String email) {  // 이메일을 쿼리 파라미터로 받음
+    @GetMapping("/application/{id}")
+    public ResponseEntity<DoctorApplication> getApplication(
+            @PathVariable Long id) {  // 이메일을 쿼리 파라미터로 받음
 
-        Doctor doctor = doctorService.getDoctorApplication(email);
+        DoctorApplication doctor = doctorService.getDoctorApplication(id);
         return ResponseEntity.ok(doctor);
     }
 
     /**
      * 기존 의사 신청 정보를 수정하는 API
      */
-    @PutMapping("/application")
+    /*@PutMapping("/application")
     public ResponseEntity<Doctor> updateApplication(
             @Valid @RequestBody DoctorFormDto doctorFormDto) {
 
-        String userEmail = doctorFormDto.getEmail();
+
         Doctor doctor = doctorService.updateDoctorApplication(userEmail, doctorFormDto);
         return ResponseEntity.ok(doctor);
-    }
+    }*/
 
     /**
      * 기존 의사 신청 정보를 삭제하는 API
      */
-    @DeleteMapping("/application")
+   /* @DeleteMapping("/application")
     public ResponseEntity<Void> deleteApplication(
             @RequestParam String email) {
 
         doctorService.deleteDoctorApplication(email);
         return ResponseEntity.noContent().build();
-    }
+    }*/
 }

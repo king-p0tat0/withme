@@ -11,11 +11,6 @@ export default function DoctorApplicationForm() {
 
     // 사용자 정보 및 추가 입력 필드를 저장할 상태
     const [userData, setUserData] = useState({
-        id: "",
-        name: "",
-        email: "",
-        phone: "",
-        address: "",
         subject: "",
         hospital: "",
         doctorNumber: "",
@@ -27,15 +22,15 @@ export default function DoctorApplicationForm() {
     /**
      * 컴포넌트가 렌더링될 때 사용자 정보 불러오기
      */
-    useEffect(() => {
+    /* useEffect(() => {
         if (user) {
             fetchMemberData(user.id);
         }
     }, [user]);
 
-    /**
+     *//**
      * 사용자 정보 API 호출
-     */
+     *//*
     const fetchMemberData = async (memberId) => {
         try {
             const response = await fetchWithAuth(`${API_URL}members/${memberId}`, { method: "GET" });
@@ -60,7 +55,7 @@ export default function DoctorApplicationForm() {
             console.error("사용자 정보 로드 중 오류 발생:", error.message);
             alert("사용자 정보 로드 실패: 네트워크 또는 서버 오류");
         }
-    };
+    }; */
 
     /**
      * 입력 값 업데이트
@@ -84,9 +79,10 @@ export default function DoctorApplicationForm() {
             return;
         }
 
+        console.log("전문가 신청 페이지 호출 전 확인 - user.email : ", user.email);
         setLoading(true);
         try {
-            const response = await fetchWithAuth(`${API_URL}doctors/apply`, {
+            const response = await fetchWithAuth(`${API_URL}doctors/apply/${user.email}`, {
                 method: "POST",
                 body: JSON.stringify(userData),
             });
@@ -110,20 +106,6 @@ export default function DoctorApplicationForm() {
             <Typography variant="h4" gutterBottom>전문가 신청</Typography>
 
             <form onSubmit={handleSubmit}>
-                {/* 사용자 정보 */}
-                <div className="form-group">
-                    <TextField label="이름" name="name" value={userData.name} disabled fullWidth />
-                </div>
-                <div className="form-group">
-                    <TextField label="이메일" name="email" value={userData.email} disabled fullWidth />
-                </div>
-                <div className="form-group">
-                    <TextField label="전화번호" name="phone" value={userData.phone} onChange={handleChange} fullWidth />
-                </div>
-                <div className="form-group">
-                    <TextField label="주소" name="address" value={userData.address} onChange={handleChange} fullWidth />
-                </div>
-
                 {/* 추가 입력 필드 (전문가 정보) */}
                 <div className="form-group">
                     <TextField label="전문분야" name="subject" value={userData.subject} onChange={handleChange} fullWidth required />

@@ -11,6 +11,7 @@ import com.javalab.student.repository.DoctorRepository;
 import com.javalab.student.repository.MemberRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -19,6 +20,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Log4j2
 public class DoctorService {
 
     private final DoctorRepository doctorRepository;
@@ -34,10 +36,8 @@ public class DoctorService {
         // 이메일을 통해 회원 정보 조회
         Member member = memberRepository.findByEmail(email);
 
-        // 필수 값 검증
-        if (doctorFormDto.getSubject() == null || doctorFormDto.getHospital() == null || doctorFormDto.getDoctorNumber() == null) {
-            throw new IllegalArgumentException("필수 입력 항목이 누락되었습니다.");
-        }
+        log.info("Doctor 서비스- 전문가 신청에서 받은 회원 정보: {}", member);
+
 
         // DoctorApplication 객체 생성 및 저장
         DoctorApplication doctorApplication = DoctorApplication.builder()
@@ -59,31 +59,32 @@ public class DoctorService {
      * - doctor 테이블에서 신청정보 조회
      * - 로그인 사용자의 본인 신청정보만 조회
      */
-    public Doctor getDoctorApplication(String email) {
-        return doctorRepository.findByMemberEmail(email);
+    public DoctorApplication getDoctorApplication(Long id) {
+        return doctorApplicationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 의사 신청이 없습니다: " + id));
     }
 
     /**
      * Doctor 신청정보 수정
      * - doctor 테이블에 신청정보 수정
      */
-    public Doctor updateDoctorApplication(String email, DoctorFormDto doctorFormDto) {
-        Doctor doctor = getDoctorApplication(email);
+    public DoctorApplication updateDoctorApplication(Long id, DoctorFormDto doctorFormDto) {
+        DoctorApplication doctor = getDoctorApplication(id);
 
         doctor.setSubject(doctorFormDto.getSubject());
         doctor.setHospital(doctorFormDto.getHospital());
         doctor.setDoctorNumber(doctorFormDto.getDoctorNumber());
 
-        return doctorRepository.save(doctor);
+        return doctorApplicationRepository.save(doctor);
     }
 
     /**
      * Doctor 신청정보 삭제
      * - doctor 테이블에서 신청정보 삭제
      */
-    public void deleteDoctorApplication(String email) {
-        Doctor doctor = getDoctorApplication(email);
-        doctorRepository.delete(doctor);
+    public void deleteDoctorApplication(Long id) {
+        DoctorApplication doctor = getDoctorApplication(id);
+        doctorApplicationRepository.delete(doctor);
     }
 
     /**

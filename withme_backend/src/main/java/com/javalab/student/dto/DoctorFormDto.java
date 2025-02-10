@@ -30,7 +30,6 @@ public class DoctorFormDto {
 
     private Member member;
 
-    private String email;
 
 
 }

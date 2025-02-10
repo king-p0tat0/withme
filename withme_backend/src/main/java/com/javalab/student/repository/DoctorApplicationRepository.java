@@ -13,6 +13,8 @@ public interface DoctorApplicationRepository extends JpaRepository<DoctorApplica
 
     DoctorApplication findByMemberEmail(String email);
 
+
+
     /**
      * 특정 상태들(PENDING, ON_HOLD, REJECTED)로 필터링
      */

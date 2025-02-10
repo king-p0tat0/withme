@@ -14,6 +14,7 @@ const Header = () => {
   const dispatch = useDispatch();
   const { user, isLoggedIn } = useSelector((state) => state.auth);
 
+
   const handleLogout = async () => {
     try {
       await fetchWithAuth(`${API_URL}auth/logout`, {
@@ -62,6 +63,12 @@ const Header = () => {
                 </li>
                 <li>
                   <Link to={`/mypage/${user.id}`}>마이페이지</Link>
+                </li>
+                <li>
+                  <Link to={`/registerDoctor`}>전문가 신청</Link>
+                </li>
+                <li>
+                  <Link to={`/doctorStatus`}>전문가 신청조회</Link>
                 </li>
               </>
             ) : (

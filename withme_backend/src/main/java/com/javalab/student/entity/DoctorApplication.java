@@ -40,8 +40,9 @@ public class DoctorApplication extends BaseEntity {
     private String hospital; // 병원정보
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private Status status = Status.PENDING;  // 기본값 PENDING
+    @Column(name = "status")
+    @Builder.Default
+    private Status status = Status.PENDING; // 기본값 PENDING
 
     @Column
     private String reason; // 거절 사유

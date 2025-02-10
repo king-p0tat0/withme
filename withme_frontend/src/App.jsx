@@ -14,6 +14,7 @@ import NoticeForm from "./component/notice/NoticeForm";
 import NoticeView from "./component/notice/NoticeView";
 // 전문가 신청, 수정
 import RegisterDoctor from "./component/doctor/RegisterDoctor";
+import DoctorApplicationStatus from "./component/doctor/DoctorApplicationStatus";
 //커뮤니티
 import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
@@ -114,6 +115,7 @@ function App() {
         )}
         <Route path="/registerMember" element={<RegisterMember />} />
         <Route path="/registerDoctor" element={<RegisterDoctor />} />
+        <Route path="/doctorStatus" element={<DoctorApplicationStatus />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
         {/* 공지사항 목록 */}
