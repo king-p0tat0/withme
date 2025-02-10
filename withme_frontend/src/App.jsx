@@ -3,12 +3,13 @@ import { AppBar, Toolbar, Typography, Button } from "@mui/material";
 import { Routes, Route, Link, Navigate } from "react-router-dom";
 import Login from "./component/Login";
 import MyPage from "./component/member/MyPage.jsx";
-import RegisterMember from "./component/member/RegisterMember";
+
 //공지사항
 import NoticeList from "./component/notice/NoticeList";
 import NoticeForm from "./component/notice/NoticeForm";
 import NoticeView from "./component/notice/NoticeView";
 import RegisterDoctor from "./component/doctor/RegisterDoctor";
+
 //커뮤니티
 import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
@@ -28,6 +29,12 @@ import Footer from "./component/common/Footer";
 
 //관리자
 import Admin from "./component/admin/Admin";
+
+// 회원가입
+import Policy from "./component/member/Policy"; // 약관정책
+import RegisterMember from "./component/member/RegisterMember"; // 회원정보 입력
+import SignupSuccess from "./component/member/SignupSuccess"; // 가입 완료
+
 
 function App() {
   // 리덕스 스토어의 상태를 가져오기 위해 useSelector 훅 사용, auth 슬라이스에서 user, isLoggedIn 상태를 가져옴
@@ -61,7 +68,6 @@ function App() {
       {/*라우팅 부분*/}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/registerMember" element={<RegisterMember />} />
         <Route path="/registerDoctor" element={<RegisterDoctor />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
@@ -84,6 +90,14 @@ function App() {
         {/*<Route path="*" element={<UnauthorizedPage />} />*/}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/admin" element={<Admin />} />
+
+        {/* 회원가입 페이지 */}
+        <Route path="/policy" element={<Policy />} />
+        <Route path="/registerMember" element={<RegisterMember />} />
+        <Route path="/signupSuccess" element={<SignupSuccess />} />
+
+
+
       </Routes>
       <Footer />
     </div>

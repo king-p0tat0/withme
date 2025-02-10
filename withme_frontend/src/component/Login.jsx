@@ -58,7 +58,7 @@ export default function Login() {
                     </div>
                     {errorMessage && <p className="error-message">{errorMessage}</p>}
                     <button className="loginBtn" onClick={handleLogin}>로그인</button>
-                    <p>아직 회원이 아니신가요? <Link to="/registerMember" className="signUpLink" >회원가입</Link></p>
+                    <p>아직 회원이 아니신가요? <Link to="/policy" className="signUpLink" >회원가입</Link></p>
                 </div>
             </div>
             <div className="login-sns">

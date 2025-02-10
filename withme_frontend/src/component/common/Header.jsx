@@ -73,7 +73,7 @@ const Header = () => {
 
             {!isLoggedIn && (
               <li className="join-us">
-                <Link to="/registerMember">회원가입</Link>
+                <Link to="/policy">회원가입</Link>
                 <span className="tooltip">+2,000P</span>
               </li>
             )}
