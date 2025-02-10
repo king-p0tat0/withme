@@ -47,10 +47,6 @@ export default function Login() {
         <div className="login-container">
             <div className="login-wrap">
                 <h1>로그인</h1>
-                <div className="login-type">
-                    <button className="memberLoginBtn">일반 회원</button>
-                    <button className="vetLoginBtn">수의사</button>
-                </div>
                 <div className="login-form">
                     <div className="id">
                         <label htmlFor="email">아이디</label>
