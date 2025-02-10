@@ -62,7 +62,6 @@ class DoctorRepositoryTest {
                 .subject(subject)
                 .hospital(hospital)
                 .doctorNumber(doctorNumber)
-                .status(Status.PENDING)
                 .build();
     }
 

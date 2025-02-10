@@ -32,8 +32,5 @@ public class Doctor {
     @Column(name = "doctor_number" , length = 50, nullable = false, unique = true)
     private String doctorNumber;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private Status status = Status.PENDING;  // 기본값 PENDING
 
 }

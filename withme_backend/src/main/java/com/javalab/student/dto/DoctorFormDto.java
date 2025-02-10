@@ -25,7 +25,12 @@ public class DoctorFormDto {
     @Size(max = 255, message = "병원 정보는 255자 이하로 입력해주세요.")
     private String hospital;
 
+    @Size(max = 255)
+    private String reason;
+
     private Member member;
+
+    private String email;
 
 
 }

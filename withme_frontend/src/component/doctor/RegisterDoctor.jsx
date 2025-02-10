@@ -1,151 +1,146 @@
 import { Button, TextField, Typography } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { API_URL } from "../../constant";
-import { useNavigate } from "react-router-dom";
-import {fetchWithAuth} from "../../common/fetchWithAuth";
-import useDebounce from '../../hook/useDebounce'; // useDebounce 훅을 임포트합니다
-import { useEffect } from "react";
+import { fetchWithAuth } from "../../common/fetchWithAuth"; // 인증된 API 호출 함수
+import '../../css/RegisterDoctor.css';
 
-/**
- * 회원가입 컴포넌트
- */
-export default function RegisterDoctor() {
-    // 입력된 회원 정보를 저장할 상태 변수
-    const [doctor, setDoctor] = useState({
-        username: "",
+export default function DoctorApplicationForm() {
+    // Redux에서 사용자 정보 가져오기
+    const { user } = useSelector((state) => state.auth);
+
+    // 사용자 정보 및 추가 입력 필드를 저장할 상태
+    const [userData, setUserData] = useState({
+        id: "",
+        name: "",
         email: "",
-        password: "",
-        passwordre: "",
         phone: "",
         address: "",
+        subject: "",
+        hospital: "",
+        doctorNumber: "",
     });
-    const [email, setEmail] = useState("");
-    const debouncedEmail = useDebounce(email, 500); // 500ms 디바운스 적용
 
-    const [emailError, setEmailError] = useState(""); // 이메일 중복 메시지
-    const navigate = useNavigate();
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    // debounce된 이메일 값이 변경될 때마다 실행, 사용자가 입력할 때마다 실행되지 않고 500ms 후에 실행됩니다
-    // 즉, 사용자가 입력을 멈추고 500ms 후에 실행됩니다
+    /**
+     * 컴포넌트가 렌더링될 때 사용자 정보 불러오기
+     */
     useEffect(() => {
-        if (debouncedEmail) {
-            checkEmail(debouncedEmail);
+        if (user) {
+            fetchMemberData(user.id);
         }
-    }, [debouncedEmail]);
+    }, [user]);
 
-    // 입력 필드 변경 처리
-    // const onMemberChange = (event) => {
-    //     const { name, value } = event.target;
-    //     setMember({ ...member, [name]: value });
-    //
-    //     if (name === "email") {
-    //         checkEmail(value);
-    //     }
-    // };
-    // 입력 필드 변경 처리
-    const onMemberChange = (event) => {
-        const { name, value } = event.target;
-        setDoctor({ ...doctor, [name]: value }); // 입력 필드 값 업데이트
-        if (name === "email") {
-            setEmail(value); // 이 부분을 추가
+    /**
+     * 사용자 정보 API 호출
+     */
+    const fetchMemberData = async (memberId) => {
+        try {
+            const response = await fetchWithAuth(`${API_URL}members/${memberId}`, { method: "GET" });
+
+            if (response.ok) {
+                const result = await response.json();
+                const userData = result.data;
+
+                setUserData((prevData) => ({
+                    ...prevData,
+                    id: userData.id,
+                    name: userData.name,
+                    email: userData.email,
+                    phone: userData.phone,
+                    address: userData.address,
+                }));
+            } else {
+                console.error("사용자 정보 로드 실패:", response.status);
+                alert("사용자 정보를 불러올 수 없습니다.");
+            }
+        } catch (error) {
+            console.error("사용자 정보 로드 중 오류 발생:", error.message);
+            alert("사용자 정보 로드 실패: 네트워크 또는 서버 오류");
         }
     };
 
-    // 이메일 중복 체크
-    const checkEmail = (email) => {
-        fetch(`${API_URL}members/checkEmail?email=${email}`)
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.status === "duplicate") {
-                    setEmailError(data.message);
-                } else {
-                    setEmailError("");
-                }
-            })
-            .catch((error) => {
-                console.error("이메일 중복 체크 중 오류 발생:", error);
-                setEmailError("이메일 확인 중 오류가 발생했습니다.");
-            });
+    /**
+     * 입력 값 업데이트
+     */
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setUserData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
     };
 
-    // 회원가입 처리
-    const handleOnSubmit = () => {
-        if(doctor.password == doctor.passwordre){
-            fetch(API_URL + "doctors/register", {
+    /**
+     * 전문가 신청 제출 (사용자 정보 + 추가 입력 데이터)
+     */
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!userData.subject || !userData.hospital || !userData.doctorNumber) {
+            setError("모든 필드를 입력해야 합니다.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetchWithAuth(`${API_URL}doctors/apply`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(doctor),
-            })
-                .then((response) => {
-                    if (response.ok) {
-                        alert("회원가입이 완료되었습니다.");
-                        navigate("/login");
-                    } else {
-                        return response.text().then((text) => {
-                            alert("회원가입 실패: " + text);
-                        });
-                    }
-                })
-                .catch((error) => console.error("회원가입 중 오류 발생:", error));
-        }else{
-            alert("비밀번호가 다릅니다");
+                body: JSON.stringify(userData),
+            });
+
+            if (response.ok) {
+                alert("전문가 신청이 완료되었습니다.");
+            } else {
+                const errorMessage = await response.text();
+                setError(errorMessage || "신청에 실패했습니다.");
+            }
+        } catch (error) {
+            console.error("신청 실패:", error);
+            setError("신청에 실패했습니다. 다시 시도해주세요.");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "20px" }}>
-            <Typography variant="h4" style={{ marginBottom: "20px", fontWeight: "bold" }}>
-                회원가입
-            </Typography>
-            <TextField
-                label="이메일 입력"
-                name="email"
-                value={doctor.email}
-                onChange={onMemberChange}
-                style={{ width: "400px", marginBottom: "10px" }}
-                error={!!emailError} // 에러 여부 표시
-                helperText={emailError} // 오류 메시지 표시
-            />
-            <TextField
-                label="비밀번호 입력"
-                name="password"
-                type="password"
-                value={doctor.password}
-                onChange={onMemberChange}
-                style={{ width: "400px", marginBottom: "10px" }}
-            />
-            <TextField
-                label="비밀번호 확인"
-                name="passwordre"
-                type="passwordre"
-                value={doctor.passwordre}
-                onChange={onMemberChange}
-                style={{ width: "400px", marginBottom: "10px" }}
-            />
-            <TextField
-                label="이름 입력"
-                name="username"
-                value={doctor.username}
-                onChange={onMemberChange}
-                style={{ width: "400px", marginBottom: "10px" }}
-            />
-            <TextField
-                label="면허"
-                name="phone"
-                value={doctor.phone}
-                onChange={onMemberChange}
-                style={{ width: "400px", marginBottom: "10px" }}
-            />
-            <TextField
-                label="병원 주소입력"
-                name="address"
-                value={doctor.address}
-                onChange={onMemberChange}
-                style={{ width: "400px", marginBottom: "10px" }}
-            />
-            <Button variant="contained" onClick={handleOnSubmit} disabled={!!emailError}>
-                회원가입
-            </Button>
+        <div className="application-form-container">
+            <Typography variant="h4" gutterBottom>전문가 신청</Typography>
+
+            <form onSubmit={handleSubmit}>
+                {/* 사용자 정보 */}
+                <div className="form-group">
+                    <TextField label="이름" name="name" value={userData.name} disabled fullWidth />
+                </div>
+                <div className="form-group">
+                    <TextField label="이메일" name="email" value={userData.email} disabled fullWidth />
+                </div>
+                <div className="form-group">
+                    <TextField label="전화번호" name="phone" value={userData.phone} onChange={handleChange} fullWidth />
+                </div>
+                <div className="form-group">
+                    <TextField label="주소" name="address" value={userData.address} onChange={handleChange} fullWidth />
+                </div>
+
+                {/* 추가 입력 필드 (전문가 정보) */}
+                <div className="form-group">
+                    <TextField label="전문분야" name="subject" value={userData.subject} onChange={handleChange} fullWidth required />
+                </div>
+                <div className="form-group">
+                    <TextField label="병원주소" name="hospital" value={userData.hospital} onChange={handleChange} fullWidth required />
+                </div>
+                <div className="form-group">
+                    <TextField label="면허 번호" name="doctorNumber" value={userData.doctorNumber} onChange={handleChange} fullWidth required />
+                </div>
+
+                <Button variant="contained" color="primary" type="submit" fullWidth disabled={loading}>
+                    {loading ? "신청 중..." : "전문가 신청"}
+                </Button>
+
+                {error && <Typography color="error">{error}</Typography>}
+            </form>
         </div>
     );
 }

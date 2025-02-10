@@ -12,6 +12,7 @@ import RegisterMember from "./component/member/RegisterMember";
 import NoticeList from "./component/notice/NoticeList";
 import NoticeForm from "./component/notice/NoticeForm";
 import NoticeView from "./component/notice/NoticeView";
+// 전문가 신청, 수정
 import RegisterDoctor from "./component/doctor/RegisterDoctor";
 //커뮤니티
 import PostList from "./component/posts/PostList";

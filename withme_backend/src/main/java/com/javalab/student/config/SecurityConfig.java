@@ -95,7 +95,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/students/**").permitAll()    // GET 요청은 모든 사용자에게 허용
                 .requestMatchers("/api/students/**").hasRole("ADMIN")   // 학생 등록, 수정, 삭제는 ADMIN만 접근 가능
                 .requestMatchers("/api/auth/userInfo").permitAll() // 사용자 정보 조회 API는 모든 사용자에게 허용
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")  // 미사용
+                .requestMatchers("/api/doctors/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/members/**").hasAnyRole("USER", "ADMIN") // 사용자 정보 수정 API는 USER, ADMIN만 접근 가능
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()  // 스웨거 Swagger UI는 인증을 거치지 않고 접근 가능
                 .requestMatchers(

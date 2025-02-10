@@ -1,3 +1,4 @@
+/*
 package com.javalab.student.service;
 
 import com.javalab.student.constant.Role;
@@ -19,17 +20,19 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class DoctorService {
+public class DoctorService_old {
 
     private final DoctorRepository doctorRepository;
     private final MemberRepository memberRepository;
     private final DoctorApplicationRepository doctorApplicationRepository;
 
-    /**
+    */
+/**
      * Doctor 신청정보 저장
      * - DoctorApplication 테이블에 신청정보 저장
      * - 로그인 사용자 정보를 통해 user 정보 저장
-     */
+     *//*
+
     public DoctorApplication saveDoctorApplication(DoctorFormDto doctorFormDto, String email) {
         // 이메일을 통해 회원 정보 조회
         Member member = memberRepository.findByEmail(email);
@@ -54,19 +57,23 @@ public class DoctorService {
         }
     }
 
-    /**
+    */
+/**
      * Doctor 신청정보 조회
      * - doctor 테이블에서 신청정보 조회
      * - 로그인 사용자의 본인 신청정보만 조회
-     */
+     *//*
+
     public Doctor getDoctorApplication(String email) {
         return doctorRepository.findByMemberEmail(email);
     }
 
-    /**
+    */
+/**
      * Doctor 신청정보 수정
      * - doctor 테이블에 신청정보 수정
-     */
+     *//*
+
     public Doctor updateDoctorApplication(String email, DoctorFormDto doctorFormDto) {
         Doctor doctor = getDoctorApplication(email);
 
@@ -77,22 +84,26 @@ public class DoctorService {
         return doctorRepository.save(doctor);
     }
 
-    /**
+    */
+/**
      * Doctor 신청정보 삭제
      * - doctor 테이블에서 신청정보 삭제
-     */
+     *//*
+
     public void deleteDoctorApplication(String email) {
         Doctor doctor = getDoctorApplication(email);
         doctorRepository.delete(doctor);
     }
 
-    /**
+    */
+/**
      * Doctor 권한 변경 (승인, 거절, 보류 , 대기)
      * - doctor 테이블에서 신청 상태 변경
      * - 승인 시 member 테이블에서 권한 DOCTOR로 변경
      * - 승인 시 doctor 테이블에 신청 정보 저장
      * - 거절/보류 상태에서는 사유(reason) 저장
-     */
+     *//*
+
     public void approveDoctorApplication(String email, String status, String reason) {
         // 1. 신청 정보 조회 (예외 처리)
         DoctorApplication doctorApplication = doctorApplicationRepository.findByMemberEmail(email);
@@ -151,20 +162,25 @@ public class DoctorService {
 
 
 
-    /**
+    */
+/**
      * Doctor 전체 리스트 조회
-     */
+     *//*
+
 
     public List<Doctor> getDoctorList() {
         return doctorRepository.findAllWithMember();
     }
 
-    /**
+    */
+/**
      * 승인 대기중인 신청 리스트 조회
      * - 상태가 대기, 보류, 거절인 신청 리스트 조회
-     */
+     *//*
+
     public List<DoctorApplication> getPendingDoctorApplicationList() {
         // 상태가 대기, 보류, 거절인 신청만 조회
         return doctorApplicationRepository.findByStatusIn(Arrays.asList(Status.PENDING, Status.ON_HOLD, Status.REJECTED));
     }
 }
+*/
