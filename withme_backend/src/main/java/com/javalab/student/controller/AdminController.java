@@ -1,8 +1,10 @@
 package com.javalab.student.controller;
 
+import com.javalab.student.dto.NewRegistrationDTO;
 import com.javalab.student.entity.Doctor;
 import com.javalab.student.entity.DoctorApplication;
 import com.javalab.student.service.DoctorService;
+import com.javalab.student.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
@@ -12,18 +14,19 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin/doctor")
+@RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @Log4j2
-public class AdminDoctorController {
+public class AdminController {
     private final DoctorService doctorService;
+    private final MemberService memberService;
 
 
 
     /**
      * 전문가 리스트 전체 조회
      */
-    @GetMapping("/list")
+    @GetMapping("/doctor/list")
     public ResponseEntity<List<Doctor>> getDoctorList() {
         return ResponseEntity.ok(doctorService.getDoctorList());
     }
@@ -32,7 +35,7 @@ public class AdminDoctorController {
      * 승인 대기중인 전문가 리스트 조회
      * - 전문가 상태가 대기, 보류, 거절인 전문가 리스트 조회
      */
-    @GetMapping("/pending")
+    @GetMapping("/doctor/pending")
     public ResponseEntity<List<DoctorApplication>> getPendingDoctorList() {
         // 승인 대기중인 신청 리스트를 조회
         return ResponseEntity.ok(doctorService.getPendingDoctorApplicationList());
@@ -41,7 +44,7 @@ public class AdminDoctorController {
     /**
      * 전문가 상태변경
      */
-    @PutMapping("/approve/{email}")
+    @PutMapping("/doctor/approve/{email}")
     public ResponseEntity<String> approveDoctor(
             @PathVariable String email,
             @RequestBody Map<String, String> requestBody) {
@@ -54,5 +57,15 @@ public class AdminDoctorController {
         doctorService.approveDoctorApplication(email, status, reason);
 
         return ResponseEntity.ok("Doctor application processed successfully");
+    }
+
+
+    /**
+     * 일별 신규 가입자 수를 반환하는 API
+     */
+    @GetMapping("/new-registrations")
+    public ResponseEntity<List<NewRegistrationDTO>> getNewRegistrationsPerDay() {
+        List<NewRegistrationDTO> newRegistrations = memberService.getNewRegistrationsPerDay();
+        return ResponseEntity.ok(newRegistrations);  // 신규 가입자 수 반환
     }
 }

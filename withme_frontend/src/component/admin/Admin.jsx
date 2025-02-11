@@ -4,6 +4,7 @@ import DoctorView from './DoctorView';
 import UserList from './UserList';
 import React, { useState  } from 'react';
 import '../../css/Admin.css';
+import Dashboard from './Dashboard';
 
 export default function Admin() {
     // 드롭다운 상태 관리
@@ -12,7 +13,7 @@ export default function Admin() {
     const [showShopMenu, setShowShopMenu] = useState(false);
 
     // 현재 보여줄 페이지 상태 관리
-    const [currentPage, setCurrentPage] = useState(<DoctorList />);
+    const [currentPage, setCurrentPage] = useState(<Dashboard />);
 
     return (
         <div className="admin-container">
@@ -20,6 +21,9 @@ export default function Admin() {
             <div className="side-menu">
                 <ul>
                     <div>
+                        <p className="menu-header"
+                        onClick={() => setCurrentPage(<Dashboard />)}
+                        > 관리자 홈</p>
                         <p
                             className="menu-header"
                             onClick={() => setShowDoctorMenu(!showDoctorMenu)}

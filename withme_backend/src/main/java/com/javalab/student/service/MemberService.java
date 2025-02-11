@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
-
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -175,6 +177,34 @@ public class MemberService {
         }
 
         return member; // 인증 성공 시 Member 객체 반환
+    }
+
+    /**
+     * 일별 신규 가입자 수를 반환하는 메서드
+     */
+    public List<NewRegistrationDTO> getNewRegistrationsPerDay() {
+        List<Member> members = memberRepository.findAll();  // 모든 회원을 가져옴
+
+        // SimpleDateFormat을 사용해 날짜 형식화
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+        // 가입일(reg_time)을 기준으로 날짜별로 그룹화하여 신규 가입자 수 집계
+        Map<String, Long> newRegistrationsCount = members.stream()
+                .collect(Collectors.groupingBy(
+                        member -> sdf.format(member.getRegTime()),  // 날짜별로 그룹화
+                        Collectors.counting()  // 각 날짜에 해당하는 가입자 수 계산
+                ));
+
+        // 결과를 NewRegistrationDTO 형태로 변환
+        List<NewRegistrationDTO> result = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : newRegistrationsCount.entrySet()) {
+            NewRegistrationDTO dto = new NewRegistrationDTO();
+            dto.setDate(entry.getKey());  // 날짜
+            dto.setCount(entry.getValue().intValue());  // 가입자 수
+            result.add(dto);
+        }
+
+        return result;  // 일별 신규 가입자 수 반환
     }
 
 }
