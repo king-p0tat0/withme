@@ -1,8 +1,13 @@
 import React, { useEffect } from "react";
-import { AppBar, Toolbar, Typography, Button } from "@mui/material";
+//import { AppBar, Toolbar, Typography, Button } from "@mui/material";
 import { Routes, Route, Link, Navigate } from "react-router-dom";
 import Login from "./component/Login";
 import MyPage from "./component/member/MyPage.jsx";
+
+import MemberForm from "./component/member/MemberForm";
+
+//ui
+import UiComponents from "./component/elements/UiComponents";
 
 //공지사항
 import NoticeList from "./component/notice/NoticeList";
@@ -24,7 +29,7 @@ import UnauthorizedPage from "./component/UnAuthorizedPage.jsx";
 import { API_URL } from "./constant";
 import Home from "./component/Home";
 import HomeIcon from "@mui/icons-material/Home";
-import { fetchWithAuth } from "./common/fetchWithAuth.js"; // 홈 아이콘 추가
+import { fetchWithAuth } from "./common/fetchWithAuth.js";
 import Header from "./component/common/Header";
 import Footer from "./component/common/Footer";
 
@@ -65,14 +70,35 @@ function App() {
 
   return (
     <div className="App">
+      {/*헤더 부분*/}
       <Header />
       {/*라우팅 부분*/}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/registerDoctor" element={<RegisterDoctor />} />
+        {/* <Route path="/listStudent" element={<StudentList />} />
+        <Route
+          path="/addStudent"
+          element={
+            user?.roles?.includes("ROLE_ADMIN") ? (
+              <AddStudent />
+            ) : (
+              <Navigate to="/unauthorized" replace />
+            )
+          }
+        /> */}
+        {/* <Route path="/viewStudent/:id" element={<ViewStudent />} />
+        {isLoggedIn && user?.roles?.includes("ROLE_ADMIN") && (
+          <>
+            <Route path="/editStudent/:id" element={<EditStudent />} />
+          </>
+        )} */}
+
+        <Route path="/ui" element={<UiComponents />} />
+
+        <Route path="/register" element={<MemberForm />} />
+        <Route path="/registerDoctor" element={<RegisterDoctor user={user}/>} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
-
         {/* 공지사항 목록 */}
         <Route path="/notices" element={<NoticeList />} />
         <Route path="/notices/new" element={<NoticeForm />} />
@@ -80,6 +106,7 @@ function App() {
 
         {/* 게시글 목록 */}
         <Route path="/posts" element={<PostList />} />
+
         {/* 게시글 등록 */}
         <Route path="/posts/new" element={<PostForm />} />
         {/* 게시글 수정 */}
@@ -103,6 +130,6 @@ function App() {
       <Footer />
     </div>
   );
-};
+}
 
 export default App;

@@ -3,6 +3,7 @@ package com.javalab.student.entity;
 import com.javalab.student.constant.Role;
 import com.javalab.student.dto.MemberFormDto;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -55,6 +56,9 @@ public class Member extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(nullable = true, columnDefinition = "INT DEFAULT 0")
+    private Integer points; // 사용자 포인트 (기본값: 0)
+
     @Column(nullable = false) // 기본값 설정을 위해 nullable=false
     private boolean social; // 소셜 로그인 여부, 이값을 사용하는 쪽에서는 e.g member.isSocial()로 사용
 
@@ -72,26 +76,30 @@ public class Member extends BaseEntity{
         * - 사용자가 입력한 암호는 "평문"이다. 즉 암호화가 안된 문자열이다.
      */
     public static Member createMember(MemberFormDto memberFormDto, PasswordEncoder passwordEncoder) {
-        String role = Role.USER.toString();
         Member member = new Member();
         member.setName(memberFormDto.getName());
         member.setEmail(memberFormDto.getEmail());
-        member.setAge(memberFormDto.getAge());
         String password = passwordEncoder.encode(memberFormDto.getPassword()); // 비밀번호 암호화
         member.setPassword(password);
         member.setAddress(memberFormDto.getAddress());
         member.setPhone(memberFormDto.getPhone());
+        member.setAge(memberFormDto.getAge());
+        member.setPoints(0);
         member.setSocial(false); // 일반 회원가입이므로 소셜 로그인 여부는 false
-        member.setRole(Role.USER);  // 회원가입 시 사용자의 권한 : USER  [수정]
+        member.setRole(memberFormDto.getRole());  // 회원가입 시 사용자의 권한 : USER  [수정]
         return member;
     }
 
+    /**
+     * 회원 엔티티 생성 정적 메서드 - 소셜 로그인용
+     */
     public static Member createSocialMember(String email, String provider) {
         Member member = new Member();
         member.setEmail(email);
         member.setSocial(true); // 소셜 로그인 회원가입이므로 소셜 로그인 여부는 true
         member.setProvider(provider);
         member.setRole(Role.USER); // 소셜 사용자는 기본적으로 USER 권한
+        member.setPoints(0);
         return member;
     }
 

@@ -1,9 +1,10 @@
 package com.javalab.student.service;
 
-import com.javalab.student.config.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
+
+import com.javalab.student.config.jwt.TokenProvider;
 
 /**
  * AccessTokenService

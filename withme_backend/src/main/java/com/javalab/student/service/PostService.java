@@ -1,8 +1,8 @@
 package com.javalab.student.service;
 
-import com.javalab.student.dto.PostDto;
-
 import java.util.List;
+
+import com.javalab.student.dto.PostDto;
 
 public interface PostService {
     PostDto createPost(PostDto postDto);

@@ -1,10 +1,11 @@
 package com.javalab.student.controller;
 
-import com.javalab.student.dto.PostDto;
-import com.javalab.student.service.PostService;
-import com.javalab.student.service.CommentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.javalab.student.dto.PostDto;
+import com.javalab.student.service.CommentService;
+import com.javalab.student.service.PostService;
 
 import java.security.Principal;
 import java.util.List;

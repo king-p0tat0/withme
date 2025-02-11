@@ -1,9 +1,10 @@
 package com.javalab.student.entity;
 
-import com.javalab.student.constant.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.javalab.student.constant.Status;
 
 import java.time.LocalDateTime;
 

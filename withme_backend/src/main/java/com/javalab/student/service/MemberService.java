@@ -10,6 +10,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -84,13 +86,20 @@ public class MemberService {
      * @return 로그인 성공 여부 (true: 성공, false: 실패)
      */
     public boolean login(LoginFormDto loginForm) {
-        // 이메일로 회원 검색
+        if (loginForm.getEmail() == null || loginForm.getEmail().isEmpty()) {
+            throw new IllegalArgumentException("이메일을 입력해주세요.");
+        }
+
         Member member = memberRepository.findByEmail(loginForm.getEmail());
+        if (member == null) {
+            return false; // 사용자 없음
+        }
 
-        // 회원이 존재하지 않거나 비밀번호가 일치하지 않으면 실패
-        return member != null && passwordEncoder.matches(loginForm.getPassword(), member.getPassword());
+        if (!passwordEncoder.matches(loginForm.getPassword(), member.getPassword())) {
+            return false; // 비밀번호 불일치
+        }
 
-        // 로그인 성공
+        return true; // 로그인 성공
     }
 
     public Member findById(Long memberId) {
@@ -102,7 +111,7 @@ public class MemberService {
         return memberRepository.findByEmail(email);
     }
 
-    /*모든 사용자 조회*/
+    /*모든 사용자 조회(페이징)*/
     public PageResponseDTO<MemberDto> getAllMembers(PageRequestDTO pageRequestDTO) {
         // Pageable 생성
         Pageable pageable = pageRequestDTO.getPageable("id");
@@ -122,6 +131,11 @@ public class MemberService {
                 .build();
     }
 
+    public List<Member> getMember() {
+        return memberRepository.findAll();
+    }
+
+
     private MemberDto convertEntityToDto(Member member) {
         return MemberDto.builder()
                 .id(member.getId())
@@ -135,4 +149,32 @@ public class MemberService {
                 .provider(member.getProvider())
                 .build();
     }
+
+
+     /**
+     * 사용자 인증 메서드
+     * @param email 사용자 이메일
+     * @param password 사용자 비밀번호
+     * @return 인증된 Member 객체
+     * @throws IllegalArgumentException 이메일 또는 비밀번호가 잘못된 경우 예외 발생
+     */
+    public Member authenticate(String email, String password) {
+        if (email == null || email.isEmpty()) {
+            throw new IllegalArgumentException("이메일을 입력해주세요.");
+        }
+
+        // 이메일로 사용자 조회
+        Member member = memberRepository.findByEmail(email);
+        if (member == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+        }
+
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+
+        return member; // 인증 성공 시 Member 객체 반환
+    }
+
 }

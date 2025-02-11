@@ -1,10 +1,12 @@
 package com.javalab.student.controller;
 
-import com.javalab.student.dto.NoticeDto;
-import com.javalab.student.service.NoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.javalab.student.dto.NoticeDto;
+import com.javalab.student.entity.Notice;
+import com.javalab.student.service.NoticeService;
 
 import java.util.List;
 
@@ -15,39 +17,38 @@ public class NoticeController {
 
     private final NoticeService noticeService;
 
-    // 공지사항 등록 (관리자만 가능)
-    // @PostMapping
-    // public ResponseEntity<NoticeDto> createNotice(@RequestBody NoticeDto noticeDto) {
-    //     return ResponseEntity.ok(noticeService.createNotice(noticeDto));
-    // }
-
-    @PostMapping
-public ResponseEntity<NoticeDto> createNotice(@RequestBody NoticeDto noticeDto) {
-    return ResponseEntity.ok(noticeService.createNotice(noticeDto));
-}
-
-    // 공지사항 수정 (관리자만 가능)
-    @PutMapping("/{id}")
-    public ResponseEntity<NoticeDto> updateNotice(@PathVariable Long id, @RequestBody NoticeDto noticeDto) {
-        return ResponseEntity.ok(noticeService.updateNotice(id, noticeDto));
-    }
-
-    // 공지사항 삭제 (관리자만 가능)
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteNotice(@PathVariable Long id) {
-        noticeService.deleteNotice(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    // 단일 공지사항 조회 (모든 사용자 가능)
-    @GetMapping("/{id}")
-    public ResponseEntity<NoticeDto> getNoticeById(@PathVariable Long id) {
-        return ResponseEntity.ok(noticeService.getNoticeById(id));
-    }
-
-    // 모든 공지사항 조회 (모든 사용자 가능)
+    //공지사항 목록
     @GetMapping
     public ResponseEntity<List<NoticeDto>> getAllNotices() {
-        return ResponseEntity.ok(noticeService.getAllNotices());
+        List<NoticeDto> notices = noticeService.getAllNotices(); 
+        return ResponseEntity.ok(notices);
+    }
+
+    //공지사항 상세
+    @GetMapping("/{id}")
+    public ResponseEntity<NoticeDto> getNoticeById(@PathVariable Long id) {
+        NoticeDto notice = noticeService.getNoticeById(id); 
+        return ResponseEntity.ok(notice);
+    }
+
+    //공지사항 등록
+    @PostMapping
+    public ResponseEntity<NoticeDto> createNotice(@RequestBody NoticeDto noticeDto) {
+        NoticeDto createdNotice = noticeService.createNotice(noticeDto); 
+        return ResponseEntity.ok(createdNotice);
+    }
+
+    //공지사항 수정
+    @PutMapping("/{id}")
+    public ResponseEntity<NoticeDto> updateNotice(@PathVariable Long id, @RequestBody NoticeDto noticeDto) {
+        NoticeDto updatedNotice = noticeService.updateNotice(id, noticeDto); 
+        return ResponseEntity.ok(updatedNotice);
+    }
+
+    //공지사항 삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteNotice(@PathVariable Long id) {
+        noticeService.deleteNotice(id); 
+        return ResponseEntity.noContent().build();
     }
 }

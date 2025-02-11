@@ -1,11 +1,12 @@
 package com.javalab.student.entity;
 
-import com.javalab.student.constant.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.javalab.student.constant.Role;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

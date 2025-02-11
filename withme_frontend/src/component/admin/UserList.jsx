@@ -45,9 +45,8 @@ export default function UserList() {
         console.log("받아온 data : ", data);
 
 
-            if (data.dtoList) {
-                setUsers(data.dtoList);
-                setTotalPages(Math.ceil(data.total / size));  // 전체 페이지 수 계산
+            if (data) {
+                setUsers(data);
             } else {
                 setUsers([]);
                 setTotalPages(1);
@@ -134,14 +133,14 @@ export default function UserList() {
                         <tbody>
                             {users.length > 0 ? (
                                 users.map((user) => (
-                                    <tr key={user.userId}>
+                                    <tr key={user.id}>
                                         <td>{user.name}</td>
                                         <td>{user.email}</td>
                                         <td>{user.address}</td>
                                         <td>{user.phone}</td>
                                         <td>{user.role}</td>
                                         <td>{user.points}</td>
-                                        <td>{new Date(user.createdAt).toLocaleDateString('ko-KR')}</td>
+                                        <td>{new Date(user.regTime).toLocaleDateString('ko-KR')}</td>
                                     </tr>
                                 ))
                             ) : (

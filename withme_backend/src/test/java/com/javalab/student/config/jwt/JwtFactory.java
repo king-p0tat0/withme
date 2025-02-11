@@ -10,6 +10,8 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.Map;
 
+import com.javalab.student.config.jwt.JwtProperties;
+
 import static java.util.Collections.emptyMap;
 
 /**

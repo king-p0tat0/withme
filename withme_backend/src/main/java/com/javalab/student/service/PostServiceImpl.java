@@ -1,10 +1,11 @@
 package com.javalab.student.service;
 
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+
 import com.javalab.student.dto.PostDto;
 import com.javalab.student.entity.Post;
 import com.javalab.student.repository.PostRepository;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;

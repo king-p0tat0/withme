@@ -1,6 +1,7 @@
 package com.javalab.student.entity;
 
 import com.javalab.student.constant.Status;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,7 +18,6 @@ public class Doctor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)  // auto increment
     @Column(name = "doctor_id", nullable = false)
     private Long doctorId;
-
 
     @ManyToOne
     @JoinColumn(name = "user_id",referencedColumnName = "user_id", nullable = false)  // 외래키 설정

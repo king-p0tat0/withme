@@ -12,9 +12,18 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.javalab.student.config.jwt.TokenProvider;
+import com.javalab.student.dto.*;
+import com.javalab.student.entity.Member;
+import com.javalab.student.service.MemberService;
+import com.javalab.student.service.RefreshTokenService;
+
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.Cookie;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -191,33 +200,36 @@ public class MemberController {
         }
     }
 
-
-
     /**
      * 로그인 처리[미사용-일반 시큐리티 로그인]
      * @param loginForm - 클라이언트에서 전송한 로그인 데이터
      * @return 성공 메시지 또는 에러 메시지
      */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> loginMember(@RequestBody LoginFormDto loginForm) {
-        Map<String, String> response = new HashMap<>();
+public ResponseEntity<?> login(@RequestBody LoginFormDto loginFormDto) {
+    try {
+        // Authenticate user
+        Member member = memberService.authenticate(loginFormDto.getEmail(), loginFormDto.getPassword());
 
-        // 로그인 성공 여부 확인
-        boolean isLoginSuccessful = memberService.login(loginForm);
+        // Generate JWT token
+        String token = tokenProvider.generateToken(member.getEmail(), Duration.ofHours(2));
 
-        if (isLoginSuccessful) {
-            response.put("message", "로그인 성공");
-            response.put("status", "success");
-            return ResponseEntity.ok(response); // HTTP 200 OK
-        }
+        // Build response
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", member.getId());
+        response.put("name", member.getName());
+        response.put("email", member.getEmail());
+        response.put("roles", member.getRole().name()); // Include role information
+        response.put("token", token);
 
-        // 로그인 실패 처리
-        response.put("message", "로그인 실패");
-        response.put("status", "failed");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response); // HTTP 401 Unauthorized
+        return ResponseEntity.ok(response);
+    } catch (IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", e.getMessage()));
     }
+}
 
-    // 페이징 처리된 유저 목록 조회
+   /* // 페이징 처리된 유저 목록 조회
     @GetMapping("/list")
     //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<PageResponseDTO<MemberDto>> getAllmembers(
@@ -232,7 +244,11 @@ public class MemberController {
 
         PageResponseDTO<MemberDto> responseDTO = memberService.getAllMembers(pageRequestDTO);
         return ResponseEntity.ok(responseDTO);
-    }
+    }*/
 
+    @GetMapping("/list")
+    public ResponseEntity<List<Member>> getAllMembers() {
+        return ResponseEntity.ok(memberService.getMember());
+    }
 
 }

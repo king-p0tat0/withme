@@ -1,14 +1,10 @@
 import { Button, TextField, Typography } from "@mui/material";
-import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useState } from "react";
 import { API_URL } from "../../constant";
 import { fetchWithAuth } from "../../common/fetchWithAuth"; // 인증된 API 호출 함수
 import '../../css/RegisterDoctor.css';
 
-export default function DoctorApplicationForm() {
-    // Redux에서 사용자 정보 가져오기
-    const { user } = useSelector((state) => state.auth);
-
+export default function DoctorApplicationForm({ user }) { // user를 props로 받음
     // 사용자 정보 및 추가 입력 필드를 저장할 상태
     const [userData, setUserData] = useState({
         subject: "",
@@ -18,44 +14,6 @@ export default function DoctorApplicationForm() {
 
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-
-    /**
-     * 컴포넌트가 렌더링될 때 사용자 정보 불러오기
-     */
-    /* useEffect(() => {
-        if (user) {
-            fetchMemberData(user.id);
-        }
-    }, [user]);
-
-     *//**
-     * 사용자 정보 API 호출
-     *//*
-    const fetchMemberData = async (memberId) => {
-        try {
-            const response = await fetchWithAuth(`${API_URL}members/${memberId}`, { method: "GET" });
-
-            if (response.ok) {
-                const result = await response.json();
-                const userData = result.data;
-
-                setUserData((prevData) => ({
-                    ...prevData,
-                    id: userData.id,
-                    name: userData.name,
-                    email: userData.email,
-                    phone: userData.phone,
-                    address: userData.address,
-                }));
-            } else {
-                console.error("사용자 정보 로드 실패:", response.status);
-                alert("사용자 정보를 불러올 수 없습니다.");
-            }
-        } catch (error) {
-            console.error("사용자 정보 로드 중 오류 발생:", error.message);
-            alert("사용자 정보 로드 실패: 네트워크 또는 서버 오류");
-        }
-    }; */
 
     /**
      * 입력 값 업데이트

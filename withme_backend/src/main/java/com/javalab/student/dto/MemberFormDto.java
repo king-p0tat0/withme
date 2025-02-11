@@ -45,9 +45,9 @@ public class MemberFormDto {
     )
     private String phone;
 
-    private String age;
-
     private Role role;
+
+    private String age;
 
     /**
      * 회원가입 전용 DTO에서 MemberFormDto로 변환
@@ -64,8 +64,8 @@ public class MemberFormDto {
                 .email(memberFormDto.getEmail())
                 .password(passwordEncoder.encode(memberFormDto.getPassword())) // 비밀번호 암호화
                 .address(memberFormDto.getAddress())
-                .phone(memberFormDto.getPhone())
                 .age(memberFormDto.getAge())
+                .phone(memberFormDto.getPhone())
                 .role(memberFormDto.getRole() != null ? memberFormDto.getRole() : Role.USER) // 기본 권한 USER
                 .social(false) // 일반 회원가입으로 설정
                 .build();

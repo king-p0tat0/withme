@@ -1,7 +1,8 @@
 package com.javalab.student.repository;
 
-import com.javalab.student.entity.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.javalab.student.entity.RefreshToken;
 
 import java.util.Optional;
 

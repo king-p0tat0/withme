@@ -3,7 +3,7 @@ import { API_URL } from "../../constant";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Tab, Button, Pagination } from "@mui/material";
 import TabPanel from "../elements/TabPanel";
-import { fetchWithAuth } from "../../common/fetchWithAuth"; // fetchWithAuth import
+import { fetchWithAuth, fetchWithoutAuth } from "../../utils/fetchWithAuth";
 
 const categories = [
   "전체",
@@ -21,65 +21,85 @@ const PostList = () => {
   const [currentUserId, setCurrentUserId] = useState(null); // 현재 로그인한 사용자 ID
   const [totalRows, setTotalRows] = useState(0); // 전체 게시글 수
   const [paginationModel, setPaginationModel] = useState({
-    page: 1, // 현재 페이지 (1부터 시작)
-    pageSize: 10 // 한 페이지에 표시할 게시글 수
+    page: 1,
+    pageSize: 10
   }); // 페이지네이션 상태
   const navigate = useNavigate();
 
-  /**
-   * 컴포넌트가 마운트될 때 한 번 실행되며,
-   * paginationModel 또는 posts가 변경될 때도 실행됩니다.
-   */
+
+  // 컴포넌트가 마운트될 때 데이터 가져오기
   useEffect(() => {
-    fetchCurrentUser();
-    fetchPosts();
+    fetchCurrentUser(); // 사용자 정보 가져오기
+    fetchPosts(); // 게시글 목록 가져오기
   }, [paginationModel]);
 
-  // 현재 로그인한 사용자 정보 가져오기 (예: /api/auth/me 엔드포인트)
+  /**
+   * 현재 로그인한 사용자 정보 가져오기
+   * 로그인하지 않은 경우 currentUserId를 null로 설정
+   */
   const fetchCurrentUser = async () => {
     try {
       const response = await fetchWithAuth(`${API_URL}/auth/me`);
-      setCurrentUserId(response.userId); // 현재 로그인한 사용자 ID 설정
+      const data = await response.json();
+      setCurrentUserId(data.userId);
     } catch (error) {
-      console.error("사용자 정보 가져오기 실패:", error.message);
-      alert("로그인 정보가 필요합니다.");
-      navigate("/login");
+      console.warn("사용자 정보 가져오기 실패:", error.message);
+      setCurrentUserId(null); // 로그인하지 않은 상태로 설정
     }
   };
 
-  // 게시글 데이터 가져오기
+  /**
+   * 게시글 데이터 가져오기 (인증 불필요)
+   */
   const fetchPosts = async () => {
-    const { page, pageSize } = paginationModel; // 현재 페이지와 페이지 크기
+    const { page, pageSize } = paginationModel;
 
     try {
-      const response = await fetchWithAuth(
+      const response = await fetchWithoutAuth(
         `${API_URL}/posts?page=${page - 1}&size=${pageSize}`
       );
-      setPosts(response.dtoList || []); // 전체 게시글 저장
-      setFilteredPosts(response.dtoList || []); // 기본적으로 전체 게시글 표시
-      setTotalRows(response.total || 0); // 전체 게시글 수 저장
+      const data = await response.json();
+      setPosts(data.dtoList || []);
+      setFilteredPosts(data.dtoList || []);
+      setTotalRows(data.total || 0);
     } catch (error) {
       console.error("게시글 목록 가져오는 중 오류 발생:", error.message);
       alert("게시글 목록 가져오기 실패: 네트워크 또는 서버 오류");
     }
   };
 
-  // 카테고리 변경 시 필터링 처리
+  /**
+   * 카테고리 변경 시 필터링 처리
+   */
   const handleCategoryChange = (event, newValue) => {
     setActiveCategoryIndex(newValue);
     const selectedCategory = categories[newValue];
     if (selectedCategory === "전체") {
-      setFilteredPosts(posts); // 전체 게시글 표시
+      setFilteredPosts(posts);
     } else {
       setFilteredPosts(
         posts.filter((post) => post.category === selectedCategory)
-      ); // 선택된 카테고리의 게시글만 표시
+      );
     }
   };
 
-  // 페이지네이션 변경 처리
+  /**
+   * 페이지네이션 변경 처리
+   */
   const handlePageChange = (event, newPage) => {
     setPaginationModel((prev) => ({ ...prev, page: newPage }));
+  };
+
+  /**
+   * 글 작성 버튼 클릭 처리
+   */
+  const handleWritePostClick = () => {
+    if (!currentUserId) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+    } else {
+      navigate("/posts/new");
+    }
   };
 
   return (
@@ -144,13 +164,23 @@ const PostList = () => {
         </TabPanel>
       ))}
 
+      {/* 글 작성 버튼 */}
+      <Button
+        onClick={handleWritePostClick}
+        variant="contained"
+        color="primary"
+        style={{ marginTop: "20px" }}>
+        글 작성하기
+      </Button>
+
       {/* 페이지네이션 */}
       <Pagination
-        count={Math.ceil(totalRows / paginationModel.pageSize)} // 총 페이지 수 계산
+        count={Math.ceil(totalRows / paginationModel.pageSize)}
         page={paginationModel.page}
         onChange={handlePageChange}
         color="primary"
         size="small"
+        style={{ marginTop: "20px" }}
       />
     </div>
   );
