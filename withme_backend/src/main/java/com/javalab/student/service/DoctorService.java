@@ -131,6 +131,7 @@ public class DoctorService {
             doctor.setMember(member);
             doctor.setHospital(doctorApplication.getHospital());
             doctor.setDoctorNumber(doctorApplication.getDoctorNumber());
+            doctor.setSubject(doctorApplication.getSubject());
             doctorRepository.save(doctor);
         } else {
             // 거절(REJECTED) 또는 보류(ON_HOLD) 상태라면 사유 저장

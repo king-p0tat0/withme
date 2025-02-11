@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from '../../common/fetchWithAuth';
-import DoctorViewAdmin from './Modal/DoctorViewAdmin';
+import DoctorViewAdmin from './DoctorViewAdmin';
 import '../../css/DoctorUpdate.css';
 
 export default function DoctorUpdate() {
@@ -13,25 +11,17 @@ export default function DoctorUpdate() {
     // DB에서 리스트 가져오기
     const fetchPendingDoctors = async () => {
         try {
-            const token = localStorage.getItem("token");
-
-            const response = await axios.get('http://localhost:8080/api/admin/doctor/pending', {
-                headers: {
-                    Authorization: `Bearer ${token}`,  // Authorization 헤더에 토큰 추가
-                    'Content-Type': 'application/json'
-                }
-            });
-            setPendingDoctors(response.data); // 서버에서 받은 데이터로 상태 업데이트
+            const response = await fetchWithAuth('http://localhost:8080/api/admin/doctor/pending');
+            const data = await response.json();
+            setPendingDoctors(data); // 서버에서 받은 데이터로 상태 업데이트
         } catch (err) {
             console.error('신청 리스트를 가져오는 데 실패', err);
         }
-    }
+    };
 
     useEffect(() => {
         fetchPendingDoctors(); // 전문가 리스트 가져오기
     }, []);
-
-
 
     // 팝업 열기 함수
     const openModal = (doctor) => {
@@ -44,7 +34,7 @@ export default function DoctorUpdate() {
         setIsModalOpen(false);
     };
 
-//     상태값 한글 변환
+    // 상태값 한글 변환
     const getStatusText = (status) => {
         switch (status) {
             case 'APPROVED':
@@ -75,21 +65,22 @@ export default function DoctorUpdate() {
                     </tr>
                 </thead>
                 <tbody>
-                    {pendingDoctors.length > 0 ?(
+                    {pendingDoctors.length > 0 ? (
                         pendingDoctors.map((doctor) => (
-                        <tr key={doctor.doctorId}>
-                            <td>{doctor.doctorId}</td>
-                            <td>{doctor.member.name}</td>
-                            <td>{doctor.subject}</td>
-                            <td>{doctor.hospital}</td>
-                            <td>{getStatusText(doctor.status)}</td>
-                            <td><button className="detail-button" onClick={() => openModal(doctor)}>상세보기</button></td>
-
-                        </tr>
-                    ))
-                    ):(
+                            <tr key={doctor.doctorId}>
+                                <td>{doctor.doctorId}</td>
+                                <td>{doctor.member.name}</td>
+                                <td>{doctor.subject}</td>
+                                <td>{doctor.hospital}</td>
+                                <td>{getStatusText(doctor.status)}</td>
+                                <td>
+                                    <button className="detail-button" onClick={() => openModal(doctor)}>상세보기</button>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
                         <tr>
-                            <td colSpan="5" className="no-data">신청자가 없습니다.</td>
+                            <td colSpan="6" className="no-data">신청자가 없습니다.</td>
                         </tr>
                     )}
                 </tbody>

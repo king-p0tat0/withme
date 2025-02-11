@@ -52,7 +52,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 member.getEmail(),
                 member.getPassword(),
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + member.getRole().toString())),
-                member.getUsername(),
+                member.getName(),
                 false,
                 null,
                 null

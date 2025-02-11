@@ -1,13 +1,7 @@
 import DoctorUpdate from './DoctorUpdate';
 import DoctorList from './DoctorList';
-<<<<<<<< HEAD:withme_frontend/src/component/admin/Admin.jsx
 import DoctorView from './DoctorView';
 import UserList from './UserList';
-========
-import DoctorView from './Modal/DoctorView';
-import UserList from './UserList';
-import Dashboard from './Dashboard';
->>>>>>>> origin/yuni:withme_frontend/src/component/Admin/Admin.jsx
 import React, { useState  } from 'react';
 import '../../css/Admin.css';
 
@@ -66,12 +60,6 @@ export default function Admin() {
                                 <li className="menu-item"
                                  onClick={() => setCurrentPage(<UserList />)}
                                  >고객 리스트</li>
-<<<<<<<< HEAD:withme_frontend/src/component/admin/Admin.jsx
-========
-                                <li className="menu-item"
-                                 onClick={() => setCurrentPage(<Dashboard />)}
-                                 >대시보드</li>
->>>>>>>> origin/yuni:withme_frontend/src/component/Admin/Admin.jsx
                             </ul>
                         )}
                     </div>
