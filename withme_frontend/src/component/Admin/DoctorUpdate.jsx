@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from '../../common/fetchWithAuth';
-import DoctorViewAdmin from './Modal/DoctorViewAdmin';
+import DoctorViewAdmin from './DoctorViewAdmin';
 import '../../css/DoctorUpdate.css';
 
 export default function DoctorUpdate() {

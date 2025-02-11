@@ -77,7 +77,7 @@ export default function MyPage() {
                 method: "PUT",
                 body: JSON.stringify(member),
             });
-            console.log(`${API_URL}`);
+
             if (response.ok) {
                 const result = await response.json();
 

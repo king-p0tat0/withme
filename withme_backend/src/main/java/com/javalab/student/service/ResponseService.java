@@ -2,8 +2,8 @@ package com.javalab.student.service;
 
 import com.javalab.student.entity.Member;
 import com.javalab.student.entity.Response;
-import com.javalab.student.repository.ResponseRepository;
 import com.javalab.student.repository.MemberRepository;
+import com.javalab.student.repository.ResponseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

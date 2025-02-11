@@ -1,19 +1,18 @@
 package com.javalab.student.controller;
 
 import com.javalab.student.config.jwt.TokenProvider;
-import com.javalab.student.dto.LoginFormDto;
-import com.javalab.student.dto.MemberFormDto;
+import com.javalab.student.dto.*;
 import com.javalab.student.entity.Member;
 import com.javalab.student.service.MemberService;
 import com.javalab.student.service.RefreshTokenService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import jakarta.servlet.http.Cookie;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
+@Log4j2
 public class MemberController {
 
     private final MemberService memberService;
@@ -143,10 +143,10 @@ public class MemberController {
             // 8. 사용자 정보와 상태 반환
             responseBody.put("status", "success");
             responseBody.put("message", "사용자 정보가 수정되고 JWT가 갱신되었습니다.");
-            responseBody.put("id", updatedMember.getId());  // ✅ getUserId() → getId()
-            responseBody.put("name", updatedMember.getUserName()); // ✅ getUsername() → getUserName()
+            responseBody.put("id", updatedMember.getId());
             responseBody.put("email", updatedMember.getEmail());
-            responseBody.put("roles", updatedMember.getAuthorities());
+            responseBody.put("name", updatedMember.getName());
+            responseBody.put("role", updatedMember.getAuthorities());
             return ResponseEntity.ok(responseBody);
         } catch (IllegalArgumentException e) {
             responseBody.put("status", "error");
@@ -215,6 +215,23 @@ public class MemberController {
         response.put("message", "로그인 실패");
         response.put("status", "failed");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response); // HTTP 401 Unauthorized
+    }
+
+    // 페이징 처리된 유저 목록 조회
+    @GetMapping("/list")
+    //@PreAuthorize("hasRole('USER')")
+    public ResponseEntity<PageResponseDTO<MemberDto>> getAllmembers(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        PageRequestDTO pageRequestDTO = PageRequestDTO.builder()
+                .page(page)
+                .size(size)
+                .build();
+        log.info("페이지 : " + pageRequestDTO.getPage() + " " + pageRequestDTO.getSize());
+
+        PageResponseDTO<MemberDto> responseDTO = memberService.getAllMembers(pageRequestDTO);
+        return ResponseEntity.ok(responseDTO);
     }
 
 

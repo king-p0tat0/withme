@@ -13,10 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 // @DataJpaTest // 이걸 사용하면 Spring Security 설정이 적용되지 않아서 테스트가 실패함
 @SpringBootTest
@@ -33,17 +30,23 @@ class MemberRepositoryTest {
     /**
      * 테스트에서 공통으로 사용할 회원 엔티티 생성 메서드
      */
+    @Transactional
     public Member createMember() {
         MemberFormDto memberFormDto = MemberFormDto.builder()
                 .email("test2@example.com")
-                .userName("김길동")
-                .address("서울시 마포구")
-                .password("1234") // 원래 비밀번호
+                .name("홍길동")
+                .address("서울시 강남구")
+                .password("1234") // 평문 비밀번호 (암호화 필요)
                 .phone("010-1234-5678")
-                .role(Role.ADMIN)
+                .age("30") // ✅ 나이 필드 추가
+                .role(Role.USER) // ✅ 기본 권한 USER
                 .build();
-        return Member.createMember(memberFormDto, passwordEncoder); // 비밀번호 암호화 포함
+
+        return Member.createMember(memberFormDto, passwordEncoder); // ✅ 비밀번호 암호화 포함
     }
+
+
+
 
     /**
      * 회원 저장 테스트
@@ -60,15 +63,22 @@ class MemberRepositoryTest {
         Member savedMember = memberRepository.save(member);
 
         // Then : 저장된 회원 정보 확인
+        //assertNotNull(savedMember.getId()); // ✅ 자동 생성된 user_id 확인
         assertEquals(member.getEmail(), savedMember.getEmail());
-        assertEquals(member.getUserName(), savedMember.getUserName());
+        assertEquals(member.getName(), savedMember.getName()); // ✅ 엔티티에 맞춰 유지
         assertEquals(member.getAddress(), savedMember.getAddress());
+        assertEquals(member.getPhone(), savedMember.getPhone());
 
-        // 비밀번호가 암호화되어 저장되었는지 확인
+        // ✅ 비밀번호 암호화 검증
         assertNotEquals("1234", savedMember.getPassword()); // 암호화된 비밀번호는 원래 값과 달라야 함
-        assertEquals(true, passwordEncoder.matches("1234", savedMember.getPassword())); // 원래 비밀번호와 매칭
+        assertTrue(passwordEncoder.matches("1234", savedMember.getPassword())); // ✅ 비밀번호 매칭 확인
     }
 
+
+    /**
+     * 중복 이메일 회원 저장 테스트
+     * - 중복된 이메일로 저장하려고 하면 예외 발생
+     */
     /**
      * 이메일 중복 여부 확인 테스트
      */
@@ -79,14 +89,15 @@ class MemberRepositoryTest {
         String existingEmail = "test@example.com";
 
         // When: 이메일을 조회
-        Optional<Member> foundMember = memberRepository.findByEmail(existingEmail);
+        Member foundMember = memberRepository.findByEmail(existingEmail);
 
         // Then: 중복 여부 확인 및 메시지 출력
-        if (foundMember.isPresent()) {
+        if (foundMember != null) {
             System.out.println("이미 존재하는 이메일입니다: " + existingEmail);
-            assertEquals(existingEmail, foundMember.get().getEmail()); // 중복 이메일이 존재해야 함
+            assertEquals(existingEmail, foundMember.getEmail()); // 중복 이메일이 존재해야 함
         } else {
             System.out.println("사용 가능한 이메일입니다: " + existingEmail);
         }
     }
+
 }

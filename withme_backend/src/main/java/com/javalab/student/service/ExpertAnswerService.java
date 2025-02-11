@@ -3,7 +3,6 @@ package com.javalab.student.service;
 import com.javalab.student.entity.ExpertAnswer;
 import com.javalab.student.entity.Member;
 import com.javalab.student.repository.ExpertAnswerRepository;
-import com.javalab.student.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

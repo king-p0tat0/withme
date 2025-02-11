@@ -3,118 +3,77 @@ import { Box, Card, CardContent, Typography, Button } from "@mui/material";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import MainNotice from "./notice/MainNotice";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import "./Home.css";
 
 function Home() {
   const { user, isLoggedIn } = useSelector((state) => state.auth);
 
   return (
-    <Box
-      sx={{
-        padding: "20px",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: "20px"
-      }}>
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ width: "100%", textAlign: "center" }}>
-        메인 화면
-      </Typography>
-      <MainNotice />
-      {/*  테스트*/}
-      {/* 로그인하지 않은 경우 로그인 카드 표시 */}
-      {!isLoggedIn && (
-        <Card sx={{ width: 300 }}>
-          <CardContent>
-            <Typography variant="h5" component="div">
-              로그인
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              로그인 후 더 많은 기능을 이용할 수 있습니다.
-            </Typography>
-            <Button
-              component={Link}
-              to="/login"
-              variant="contained"
-              color="primary"
-              sx={{ marginTop: "10px" }}>
-              로그인하기
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+    <>
+      <div className="Home">
+        <nav>
+          <ul>
+            <li><Link to="/">홈</Link></li>
+            <li><Link to="#">전체상품</Link></li>
+            <li><Link to="/notice">공지사항</Link></li>
+            <li><Link to="/posts">커뮤니티</Link></li>
+            <li className="search-box">
+              <input type="text" placeholder="어떤 상품을 찾아볼까요?" className="search-input" />
+              <FontAwesomeIcon icon={faSearch} className="fas fa-search" />
+            </li>
+            <li><img src="/assets/images/logo.png" alt="로고 이미지" className="footer-logo" /></li>
+          </ul>
+        </nav>
 
-      {/* 로그인한 사용자만 학생 목록을 볼 수 있음 */}
-      {/*             {isLoggedIn && ( */}
-      {/*                 <Card sx={{ width: 300 }}> */}
-      {/*                     <CardContent> */}
-      {/*                         <Typography variant="h5" component="div"> */}
-      {/*                             학생 목록 */}
-      {/*                         </Typography> */}
-      {/*                         <Typography variant="body2" color="text.secondary"> */}
-      {/*                             학생들의 정보를 확인할 수 있습니다. */}
-      {/*                         </Typography> */}
-      {/*                         <Button */}
-      {/*                             component={Link} */}
-      {/*                             to="/listStudent" */}
-      {/*                             variant="contained" */}
-      {/*                             color="primary" */}
-      {/*                             sx={{ marginTop: '10px' }} */}
-      {/*                         > */}
-      {/*                             학생 목록 */}
-      {/*                         </Button> */}
-      {/*                     </CardContent> */}
-      {/*                 </Card> */}
-      {/*             )} */}
+        <div className="container">
+          <div className="banner">
+            <img src="/assets/images/banner.png" alt="배너 이미지" />
 
-      {/* 학생 등록 카드 - 관리자만 접근 가능 */}
-      {isLoggedIn && user?.roles?.includes("ROLE_ADMIN") && (
-        <Card sx={{ width: 300 }}>
-          <MainNotice />
-          <CardContent>
-            <Typography variant="h5" component="div">
-              학생 등록
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              새로운 학생을 등록할 수 있습니다.
-            </Typography>
-            <Button
-              component={Link}
-              to="/addStudent"
-              variant="contained"
-              color="primary"
-              sx={{ marginTop: "10px" }}>
-              학생 등록하기
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+            {/* ✅ 기존 "/survey" → "/survey-main"으로 변경 */}
+            <Link to="/survey-main">문진하러 가기 &gt;</Link>
+          </div>
 
-      {/* 마이페이지 카드 - 로그인된 사용자만 접근 가능 */}
-      {isLoggedIn && (
-        <Card sx={{ width: 300 }}>
-          <CardContent>
-            <Typography variant="h5" component="div">
-              마이페이지
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              자신의 정보를 확인하고 수정할 수 있습니다.
-            </Typography>
-            <Button
-              component={Link}
-              to={`/mypage/${user?.id}`}
-              variant="contained"
-              color="primary"
-              sx={{ marginTop: "10px" }}>
-              마이페이지로 이동
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-    </Box>
+          <div className="item-wrap">
+            <div className="notice">
+              <span className="red" style={{ color: "red" }}>공지사항</span> 📢 <span className="line">|</span> " 폭설이 내릴 예정이에요 ⛄❄ 눈길 조심! "
+            </div>
+
+            {/* 상품 리스트 */}
+            <div className="product-list all-product-list">
+              <p>전체 상품</p>
+              <hr />
+              <div className="products">
+                <ul>
+                  <li className="product-item">
+                    <Link to="#" className="productLink">
+                      <img src="/assets/images/product/product1.png" alt="상품이미지1" />
+                      <div className="product-info">
+                        <h3 className="productName">로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>
+                        <p className="price">34,500원</p>
+                        <button type="button" className="product-btn">구매하기</button>
+                      </div>
+                    </Link>
+                  </li>
+                  <li className="product-item">
+                    <Link to="#" className="productLink">
+                      <img src="/assets/images/product/product2.jpg" alt="상품이미지2" />
+                      <div className="product-info">
+                        <h3 className="productName">힐스 다이어트 체중관리 어덜트 스몰포 라이트 (스몰앤미니) 1.5kg</h3>
+                        <p className="price">27,800원</p>
+                        <button type="button" className="product-btn">구매하기</button>
+                      </div>
+                    </Link>
+                  </li>
+                </ul>
+                <button type="button" className="moreBtn">더 구경하기</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 

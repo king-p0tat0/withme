@@ -1,7 +1,7 @@
 package com.javalab.student.repository;
 
-import com.javalab.student.entity.UserQuestionProgress;
 import com.javalab.student.entity.Member;
+import com.javalab.student.entity.UserQuestionProgress;
 import com.javalab.student.entity.Questionnaire;
 import com.javalab.student.entity.Question;
 import org.springframework.data.jpa.repository.JpaRepository;

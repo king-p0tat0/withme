@@ -1,147 +1,107 @@
 import React, { useEffect } from "react";
-import { AppBar, Toolbar, Typography, Button } from "@mui/material";
-import { Routes, Route, Link, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUserInfo, clearUser } from "./redux/authSlice";
-import { persistor } from "./redux/store";
 import { API_URL } from "./constant";
 import { fetchWithAuth } from "./common/fetchWithAuth.js";
 
-// 페이지 컴포넌트
+// ✅ 기존 페이지 (홈, 로그인, 회원가입, 마이페이지)
 import Home from "./component/Home";
-import StudentList from "./component/StudentList";
-import AddStudent from "./component/AddStudent";
 import Login from "./component/Login";
 import MyPage from "./component/member/MyPage";
-import ViewStudent from "./component/ViewStudent";
-import EditStudent from "./component/EditStudent";
 import RegisterMember from "./component/member/RegisterMember";
+import RegisterDoctor from "./component/doctor/RegisterDoctor";
+
+// ✅ 공지사항 관련 컴포넌트
+import NoticeList from "./component/notice/NoticeList";
+import NoticeForm from "./component/notice/NoticeForm";
+import NoticeView from "./component/notice/NoticeView";
+
+// ✅ 커뮤니티 관련 컴포넌트
 import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
 import PostView from "./component/posts/PostView";
+
+// ✅ 관리자 페이지
 import UnauthorizedPage from "./component/UnAuthorizedPage";
 import Admin from "./component/admin/Admin";
-import FreeSurveyPage from "./component/survey/FreeSurveyPage";
-import PaidSurveyPage from "./component/survey/PaidSurveyPage";
-import HomeIcon from "@mui/icons-material/Home";
 
-/**
- * 🚀 App 컴포넌트 (Vite + React + JSX)
- * - Redux에서 로그인 상태 가져오기
- * - 로그인 여부에 따라 UI 변경 (로그인 / 로그아웃)
- * - 로그인 상태를 console.log()로 디버깅 가능하도록 설정
- */
+// ✅ 공통 UI (헤더, 푸터)
+import Header from "./component/common/Header";
+import Footer from "./component/common/Footer";
+
+// ✅ 문진(Survey) 관련 컴포넌트
+import SurveyMain from "./component/survey/SurveyMain";
+import FreeSurvey from "./component/survey/FreeSurvey";
+import PaidSurvey from "./component/survey/PaidSurvey";
+import PaidSurveyResultPage from "./component/survey/PaidSurveyResult"; // ✅ 변경된 컴포넌트
+
 function App() {
+  // Redux의 상태를 가져옴 (로그인된 사용자 정보 및 로그인 여부)
   const { user, isLoggedIn } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // ✅ 사용자가 로그인되어 있지만 user 정보가 없는 경우, 서버에서 정보를 가져옴
   useEffect(() => {
-    console.log("🔍 현재 로그인 상태:", { user, isLoggedIn });
-
-    if (!user && isLoggedIn) {
+    if (isLoggedIn && !user) {
       dispatch(fetchUserInfo());
     }
   }, [user, isLoggedIn, dispatch]);
 
+  // ✅ 로그아웃 핸들러
   const handleLogout = async () => {
     try {
-      await fetchWithAuth(`${API_URL}auth/logout`, {
-        method: "POST",
-      });
-      dispatch(clearUser());
-      await persistor.purge();
-      window.location.href = "/";
+      // 서버에 로그아웃 요청
+      await fetchWithAuth(`${API_URL}auth/logout`, { method: "POST" });
+      dispatch(clearUser()); // Redux에서 사용자 정보 삭제
+      navigate("/"); // 홈으로 리디렉트
     } catch (error) {
-      console.error("❌ 로그아웃 실패:", error.message);
+      console.error("로그아웃 실패:", error.message);
       alert("로그아웃 중 오류가 발생했습니다.");
-    }
-  };
-
-  // 🚀 애완견 건강 문진 검사 버튼 클릭 시 역할(Role)에 따라 이동
-  const handleSurveyRedirect = () => {
-    if (user?.role === "FREE") {
-      navigate("/survey/free"); // 무료 문진 페이지
-    } else if (user?.role === "PAID") {
-      navigate("/survey/paid"); // 유료 문진 페이지
-    } else {
-      alert("문진 검사는 로그인 후 이용 가능합니다.");
-      navigate("/login"); // 로그인 페이지 이동
     }
   };
 
   return (
     <div className="App">
-      {/* ✅ 헤더 부분 */}
-      <AppBar position="static">
-        <Toolbar>
-          <HomeIcon />
-          <Typography variant="h5" style={{ flexGrow: 1 }}>
-            {isLoggedIn && (
-              <Button color="inherit" component={Link} to={`/mypage/${user?.id}`}>
-                마이페이지
-              </Button>
-            )}
-            <Button color="inherit" component={Link} to="/posts">
-              커뮤니티
-            </Button>
-            <Button color="inherit" component={Link} to="/admin">
-              관리자
-            </Button>
-            <Button color="inherit" onClick={handleSurveyRedirect}>
-              애완견 건강 문진 검사
-            </Button>
-          </Typography>
+      {/* ✅ 공통 헤더 */}
+      <Header />
 
-          {isLoggedIn ? (
-            <>
-              <Typography variant="body1" style={{ marginRight: "10px", fontSize: "14px" }}>
-                {user?.name}{" "}
-                {user?.roles?.includes("ROLE_ADMIN") ? "(관리자)" : "(사용자)"}
-              </Typography>
-              <Button color="inherit" onClick={handleLogout}>
-                로그아웃
-              </Button>
-            </>
-          ) : (
-            <Button color="inherit" component={Link} to="/login">
-              로그인
-            </Button>
-          )}
-        </Toolbar>
-      </AppBar>
-
-      {/* ✅ 라우팅 설정 */}
+      {/* ✅ 페이지별 라우팅 */}
       <Routes>
+        {/* ✅ 홈 페이지 */}
         <Route path="/" element={<Home />} />
-        <Route path="/listStudent" element={<StudentList />} />
-        <Route
-          path="/addStudent"
-          element={user?.roles?.includes("ROLE_ADMIN") ? <AddStudent /> : <Navigate to="/unauthorized" replace />}
-        />
-        <Route path="/viewStudent/:id" element={<ViewStudent />} />
-        {isLoggedIn && user?.roles?.includes("ROLE_ADMIN") && (
-          <>
-            <Route path="/editStudent/:id" element={<EditStudent />} />
-          </>
-        )}
+
+        {/* ✅ 사용자 관련 페이지 */}
         <Route path="/registerMember" element={<RegisterMember />} />
+        <Route path="/registerDoctor" element={<RegisterDoctor />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
 
-        {/* 🚀 커뮤니티 관련 라우트 */}
+        {/* ✅ 공지사항 */}
+        <Route path="/notices" element={<NoticeList />} />
+        <Route path="/notices/new" element={<NoticeForm />} />
+        <Route path="/notices/:id" element={<NoticeView />} />
+
+        {/* ✅ 커뮤니티 */}
         <Route path="/posts" element={<PostList />} />
         <Route path="/posts/new" element={<PostForm />} />
         <Route path="/posts/edit/:id" element={<PostForm />} />
         <Route path="/posts/:id" element={<PostView />} />
 
-        {/* 🚀 무료/유료 문진 검사 페이지 라우트 */}
-        <Route path="/survey/free" element={<FreeSurveyPage />} />
-        <Route path="/survey/paid" element={<PaidSurveyPage />} />
-
-        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        {/* ✅ 관리자 페이지 */}
         <Route path="/admin" element={<Admin />} />
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+        {/* ✅ 문진 관련 라우트 추가 */}
+        <Route path="/survey" element={<SurveyMain />} /> {/* 문진 메인 (무료/유료 선택) */}
+        <Route path="/survey/free" element={<FreeSurvey />} /> {/* 무료 문진 */}
+        <Route path="/survey/paid" element={<PaidSurvey />} /> {/* 유료 문진 */}
+        <Route path="/survey/paid/result" element={<PaidSurveyResult />} /> {/* ✅ 유료 문진 결과 페이지 */}
       </Routes>
+
+      {/* ✅ 공통 푸터 */}
+      <Footer />
     </div>
   );
 }

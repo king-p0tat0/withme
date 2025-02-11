@@ -1,7 +1,7 @@
 package com.javalab.student.service;
 
-import com.javalab.student.entity.Questionnaire;
 import com.javalab.student.entity.Member;
+import com.javalab.student.entity.Questionnaire;
 import com.javalab.student.repository.QuestionnaireRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

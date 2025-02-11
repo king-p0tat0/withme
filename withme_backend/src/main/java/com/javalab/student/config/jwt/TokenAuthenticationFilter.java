@@ -1,5 +1,7 @@
 package com.javalab.student.config.jwt;
 
+import com.javalab.student.config.jwt.TokenProvider;
+import com.javalab.student.service.RedisService;
 import com.javalab.student.service.RedisService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,7 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 토큰 인증 필터
+ * 액세스 토큰 인증 필터
  * - Spring Security의 요청 필터로 동작한다.
  * - 요청마다 JWT 토큰을 검증하고 인증 객체를 SecurityContext에 저장하는 역할.
  * - 시큐리티의 정상적인 동작 보다 먼저 실행되어야 한다.
@@ -63,7 +65,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") ||
                 path.equals("/api/auth/login") || path.equals("/api/auth/userInfo") ||
                 path.equals("/api/members/register") || path.equals("/api/members/checkEmail") ||
-                path.equals("/ping.js")) {
+                path.equals("/ping.js") ||
+                path.startsWith("/ws") || path.startsWith("/ws/info") ||
+                path.startsWith("/topic/chat/")|| path.startsWith("/api/notices")|| path.startsWith("/api/posts")) {
 
             filterChain.doFilter(request, response);
             return;

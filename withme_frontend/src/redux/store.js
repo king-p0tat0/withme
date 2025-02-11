@@ -44,7 +44,6 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
  * Redux Store 생성
  * - Redux Toolkit의 configureStore 사용
  * - Middleware 설정에서 Redux Persist 관련 액션을 무시하도록 serializableCheck 조정
- * - serializableCheck을 비활성화하여 Redux Persist 관련 비직렬화 데이터를 허용
  */
 export const store = configureStore({
     reducer: persistedReducer,
