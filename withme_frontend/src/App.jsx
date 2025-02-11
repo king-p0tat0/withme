@@ -41,6 +41,8 @@ import Policy from "./component/member/Policy"; // 약관정책
 import RegisterMember from "./component/member/RegisterMember"; // 회원정보 입력
 import SignupSuccess from "./component/member/SignupSuccess"; // 가입 완료
 
+import SurveyMain from "./component/survey/SurveyMain";
+
 
 function App() {
   // 리덕스 스토어의 상태를 가져오기 위해 useSelector 훅 사용, auth 슬라이스에서 user, isLoggedIn 상태를 가져옴
@@ -96,7 +98,9 @@ function App() {
         <Route path="/ui" element={<UiComponents />} />
 
         <Route path="/register" element={<MemberForm />} />
+        {/* 전문가 신청페이지 */}
         <Route path="/registerDoctor" element={<RegisterDoctor user={user}/>} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
         {/* 공지사항 목록 */}
@@ -118,6 +122,7 @@ function App() {
         {/*<Route path="*" element={<UnauthorizedPage />} />*/}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/survey-main" element={<SurveyMain />} />
 
         {/* 회원가입 페이지 */}
         <Route path="/policy" element={<Policy />} />

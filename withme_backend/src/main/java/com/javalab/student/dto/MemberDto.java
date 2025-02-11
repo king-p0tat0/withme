@@ -20,3 +20,4 @@ public class MemberDto {
     private boolean social;
     private String provider;
 }
+

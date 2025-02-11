@@ -34,6 +34,7 @@ export default function Login() {
                 setErrorMessage(data.message || "로그인 실패");
                 return;
             }
+            console.log('name : '+ data.name)
 
             dispatch(setUser({ id: data.id, name: data.name, email: credentials.email, roles: data.roles }));
             navigate("/");

@@ -3,8 +3,10 @@ package com.javalab.student.controller;
 import com.javalab.student.config.jwt.TokenProvider;
 import com.javalab.student.dto.*;
 import com.javalab.student.entity.Member;
+import com.javalab.student.repository.MemberRepository;
 import com.javalab.student.service.MemberService;
 import com.javalab.student.service.RefreshTokenService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +21,6 @@ import com.javalab.student.entity.Member;
 import com.javalab.student.service.MemberService;
 import com.javalab.student.service.RefreshTokenService;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.Cookie;
 import java.time.Duration;
 import java.util.HashMap;
