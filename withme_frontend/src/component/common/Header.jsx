@@ -1,4 +1,4 @@
-import "./Header.css";
+import "../../assets/css/common/Header.css";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -13,7 +13,6 @@ const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user, isLoggedIn } = useSelector((state) => state.auth);
-
 
   const handleLogout = async () => {
     try {
@@ -48,10 +47,11 @@ const Header = () => {
       <header>
         <div className="gnb-container">
           <ul className="gnb">
+              <Link to="/"><img src="/assets/images/text_logo.png" alt="텍스트 로고" className="textLogo" /></Link>
             {isLoggedIn ? (
               <>
                 <li>{user.name}님</li>
-                {user?.roles?.includes("ROLE_ADMIN") && (
+                {user.role === "ADMIN" && (
                   <li>
                     <Link to="/admin">관리자 페이지</Link>
                   </li>
@@ -64,12 +64,6 @@ const Header = () => {
                 <li>
                   <Link to={`/mypage/${user.id}`}>마이페이지</Link>
                 </li>
-                <li>
-                  <Link to={`/registerDoctor`}>전문가 신청</Link>
-                </li>
-                <li>
-                  <Link to={`/doctorStatus`}>전문가 신청조회</Link>
-                </li>
               </>
             ) : (
               <li>
@@ -79,7 +73,7 @@ const Header = () => {
 
             {!isLoggedIn && (
               <li className="join-us">
-                <Link to="/register">회원가입</Link>
+                <Link to="/policy">회원가입</Link>
                 <span className="tooltip">+2,000P</span>
               </li>
             )}
