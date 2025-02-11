@@ -1,0 +1,89 @@
+package com.javalab.student.controller;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
+import com.javalab.student.dto.DoctorFormDto;
+import com.javalab.student.entity.Doctor;
+import com.javalab.student.service.DoctorService;
+
+/**
+ * 의사 신청(Doctor Application) 관련 API를 관리하는 컨트롤러
+ * 사용자는 자신의 의사 신청을 등록, 조회, 수정 및 삭제할 수 있음
+ */
+@RestController
+@RequestMapping("/api/doctors")  // 기본 URL 설정
+@RequiredArgsConstructor         // 생성자 주입을 자동으로 처리 (Lombok 기능)
+public class DoctorController {
+    private final DoctorService doctorService;  // 의사 신청을 처리하는 서비스 객체
+
+    /**
+     * 새로운 의사 신청을 저장하는 API
+     *
+     * @param doctorFormDto 사용자 입력 데이터를 담은 DTO (의사 신청 정보)
+     * @param userDetails 현재 로그인한 사용자 정보 (Spring Security에서 제공)
+     * @return 저장된 의사 신청 정보 (Doctor 엔티티)
+     */
+    @PostMapping("/apply")
+    public ResponseEntity<Doctor> applyDoctor(
+            @Valid @RequestBody DoctorFormDto doctorFormDto,  // 요청 바디에서 DTO 데이터를 받아 유효성 검사
+            @AuthenticationPrincipal UserDetails userDetails) {  // 현재 로그인한 사용자의 정보를 가져옴
+
+        // 사용자 정보를 기반으로 의사 신청을 저장
+        Doctor doctor = doctorService.saveDoctorApplication(doctorFormDto, userDetails.getUsername());
+
+        return ResponseEntity.ok(doctor);  // 생성된 의사 신청 정보를 응답으로 반환
+    }
+
+    /**
+     * 현재 로그인한 사용자의 의사 신청 정보를 조회하는 API
+     *
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 사용자의 의사 신청 정보 (Doctor 엔티티)
+     */
+    @GetMapping("/application")
+    public ResponseEntity<Doctor> getApplication(@AuthenticationPrincipal UserDetails userDetails) {
+
+        // 사용자의 아이디를 기반으로 신청 정보를 조회
+        Doctor doctor = doctorService.getDoctorApplication(userDetails.getUsername());
+
+        return ResponseEntity.ok(doctor);  // 조회된 신청 정보를 응답으로 반환
+    }
+
+    /**
+     * 기존 의사 신청 정보를 수정하는 API
+     *
+     * @param doctorFormDto 수정할 의사 신청 정보 DTO
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 수정된 의사 신청 정보 (Doctor 엔티티)
+     */
+    @PutMapping("/application")
+    public ResponseEntity<Doctor> updateApplication(
+            @Valid @RequestBody DoctorFormDto doctorFormDto,  // 요청 바디에서 DTO 데이터를 받아 유효성 검사
+            @AuthenticationPrincipal UserDetails userDetails) {  // 현재 로그인한 사용자 정보를 가져옴
+
+        // 사용자의 기존 신청 정보를 업데이트
+        Doctor doctor = doctorService.updateDoctorApplication(userDetails.getUsername(), doctorFormDto);
+
+        return ResponseEntity.ok(doctor);  // 업데이트된 신청 정보를 응답으로 반환
+    }
+
+    /**
+     * 기존 의사 신청 정보를 삭제하는 API
+     *
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 삭제 성공 시 HTTP 상태 코드 204 (No Content) 반환
+     */
+    @DeleteMapping("/application")
+    public ResponseEntity<Void> deleteApplication(@AuthenticationPrincipal UserDetails userDetails) {
+
+        // 사용자의 신청 정보를 삭제
+        doctorService.deleteDoctorApplication(userDetails.getUsername());
+
+        return ResponseEntity.noContent().build();  // 삭제 후 응답 본문 없이 상태 코드만 반환
+    }
+}
