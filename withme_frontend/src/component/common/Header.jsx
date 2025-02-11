@@ -51,7 +51,7 @@ const Header = () => {
             {isLoggedIn ? (
               <>
                 <li>{user.name}님</li>
-                {user?.roles?.includes("ROLE_ADMIN") && (
+                {user.role === "ADMIN" && (
                   <li>
                     <Link to="/admin">관리자 페이지</Link>
                   </li>

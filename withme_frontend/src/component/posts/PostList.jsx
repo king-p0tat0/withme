@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { API_URL } from "../../constant";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Tab, Button, Pagination } from "@mui/material";
 import TabPanel from "../elements/TabPanel";
-import { fetchWithAuth } from "../../common/fetchWithAuth"; // fetchWithAuth import
 
 const categories = [
   "전체",
@@ -38,8 +38,10 @@ const PostList = () => {
   // 현재 로그인한 사용자 정보 가져오기 (예: /api/auth/me 엔드포인트)
   const fetchCurrentUser = async () => {
     try {
-      const response = await fetchWithAuth(`${API_URL}/auth/me`);
-      setCurrentUserId(response.userId); // 현재 로그인한 사용자 ID 설정
+      const response = await axios.get(`${API_URL}/auth/me`);
+      if (response.status === 200) {
+        setCurrentUserId(response.data.userId);
+      }
     } catch (error) {
       console.error("사용자 정보 가져오기 실패:", error.message);
       alert("로그인 정보가 필요합니다.");
@@ -52,12 +54,18 @@ const PostList = () => {
     const { page, pageSize } = paginationModel; // 현재 페이지와 페이지 크기
 
     try {
-      const response = await fetchWithAuth(
-        `${API_URL}/posts?page=${page - 1}&size=${pageSize}`
+      const response = await axios.get(
+        `${API_URL}/posts?page=${page - 1}&size=${pageSize}` // 서버에서 요청 시 페이지는 보통 0부터 시작
       );
-      setPosts(response.dtoList || []); // 전체 게시글 저장
-      setFilteredPosts(response.dtoList || []); // 기본적으로 전체 게시글 표시
-      setTotalRows(response.total || 0); // 전체 게시글 수 저장
+      if (response.status === 200) {
+        const data = response.data; // 서버에서 받아온 데이터
+        setPosts(data.dtoList || []); // 전체 게시글 저장
+        setFilteredPosts(data.dtoList || []); // 기본적으로 전체 게시글 표시
+        setTotalRows(data.total || 0); // 전체 게시글 수 저장
+      } else {
+        console.error("게시글 목록 불러오기 실패:", response.status);
+        alert(`게시글 목록 불러오기 실패: ${response.statusText}`);
+      }
     } catch (error) {
       console.error("게시글 목록 가져오는 중 오류 발생:", error.message);
       alert("게시글 목록 가져오기 실패: 네트워크 또는 서버 오류");
@@ -146,8 +154,9 @@ const PostList = () => {
 
       {/* 페이지네이션 */}
       <Pagination
-        count={Math.ceil(totalRows / paginationModel.pageSize)} // 총 페이지 수 계산
-        page={paginationModel.page}
+        // count={Math.ceil(totalRows / paginationModel.pageSize)} // 총 페이지 수 계산
+        // page={paginationModel.page}
+        count={10}
         onChange={handlePageChange}
         color="primary"
         size="small"
