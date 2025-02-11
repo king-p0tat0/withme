@@ -100,7 +100,8 @@ function App() {
 
         <Route path="/register" element={<MemberForm />} />
         {/* 전문가 신청페이지 */}
-        <Route path="/registerDoctor" element={<RegisterDoctor user={user}/>} />
+        <Route path="/doctor/register" element={<RegisterDoctor user={user}/>} />
+        <Route path="/doctor/status" element={<DoctorApplicationStatus user={user}/>} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />

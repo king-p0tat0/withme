@@ -6,12 +6,11 @@ import { useSelector } from "react-redux";
 /**
  * 전문가 신청 상태 조회(사용자)
  */
-export default function DoctorApplicationStatus() {
+export default function DoctorApplicationStatus({user}) {
     const [doctor, setDoctor] = useState(null);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true); // 로딩 상태 추가
-    // Redux에서 사용자 정보 가져오기
-    const { user } = useSelector((state) => state.auth);
+
 
     useEffect(() => {
         const fetchDoctorApplication = async () => {
