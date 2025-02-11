@@ -43,11 +43,12 @@ export default function UserList() {
         console.log("받아온 response : ", response);
         const data = await response.json();
         console.log("받아온 data : ", data);
+        console.log("받아온 data.length : ", data.length);
 
 
-            if (data.dtoList) {
-                setUsers(data.dtoList);
-                setTotalPages(Math.ceil(data.total / size));  // 전체 페이지 수 계산
+            if (data) {
+                setUsers(data);
+                setTotalPages(Math.ceil(data.length / size));  // 전체 페이지 수 계산
             } else {
                 setUsers([]);
                 setTotalPages(1);
@@ -141,7 +142,7 @@ export default function UserList() {
                                         <td>{user.phone}</td>
                                         <td>{user.role}</td>
                                         <td>{user.points}</td>
-                                        <td>{new Date(user.createdAt).toLocaleDateString('ko-KR')}</td>
+                                        <td>{new Date(user.regTime).toLocaleDateString('ko-KR')}</td>
                                     </tr>
                                 ))
                             ) : (
