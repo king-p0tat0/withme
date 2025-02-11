@@ -3,8 +3,8 @@ import DoctorList from './DoctorList';
 import DoctorView from './DoctorView';
 import UserList from './UserList';
 import React, { useState  } from 'react';
-import '../../css/Admin.css';
 import Dashboard from './Dashboard';
+import '../../assets/css/admin/Admin.css';
 
 export default function Admin() {
     // 드롭다운 상태 관리

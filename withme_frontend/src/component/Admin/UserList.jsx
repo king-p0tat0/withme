@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import '../../css/DoctorList.css';
+import '../../assets/css/admin/DoctorList.css';
 import { API_URL } from '../../constant';
 import { fetchWithAuth } from '../../common/fetchWithAuth'; // fetchWithAuth import
 

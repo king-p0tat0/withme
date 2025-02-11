@@ -5,6 +5,7 @@ import com.javalab.student.entity.Doctor;
 import com.javalab.student.entity.DoctorApplication;
 import com.javalab.student.service.DoctorService;
 import com.javalab.student.service.MemberService;
+import com.javalab.student.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.Map;
 public class AdminController {
     private final DoctorService doctorService;
     private final MemberService memberService;
+    private final StatisticsService statisticsService;
 
 
 
@@ -63,9 +65,18 @@ public class AdminController {
     /**
      * 일별 신규 가입자 수를 반환하는 API
      */
-    @GetMapping("/new-registrations")
+    @GetMapping("/newRegistrations")
     public ResponseEntity<List<NewRegistrationDTO>> getNewRegistrationsPerDay() {
-        List<NewRegistrationDTO> newRegistrations = memberService.getNewRegistrationsPerDay();
-        return ResponseEntity.ok(newRegistrations);  // 신규 가입자 수 반환
+        List<NewRegistrationDTO> newRegistrations = statisticsService.getNewRegistrationsPerDay();
+        return ResponseEntity.ok(newRegistrations);
+    }
+
+    /**
+     * 일별 신규 전문가 신청 수를 반환하는 API
+     */
+    @GetMapping("/newDoctorApplications")
+    public ResponseEntity<List<NewRegistrationDTO>> getNewDoctorApplicationsPerDay() {
+        List<NewRegistrationDTO> newDoctorApplications = statisticsService.getNewDoctorApplicationsPerDay();
+        return ResponseEntity.ok(newDoctorApplications);
     }
 }

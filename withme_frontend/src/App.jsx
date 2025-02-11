@@ -35,6 +35,7 @@ import Footer from "./component/common/Footer";
 
 //관리자
 import Admin from "./component/admin/Admin";
+import Dashboard from "./component/admin/Dashboard";
 
 // 회원가입
 import Policy from "./component/member/Policy"; // 약관정책
@@ -122,6 +123,8 @@ function App() {
         {/*<Route path="*" element={<UnauthorizedPage />} />*/}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+
         <Route path="/survey-main" element={<SurveyMain />} />
 
         {/* 회원가입 페이지 */}

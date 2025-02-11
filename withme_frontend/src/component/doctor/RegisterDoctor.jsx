@@ -2,7 +2,7 @@ import { Button, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { API_URL } from "../../constant";
 import { fetchWithAuth } from "../../common/fetchWithAuth"; // 인증된 API 호출 함수
-import '../../css/RegisterDoctor.css';
+import '../../assets/css/admin/RegisterDoctor.css';
 
 export default function DoctorApplicationForm({ user }) { // user를 props로 받음
     // 사용자 정보 및 추가 입력 필드를 저장할 상태
