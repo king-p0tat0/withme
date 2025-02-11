@@ -47,6 +47,8 @@ public class MemberFormDto {
 
     private Role role;
 
+    private String age;
+
     /**
      * 회원가입 전용 DTO에서 MemberFormDto로 변환
      */
