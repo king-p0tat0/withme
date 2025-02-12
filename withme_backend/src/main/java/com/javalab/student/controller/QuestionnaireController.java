@@ -26,7 +26,7 @@ public class QuestionnaireController {
     }
 
     /**
-     * ✅ 모든 문진 조회 (디버깅용)
+     * ✅ 모든 문진 조회
      */
     @GetMapping
     public ResponseEntity<List<QuestionnaireDTO>> getAllQuestionnaires() {
@@ -34,17 +34,17 @@ public class QuestionnaireController {
     }
 
     /**
-     * ✅ 특정 questionnaireId 기반으로 문진 조회
+     * ✅ 특정 문진 ID 조회
      */
     @GetMapping("/{questionnaireId}")
     public ResponseEntity<QuestionnaireDTO> getQuestionnaireById(@PathVariable Long questionnaireId) {
-        return questionnaireService.getQuestionnaireById(questionnaireId)
-                .map(ResponseEntity::ok)
+        Optional<QuestionnaireDTO> questionnaire = questionnaireService.getQuestionnaireById(questionnaireId);
+        return questionnaire.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
-     * ✅ 특정 userId 기반으로 모든 문진 조회
+     * ✅ 특정 유저의 모든 문진 조회
      */
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<QuestionnaireDTO>> getQuestionnairesByUserId(@PathVariable Long userId) {
@@ -52,7 +52,7 @@ public class QuestionnaireController {
     }
 
     /**
-     * ✅ 특정 userId 기반으로 최신 무료 문진 조회
+     * ✅ 특정 유저의 최신 무료 문진 조회
      */
     @GetMapping("/free/latest/{userId}")
     public ResponseEntity<QuestionnaireDTO> getLatestFreeSurvey(@PathVariable Long userId) {
@@ -62,7 +62,7 @@ public class QuestionnaireController {
     }
 
     /**
-     * ✅ 특정 userId 기반으로 최신 유료 문진 조회
+     * ✅ 특정 유저의 최신 유료 문진 조회
      */
     @GetMapping("/paid/latest/{userId}")
     public ResponseEntity<QuestionnaireDTO> getLatestPaidSurvey(@PathVariable Long userId) {
@@ -76,9 +76,9 @@ public class QuestionnaireController {
      */
     @PostMapping("/free")
     public ResponseEntity<QuestionnaireDTO> createFreeQuestionnaire(
-            @RequestParam Long userId,
-            @RequestParam Long surveyId) {
-        return ResponseEntity.ok(questionnaireService.createFreeQuestionnaire(userId, surveyId));
+            @RequestBody QuestionnaireDTO questionnaireDTO) {  // ✅ @RequestParam → @RequestBody 변경
+        QuestionnaireDTO savedQuestionnaire = questionnaireService.createFreeQuestionnaire(questionnaireDTO);
+        return ResponseEntity.ok(savedQuestionnaire);
     }
 
     /**
@@ -86,13 +86,13 @@ public class QuestionnaireController {
      */
     @PostMapping("/paid")
     public ResponseEntity<QuestionnaireDTO> createPaidQuestionnaire(
-            @RequestParam Long userId,
-            @RequestParam Long surveyId) {
-        return ResponseEntity.ok(questionnaireService.createPaidQuestionnaire(userId, surveyId));
+            @RequestBody QuestionnaireDTO questionnaireDTO) {  // ✅ @RequestParam → @RequestBody 변경
+        QuestionnaireDTO savedQuestionnaire = questionnaireService.createPaidQuestionnaire(questionnaireDTO);
+        return ResponseEntity.ok(savedQuestionnaire);
     }
 
     /**
-     * ✅ 문진 삭제 (관리자 기능)
+     * ✅ 문진 삭제
      */
     @DeleteMapping("/{questionnaireId}")
     public ResponseEntity<Void> deleteQuestionnaire(@PathVariable Long questionnaireId) {

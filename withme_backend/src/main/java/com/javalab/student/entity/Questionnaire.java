@@ -42,12 +42,6 @@ public class Questionnaire {
     @Column(name = "score", nullable = false, columnDefinition = "INT DEFAULT 0") // ✅ 기본값 0 설정
     private Integer score = 0;
 
-    @Column(name = "survey_type", nullable = false, length = 10)
-    private String surveyType; // ✅ "FREE" 또는 "PAID" 문진 구분
-
-    @Column(name = "score")
-    private Integer score; // ✅ 문진 결과 점수 저장 가능 (선택 사항)
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -55,11 +49,6 @@ public class Questionnaire {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now(); // ✅ 생성 시간 자동 설정
     }
-
-    //    @ManyToOne(fetch = FetchType.LAZY)
-    //    @JoinColumn(name = "pet_id", nullable = false)
-    //    private Pet pet; // ✅ 반려견 정보 (Pet 엔티티와 연결)
-
 
     public enum ResponseStatus {
         PENDING, IN_PROGRESS, COMPLETED

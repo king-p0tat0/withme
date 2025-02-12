@@ -3,29 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { API_URL } from "../../constant";
 import { fetchWithAuth } from "../../common/fetchWithAuth.js";
-import { DataGrid } from "@mui/x-data-grid"; // ✅ MUI DataGrid 컴포넌트 사용
-import { Button } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import { Select, MenuItem } from "@mui/material";
 
 function FreeSurveyPage() {
-  // ✅ 문진 질문 목록을 저장하는 state
   const [questions, setQuestions] = useState([]);
-
-  // ✅ 사용자가 선택한 답변을 저장하는 state
   const [answers, setAnswers] = useState({});
-
-  // ✅ 데이터 로딩 상태를 관리하는 state
   const [loading, setLoading] = useState(true);
-
-  // ✅ DataGrid 페이지네이션(현재 페이지 및 페이지 크기) 설정
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
-
-  // ✅ 페이지 이동을 위한 React Router Hook
   const navigate = useNavigate();
+  const { user, isLoggedIn } = useSelector((state) => state.auth);
 
-  // ✅ Redux 상태에서 로그인 여부 가져오기
-  const { user, isLoggedIn } = useSelector((state) => state.auth); // ✅ 사용자 정보 추가
-
-  // ✅ 사용자가 로그인하지 않았을 경우 로그인 페이지로 이동
   useEffect(() => {
     if (!isLoggedIn) {
       alert("문진을 진행하려면 로그인이 필요합니다.");
@@ -33,11 +21,6 @@ function FreeSurveyPage() {
     }
   }, [isLoggedIn, navigate]);
 
-  /**
-   * ✅ 문진 질문 목록을 가져오는 함수
-   * - API 호출하여 `questions/free/1` 경로에서 무료 문진 질문을 가져옴
-   * - 각 질문에 연결된 선택지(choices) 데이터도 함께 설정
-   */
   const fetchQuestions = async () => {
     try {
       setLoading(true);
@@ -46,15 +29,12 @@ function FreeSurveyPage() {
       if (response.ok) {
         const data = await response.json();
         console.log("✅ 문진 데이터 로드 성공:", data);
-
-        // ✅ DataGrid에서 사용할 형식으로 변환
         const formattedData = data.map((q) => ({
-          id: q.questionId, // ✅ DataGrid에서 고유 ID로 사용할 값
-          questionText: q.questionText, // ✅ 질문 내용
-          seq: q.seq, // ✅ 문항 순서
-          choices: q.choices, // ✅ 해당 질문에 연결된 선택지 목록
+          id: q.questionId,
+          questionText: q.questionText,
+          seq: q.seq,
+          choices: q.choices,
         }));
-
         setQuestions(formattedData);
       } else {
         console.error("❌ 문진 데이터를 불러오지 못했습니다.", response.status);
@@ -66,17 +46,12 @@ function FreeSurveyPage() {
     }
   };
 
-  // ✅ 컴포넌트가 마운트되면 문진 질문 목록을 가져옴
   useEffect(() => {
     if (isLoggedIn) {
       fetchQuestions();
     }
   }, [isLoggedIn]);
 
-  /**
-   * ✅ 선택한 답변을 state에 저장하는 함수
-   * - 사용자가 특정 질문의 선택지를 선택하면 `answers` state를 업데이트함
-   */
   const handleAnswerChange = (questionId, choiceId, score) => {
     setAnswers((prev) => ({
       ...prev,
@@ -84,11 +59,6 @@ function FreeSurveyPage() {
     }));
   };
 
-  /**
-   * ✅ 문진 제출 함수
-   * - 사용자가 모든 질문에 답변을 완료했는지 검증 후 제출
-   * - `POST /api/questionnaires/free` 엔드포인트로 데이터를 전송
-   */
   const handleSubmit = async () => {
     if (Object.keys(answers).length !== questions.length) {
       alert("모든 질문에 답변을 선택해야 합니다!");
@@ -96,8 +66,8 @@ function FreeSurveyPage() {
     }
 
     const requestBody = {
-      surveyId: 1, // ✅ 무료 문진 ID
-      userId: user?.id, // ✅ 로그인한 사용자 ID
+      surveyId: 1,
+      userId: user?.id,
       answers: Object.entries(answers).map(([questionId, { choiceId, score }]) => ({
         questionId: Number(questionId),
         choiceId,
@@ -114,10 +84,9 @@ function FreeSurveyPage() {
 
       if (response.ok) {
         const responseData = await response.json();
-        const questionnaireId = responseData.questionnaireId; // ✅ 백엔드에서 받은 questionnaire_id
-
+        const questionnaireId = responseData.questionnaireId;
         console.log("✅ 문진 제출 성공, questionnaire_id:", questionnaireId);
-        navigate(`/survey/free/result/${questionnaireId}`); // ✅ 결과 페이지로 이동
+        navigate(`/survey/free/result/${questionnaireId}`);
       } else {
         const errorData = await response.json();
         console.error("❌ 응답 제출 실패", response.status, errorData);
@@ -129,15 +98,9 @@ function FreeSurveyPage() {
     }
   };
 
-  /**
-   * ✅ DataGrid 컬럼 설정
-   * - `seq` : 질문 번호
-   * - `questionText` : 질문 내용
-   * - `choices` : 해당 질문의 선택지 목록
-   */
   const columns = [
-    { field: "seq", headerName: "번호", flex: 1 }, // ✅ 질문 번호
-    { field: "questionText", headerName: "질문", flex: 3 }, // ✅ 질문 내용
+    { field: "seq", headerName: "번호", flex: 0.5 },
+    { field: "questionText", headerName: "질문", flex: 2 },
     {
       field: "choices",
       headerName: "선택지",
@@ -145,23 +108,31 @@ function FreeSurveyPage() {
       renderCell: (params) => (
         <div style={{
           display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          gap: "5px",
-          flexWrap: "wrap", // ✅ 선택지가 여러 개일 경우 자동 줄바꿈
-          maxHeight: "150px", // ✅ 셀의 최대 높이 제한
-          overflow: "auto", // ✅ 선택지가 많으면 스크롤 허용
-          whiteSpace: "nowrap" // ✅ 선택지 줄 바꿈 방지
+          flexDirection: "row",
+          flexWrap: "nowrap",
+          alignItems: "center",
+          gap: "10px",
+          overflow: "hidden",
         }}>
           {params.row.choices.map((choice) => (
-            <label key={choice.choiceId} style={{ display: "block", whiteSpace: "nowrap" }}>
+            <label
+              key={choice.choiceId}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                whiteSpace: "nowrap",
+              }}
+            >
               <input
                 type="radio"
-                name={`question-${params.row.id}`} // ✅ 각 질문마다 고유한 name 설정
+                name={`question-${params.row.id}`}
                 value={choice.choiceId}
                 onChange={() => handleAnswerChange(params.row.id, choice.choiceId, choice.score)}
                 checked={answers[params.row.id]?.choiceId === choice.choiceId}
-                style={{ marginRight: "8px" }}
+                style={{
+                  marginRight: "5px",
+                  transform: "scale(1.1)",
+                }}
               />
               {choice.choiceText}
             </label>
@@ -178,23 +149,59 @@ function FreeSurveyPage() {
       {/* ✅ DataGrid 테이블 */}
       <div style={{ height: 700, width: "100%" }}>
         <DataGrid
-          rows={questions} // ✅ 문진 질문 데이터
-          columns={columns} // ✅ 컬럼 설정
-          getRowId={(row) => row.id} // ✅ 각 행의 고유 ID 설정
-          disableRowSelectionOnClick // ✅ 행 클릭 시 선택되지 않도록 설정
-          loading={loading} // ✅ 로딩 상태 적용
-          rowHeight={150} // ✅ 행 높이 증가
-          pageSizeOptions={[10, 20, 30]} // ✅ 페이지 크기 옵션 추가
-          paginationModel={paginationModel} // ✅ 페이지네이션 모델 설정
-          onPaginationModelChange={(newModel) => setPaginationModel(newModel)} // ✅ 페이지 변경 이벤트 처리
+          rows={questions}
+          columns={columns}
+          getRowId={(row) => row.id}
+          disableRowSelectionOnClick
+          loading={loading}
+          rowHeight={80}
+          paginationMode="client"
+          disableColumnMenu
+//           pageSizeOptions={[10, 20, 30]}
+//           paginationModel={paginationModel}
+//           onPaginationModelChange={(newModel) => setPaginationModel(newModel)}
         />
+      </div>
+
+      {/* ✅ 중앙 정렬된 페이지 정보 */}
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+        marginTop: "20px",
+        padding: "10px",
+        fontSize: "1.2rem",
+        fontWeight: "bold",
+      }}>
+        <div>
+          Rows per page:
+          <Select
+            value={paginationModel.pageSize}
+            onChange={(event) => setPaginationModel((prev) => ({ ...prev, pageSize: event.target.value }))}
+            variant="outlined"
+            size="small"
+            style={{ marginLeft: "10px", fontSize: "1.2rem" }}
+          >
+            <MenuItem value={10}>10</MenuItem>
+            <MenuItem value={20}>20</MenuItem>
+            <MenuItem value={30}>30</MenuItem>
+          </Select>
+        </div>
+        <div style={{ marginTop: "10px" }}>
+          {paginationModel.page * paginationModel.pageSize + 1} -
+          {Math.min((paginationModel.page + 1) * paginationModel.pageSize, questions.length)} of {questions.length}
+        </div>
       </div>
 
       {/* ✅ 문진 제출 버튼 */}
       {!loading && (
-        <Button onClick={handleSubmit} variant="contained" color="primary" fullWidth>
+        <button
+          onClick={handleSubmit}
+          className="w-full bg-blue-500 text-white px-6 py-3 rounded mt-6 text-lg hover:bg-blue-600 transition"
+        >
           제출하기
-        </Button>
+        </button>
       )}
     </div>
   );
