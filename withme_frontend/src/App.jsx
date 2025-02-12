@@ -16,6 +16,7 @@ import NoticeView from "./component/notice/NoticeView";
 // 전문가 신청, 수정
 import RegisterDoctor from "./component/doctor/RegisterDoctor";
 import DoctorApplicationStatus from "./component/doctor/DoctorApplicationStatus";
+import DoctorApplicationEdit from "./component/doctor/DoctorApplicationEdit";
 //커뮤니티
 import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
@@ -99,9 +100,10 @@ function App() {
         <Route path="/ui" element={<UiComponents />} />
 
         <Route path="/register" element={<MemberForm />} />
-        {/* 전문가 신청페이지 */}
+        {/* 전문가 페이지 */}
         <Route path="/doctor/register" element={<RegisterDoctor user={user}/>} />
         <Route path="/doctor/status" element={<DoctorApplicationStatus user={user}/>} />
+        <Route path="/doctor/edit" element={<DoctorApplicationEdit user={user}/>} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />

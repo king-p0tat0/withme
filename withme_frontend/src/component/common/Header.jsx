@@ -64,6 +64,15 @@ const Header = () => {
                 <li>
                   <Link to={`/mypage/${user.id}`}>마이페이지</Link>
                 </li>
+                <li>
+                  <Link to={`/doctor/register`}>전문가 신청</Link>
+                </li>
+                <li>
+                  <Link to={`/doctor/status`}>전문가 신청상태</Link>
+                </li>
+                <li>
+                  <Link to={`/doctor/edit`}>전문가 수정페이지</Link>
+                </li>
               </>
             ) : (
               <li>

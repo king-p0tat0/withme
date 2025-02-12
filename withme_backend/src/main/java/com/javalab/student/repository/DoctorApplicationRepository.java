@@ -15,6 +15,8 @@ public interface DoctorApplicationRepository extends JpaRepository<DoctorApplica
 
     DoctorApplication findByMemberEmail(String email);
 
+    DoctorApplication findByMemberId(Long id);
+
 
 
     /**
