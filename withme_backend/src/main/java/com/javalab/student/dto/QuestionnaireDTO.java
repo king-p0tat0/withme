@@ -1,15 +1,14 @@
 package com.javalab.student.dto;
 
+import com.javalab.student.entity.Questionnaire;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 /**
- * 문진 DTO
- * 유저가 진행 중인 문진에 대한 정보를 클라이언트와 주고 받을 때 사용하는 객체
- * 설문 ID, 유저 ID, 반려동물 ID, 문진 상태, 시작일 등을 포함
+ * 📌 문진(Questionnaire) DTO
+ * - 문진 결과를 API 응답으로 전달할 때 사용하는 DTO
  */
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,7 +17,22 @@ import java.time.LocalDateTime;
 public class QuestionnaireDTO {
     private Long questionnaireId;
     private Long surveyId;
-    private Long id;  // ✅ userId → id 변경
+    private Long userId;
     private String responseStatus;
+    private Integer score;
+    private String surveyType;
     private LocalDateTime createdAt;
+
+    // ✅ Entity → DTO 변환 메서드
+    public static QuestionnaireDTO fromEntity(Questionnaire questionnaire) {
+        return QuestionnaireDTO.builder()
+                .questionnaireId(questionnaire.getQuestionnaireId())
+                .surveyId(questionnaire.getSurvey().getSurveyId())
+                .userId(questionnaire.getUser().getId())
+                .responseStatus(questionnaire.getResponseStatus().name())
+                .score(questionnaire.getScore())
+                .surveyType(questionnaire.getSurveyType())
+                .createdAt(questionnaire.getCreatedAt())
+                .build();
+    }
 }

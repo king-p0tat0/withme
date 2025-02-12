@@ -43,6 +43,13 @@ import SignupSuccess from "./component/member/SignupSuccess"; // 가입 완료
 
 import SurveyMain from "./component/survey/SurveyMain";
 
+// 문진 관리
+import FreeSurvey from "./component/survey/FreeSurvey";
+import FreeSurveyResult from "./component/survey/FreeSurveyResult";
+import PaidSurvey from "./component/survey/PaidSurvey";
+import PaidSurveyResult from "./component/survey/PaidSurveyResult";
+import PaidSurveySelection from "./component/survey/PaidSurveySelection";
+
 
 function App() {
   // 리덕스 스토어의 상태를 가져오기 위해 useSelector 훅 사용, auth 슬라이스에서 user, isLoggedIn 상태를 가져옴
@@ -128,6 +135,15 @@ function App() {
         <Route path="/policy" element={<Policy />} />
         <Route path="/registerMember" element={<RegisterMember />} />
         <Route path="/signupSuccess" element={<SignupSuccess />} />
+
+        {/* ✅ 추가: 문진(survey) 관련 페이지 */}
+        <Route path="/survey" element={<SurveyMain />} />
+        <Route path="/survey/free" element={<FreeSurvey />} />
+        <Route path="/survey/free/result" element={<FreeSurveyResult />} />
+        <Route path="/survey/paid" element={<PaidSurvey />} />
+        <Route path="/survey/paid/selection" element={<PaidSurveySelection />} />
+        <Route path="/survey/paid/result" element={<PaidSurveyResult />} />
+
 
 
 

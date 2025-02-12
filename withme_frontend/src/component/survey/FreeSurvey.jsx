@@ -1,139 +1,192 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { DataGrid } from "@mui/x-data-grid";
+import { Button, Snackbar } from "@mui/material";
+import { useState, useEffect } from "react";
+import { API_URL } from "../../constant.js";  // ✅ 상위 디렉토리로 이동하여 정확한 경로로 수정
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import Header from "../common/Header"; // ✅ 공통 헤더 추가
-import Footer from "../common/Footer"; // ✅ 공통 푸터 추가
+import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+export default function FreeSurveyPage() {
+    const [questions, setQuestions] = useState([]); // 문진 질문 목록
+    const [answers, setAnswers] = useState({}); // 선택한 답변 저장
+    const [loading, setLoading] = useState(true);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [totalRows, setTotalRows] = useState(0);
+    const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+    const navigate = useNavigate();
+    const surveyId = 1; // ✅ 실제 Survey ID를 변수로 설정
 
-/**
- * 📌 FreeSurveyPage 컴포넌트 (무료 문진)
- * - 로그인한 사용자만 문진 가능하도록 설정
- * - 질문 목록을 API에서 가져와 표시
- * - 응답 제출 시 userId 포함하여 저장
- */
-function FreeSurveyPage() {
-  const [questions, setQuestions] = useState([]); // 문진 질문 목록
-  const [answers, setAnswers] = useState({}); // 사용자의 선택한 답변
-  const [loading, setLoading] = useState(true); // 로딩 상태
-  const navigate = useNavigate();
-  const user = useSelector((state) => state.auth.user); // Redux에서 로그인한 사용자 정보 가져오기
-  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // 로그인 여부 체크
+    useEffect(() => {
+        fetchQuestions();
+    }, [paginationModel]);
 
-  /** 🚨 로그인 체크 (비로그인 사용자는 로그인 페이지로 이동) */
-  useEffect(() => {
-    if (!isLoggedIn) {
-      alert("문진을 진행하려면 로그인이 필요합니다.");
-      navigate("/login");
-    }
-  }, [isLoggedIn, navigate]);
 
-  /** ✅ 문진 질문 목록 가져오기 */
-  useEffect(() => {
-    if (isLoggedIn) {
-      axios
-        .get(`${API_URL}/api/questions/free/1`, {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true, // 로그인 세션 유지
-        })
-        .then((response) => {
-          console.log("✅ 문진 데이터 로드 성공:", response.data);
-          setQuestions(response.data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("❌ 문진 데이터를 불러오지 못했습니다.", error);
-          setLoading(false);
-        });
-    }
-  }, [isLoggedIn]);
+    /** ✅ 문진 질문 가져오기 */
+    const fetchQuestions = async () => {
+        try {
+            setLoading(true);
+            const response = await fetchWithAuth(`${API_URL}questions/free/1`, { method: "GET" });
 
-  /** ✅ 사용자의 답변을 저장하는 함수 */
-  const handleAnswerChange = (questionId, choiceId) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: choiceId }));
-  };
+            if (!response.ok) {
+                console.error("❌ 문진 데이터를 불러오지 못했습니다.", response.status);
+                setLoading(false);
+                return;
+            }
 
-  /** ✅ 문진 검사 제출 */
-  const handleSubmit = () => {
-    if (!user) {
-      alert("문진을 제출하려면 로그인이 필요합니다.");
-      navigate("/login");
-      return;
-    }
+            const data = await response.json();
+            console.log("✅ 문진 데이터 로드 성공:", data);
 
-    const requestBody = {
-      userId: user.id, // ✅ 로그인된 사용자 ID 포함
-      answers,
+            if (!data || data.length === 0) {
+                console.warn("🚨 문진 질문이 없습니다.");
+                setLoading(false);
+                return;
+            }
+
+            // ✅ DataGrid에서 사용할 수 있도록 데이터 가공
+            const formattedData = data.map((q) => ({
+                id: q.questionId, // DataGrid에서 사용될 고유 ID
+                seq: q.seq,
+                questionText: q.questionText,
+                choices: q.choices.map(choice => ({
+                    choiceId: choice.choiceId,
+                    choiceText: choice.choiceText,
+                    score: choice.score
+                }))
+            }));
+
+            setQuestions(formattedData);
+            setTotalRows(data.length);
+        } catch (error) {
+            console.error("❌ 문진 데이터 요청 중 오류 발생:", error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    axios
-      .post(`${API_URL}/api/responses/free`, requestBody, {
-        headers: { "Content-Type": "application/json" },
-      })
-      .then(() => {
-        console.log("✅ 문진 제출 성공");
-        navigate("/survey/free/result", { state: { answers } }); // ✅ 결과 페이지로 이동
-      })
-      .catch((error) => {
-        console.error("❌ 응답 제출 실패:", error);
-      });
-  };
 
-  return (
-    <>
-      <Header /> {/* ✅ 공통 헤더 추가 */}
+    /** ✅ 선택지 변경 핸들러 */
+    const handleAnswerChange = (questionId, choiceId, score) => {
+        setAnswers((prev) => ({
+            ...prev,
+            [questionId]: { choiceId, score },
+        }));
+    };
 
-      <div className="p-6">
-        <h2 className="text-2xl font-bold mb-4 text-center">무료 문진 검사</h2>
+    /** ✅ 문진 제출 핸들러 */
+    const handleSubmit = async () => {
+        if (Object.keys(answers).length !== questions.length) {
+            alert("모든 질문에 답변을 선택해야 합니다!");
+            return;
+        }
 
-        {/* 로딩 표시 */}
-        {loading && <p className="text-center">문진 데이터를 불러오는 중...</p>}
+        const requestBody = {
+            answers: Object.entries(answers).map(([questionId, { choiceId, score }]) => ({
+                questionId: Number(questionId),
+                choiceId,
+                score,
+            })),
+        };
 
-        {/* 문진 질문 목록 */}
-        {!loading &&
-          questions.map((q) => (
-            <div key={q.question_id} className="mb-6 p-4 bg-gray-100 rounded-md shadow-sm">
-              <p className="font-semibold mb-2">{q.question_text}</p>
-              <div className="flex space-x-4">
-                {q.choices?.map((choice) => (
-                  <label key={choice.choice_id} className="flex items-center cursor-pointer space-x-2">
-                    <input
-                      type="radio"
-                      name={`question-${q.question_id}`}
-                      value={choice.choice_id}
-                      onChange={() => handleAnswerChange(q.question_id, choice.choice_id)}
-                      className="hidden"
-                    />
-                    <span
-                      className={`px-4 py-2 rounded-md text-white transition ${
-                        answers[q.question_id] === choice.choice_id
-                          ? "bg-blue-500"
-                          : "bg-gray-400 hover:bg-gray-500"
-                      }`}
-                    >
-                      {choice.choice_text}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
+        try {
+            console.log("🚀 문진 제출 요청:", requestBody);
 
-        {/* 제출 버튼 */}
-        {!loading && (
-          <button
-            onClick={handleSubmit}
-            className="w-full bg-blue-500 text-white px-6 py-3 rounded mt-6 text-lg hover:bg-blue-600 transition"
-          >
-            제출하기
-          </button>
-        )}
-      </div>
+            const response = await fetchWithAuth(`${API_URL}questions/free`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody),
+            });
 
-      <Footer /> {/* ✅ 공통 푸터 추가 */}
-    </>
-  );
+            if (response.ok) {
+                console.log("✅ 문진 제출 성공");
+                setSnackbarMessage("문진이 성공적으로 제출되었습니다.");
+                setSnackbarOpen(true);
+                navigate("/survey/free/result", { state: { answers } });
+            } else {
+                console.error("❌ 응답 제출 실패", response.status);
+                alert("문진 제출에 실패했습니다.");
+            }
+        } catch (error) {
+            console.error("❌ 문진 제출 중 오류 발생:", error.message);
+            alert("문진 제출 중 오류가 발생했습니다.");
+        }
+    };
+
+
+    /** ✅ DataGrid 컬럼 정의 */
+    const columns = [
+        { field: "seq", headerName: "번호", flex: 1 },
+        { field: "questionText", headerName: "질문", flex: 3 },
+        {
+            field: "choices",
+            headerName: "선택지",
+            flex: 3,
+            renderCell: (params) => (
+                <div style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: "5px",
+                    maxHeight: "150px",
+                    overflow: "auto",
+                    whiteSpace: "nowrap"
+                }}>
+                    {params.row.choices.map((choice) => (
+                        <label key={choice.choiceId} style={{ display: "block", whiteSpace: "nowrap" }}>
+                            <input
+                                type="radio"
+                                name={`question-${params.row.id}`}
+                                value={choice.choiceId}
+                                onChange={() => handleAnswerChange(params.row.id, choice.choiceId, choice.score)}
+                                checked={answers[params.row.id]?.choiceId === choice.choiceId}
+                                style={{ marginRight: "8px" }}
+                            />
+                            {choice.choiceText}
+                        </label>
+                    ))}
+                </div>
+            ),
+        },
+    ];
+
+
+    return (
+        <div style={{ height: 700, width: "100%" }}>
+            <h2 style={{ textAlign: "center", marginBottom: "20px" }}>무료 문진 검사</h2>
+
+            {/* DataGrid */}
+            <DataGrid
+                rows={questions}
+                columns={columns}
+                rowCount={totalRows}
+                paginationMode="server"
+                pageSizeOptions={[5, 10, 20]}
+                paginationModel={paginationModel}
+                onPaginationModelChange={(newModel) => setPaginationModel(newModel)}
+                disableRowSelectionOnClick
+                loading={loading}
+                rowHeight={100}
+            />
+
+            {/* 문진 제출 버튼 */}
+            {!loading && (
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSubmit}
+                    fullWidth
+                    style={{ marginTop: "20px" }}
+                >
+                    제출하기
+                </Button>
+            )}
+
+            {/* 스낵바 메시지 */}
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => setSnackbarOpen(false)}
+                message={snackbarMessage}
+            />
+        </div>
+    );
 }
-
-export default FreeSurveyPage;

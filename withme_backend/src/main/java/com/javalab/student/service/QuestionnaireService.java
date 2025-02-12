@@ -11,18 +11,18 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 문진(Questionnaire) 서비스
+ * 📌 문진(Questionnaire) 서비스
+ * - 문진 생성, 조회, 삭제 기능을 제공
  */
 @Service
-@RequiredArgsConstructor  // ✅ 생성자 주입 자동 생성
+@RequiredArgsConstructor
 public class QuestionnaireService {
 
     private final QuestionnaireRepository questionnaireRepository;
     private final MemberService memberService;  // ✅ MemberService 주입 추가
-    //private final PetService petService;  // ✅ PetService 주입 추가 (반려견 조회)
 
     /**
-     * 모든 문진 조회
+     * ✅ 모든 문진 조회
      */
     @Transactional(readOnly = true)
     public List<Questionnaire> getAllQuestionnaires() {
@@ -30,7 +30,7 @@ public class QuestionnaireService {
     }
 
     /**
-     * 문진 ID로 문진 조회
+     * ✅ 문진 ID로 특정 문진 조회
      */
     @Transactional(readOnly = true)
     public Optional<Questionnaire> getQuestionnaireById(Long questionnaireId) {
@@ -38,29 +38,47 @@ public class QuestionnaireService {
     }
 
     /**
-     * 특정 유저의 문진 조회
+     * ✅ 특정 유저의 모든 문진 조회
      */
     @Transactional(readOnly = true)
     public List<Questionnaire> getQuestionnairesByUserId(Long userId) {
-        return questionnaireRepository.findAllByUser_Id(userId);  // ✅ `User_Id`로 수정
+        return questionnaireRepository.findAllByUser_Id(userId);
     }
 
     /**
-     * 새로운 문진 생성 (반려견 추가)
+     * ✅ 특정 유저의 최신 무료 문진 조회
+     */
+    @Transactional(readOnly = true)
+    public Optional<Questionnaire> getLatestFreeSurvey(Long userId) {
+        return questionnaireRepository.findTopByUser_IdAndSurveyTypeOrderByCreatedAtDesc(userId, "FREE");
+    }
+
+    /**
+     * ✅ 특정 유저의 최신 유료 문진 조회
+     */
+    @Transactional(readOnly = true)
+    public Optional<Questionnaire> getLatestPaidSurvey(Long userId) {
+        return questionnaireRepository.findTopByUser_IdAndSurveyTypeOrderByCreatedAtDesc(userId, "PAID");
+    }
+
+    /**
+     * ✅ 새로운 문진 생성
      */
     @Transactional
     public Questionnaire createQuestionnaire(Questionnaire questionnaire, Long userId, Long petId) {
-        Member user = memberService.findById(userId);  // ✅ 존재하지 않는 경우 예외 발생
-        //Pet pet = petService.findById(petId);  // ✅ 반려견 조회 (예외 발생 가능)
+        // ✅ 존재하는 사용자 조회
+        Member user = memberService.findById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다. userId: " + userId);
+        }
 
-        questionnaire.setUser(user);  // ✅ 유저 설정
-        //questionnaire.setPet(pet);  // ✅ 반려견 설정
+        questionnaire.setUser(user);  // ✅ 사용자 설정
 
         return questionnaireRepository.save(questionnaire);
     }
 
     /**
-     * 문진 삭제
+     * ✅ 문진 삭제
      */
     @Transactional
     public void deleteQuestionnaire(Long questionnaireId) {
