@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 문진(Questionnaire) 컨트롤러
- * 문진 결과 조회 및 저장을 처리하는 REST API 컨트롤러
+ * 📌 문진(Questionnaire) 컨트롤러
+ * - 문진 결과 조회 및 저장을 처리하는 REST API 컨트롤러
  */
 @RestController
 @RequestMapping("/api/questionnaires")
@@ -27,7 +27,7 @@ public class QuestionnaireController {
     }
 
     /**
-     * 모든 문진 조회 (디버깅용)
+     * ✅ 모든 문진 조회 (디버깅용)
      */
     @GetMapping
     public ResponseEntity<List<Questionnaire>> getAllQuestionnaires() {
@@ -35,7 +35,7 @@ public class QuestionnaireController {
     }
 
     /**
-     * 특정 questionnaireId 기반으로 문진 조회
+     * ✅ 특정 questionnaireId 기반으로 문진 조회
      */
     @GetMapping("/{questionnaireId}")
     public ResponseEntity<Questionnaire> getQuestionnaireById(@PathVariable @NotNull Long questionnaireId) {
@@ -45,7 +45,7 @@ public class QuestionnaireController {
     }
 
     /**
-     * 특정 userId 기반으로 문진 조회
+     * ✅ 특정 userId 기반으로 문진 조회 (모든 문진 결과)
      */
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Questionnaire>> getQuestionnairesByUserId(@PathVariable Long userId) {
@@ -53,7 +53,31 @@ public class QuestionnaireController {
     }
 
     /**
-     * 새로운 문진 생성 (무료 & 유료 공통)
+     * ✅ 특정 userId 기반으로 무료 문진 조회 (무료 문진만 필터링)
+     */
+    @GetMapping("/free/{userId}")
+    public ResponseEntity<List<Questionnaire>> getFreeSurveyResults(@PathVariable Long userId) {
+        List<Questionnaire> results = questionnaireService.getFreeSurveyResults(userId);
+        if (results.isEmpty()) {
+            return ResponseEntity.noContent().build(); // ✅ 데이터가 없으면 204 응답
+        }
+        return ResponseEntity.ok(results);
+    }
+
+    /**
+     * ✅ 특정 userId 기반으로 유료 문진 조회 (유료 문진만 필터링)
+     */
+    @GetMapping("/paid/{userId}")
+    public ResponseEntity<List<Questionnaire>> getPaidSurveyResults(@PathVariable Long userId) {
+        List<Questionnaire> results = questionnaireService.getPaidSurveyResults(userId);
+        if (results.isEmpty()) {
+            return ResponseEntity.noContent().build(); // ✅ 데이터가 없으면 204 응답
+        }
+        return ResponseEntity.ok(results);
+    }
+
+    /**
+     * ✅ 새로운 문진 생성 (무료 & 유료 공통)
      */
     @PostMapping
     public ResponseEntity<Questionnaire> createQuestionnaire(@Valid @RequestBody Questionnaire questionnaire,
@@ -64,7 +88,7 @@ public class QuestionnaireController {
     }
 
     /**
-     * 문진 삭제 (관리자 기능)
+     * ✅ 문진 삭제 (관리자 기능)
      */
     @DeleteMapping("/{questionnaireId}")
     public ResponseEntity<Void> deleteQuestionnaire(@PathVariable Long questionnaireId) {

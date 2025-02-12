@@ -40,6 +40,13 @@ public class Questionnaire {
     @Column(name = "response_status", nullable = false)
     private ResponseStatus responseStatus = ResponseStatus.PENDING; // ✅ 기본값 PENDING 설정
 
+    @Column(name = "survey_type", nullable = false, length = 10)
+    private String surveyType; // ✅ "FREE" 또는 "PAID" 문진 구분
+
+    @Column(name = "score", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer score = 0; // ✅ 기본값 0으로 설정하여 NULL 방지
+
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt; // 문진 시작일
 

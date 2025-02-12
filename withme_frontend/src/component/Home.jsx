@@ -1,14 +1,36 @@
 import React from "react";
 import { Box, Card, CardContent, Typography, Button } from "@mui/material";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import MainNotice from "./notice/MainNotice";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import "./Home.css";
 
 function Home() {
-  const { user, isLoggedIn } = useSelector((state) => state.auth);
+  const { user, isLoggedIn } = useSelector((state) => state.auth); // 🔹 로그인 상태 가져오기
+  const navigate = useNavigate(); // 🔹 페이지 이동을 위한 useNavigate 훅
+
+  /**
+   * 🚀 "문진하러 가기" 클릭 시 회원 상태에 따라 자동 이동
+   * - 비로그인 상태 → 로그인 페이지 이동
+   * - 무료 회원 → 무료 문진 페이지 이동
+   * - 유료 회원 → 유료 문진 페이지 이동
+   */
+  const handleSurveyNavigation = (e) => {
+    e.preventDefault(); // 🔹 기본 링크 동작 방지 후 직접 이동
+
+    if (!isLoggedIn || !user) {
+      navigate("/login"); // 🔹 로그인 필요
+      return;
+    }
+
+    if (user.role === "PAID" || user.role === "VIP") {
+      navigate("/survey/paid"); // 🔹 유료 회원 → 유료 문진 이동
+    } else {
+      navigate("/survey/free"); // 🔹 무료 회원 → 무료 문진 이동
+    }
+  };
 
   return (
     <>
@@ -31,8 +53,10 @@ function Home() {
           <div className="banner">
             <img src="/assets/images/banner.png" alt="배너 이미지" />
 
-            {/* ✅ 기존 "/survey" → "/survey-main"으로 변경 */}
-            <Link to="/survey-main">문진하러 가기 &gt;</Link>
+            {/* ✅ 기존 디자인 유지: 텍스트 링크 클릭 시 자동 이동 */}
+            <Link to="#" onClick={handleSurveyNavigation} className="survey-link">
+              문진하러 가기 &gt;
+            </Link>
           </div>
 
           <div className="item-wrap">
