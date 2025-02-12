@@ -14,8 +14,13 @@ import java.util.Optional;
 @Repository
 public interface QuestionnaireRepository extends JpaRepository<Questionnaire, Long> {
 
-    List<Questionnaire> findAllByUser_Id(Long userId);
+    /**
+     * ✅ 특정 사용자 ID로 모든 문진 조회
+     */
+    List<Questionnaire> findAllByUser_Id(Long userId);  // 🔥 `user.id` 필드가 아니라 `user` 자체를 기준으로 조회하도록 변경
 
+    /**
+     * ✅ 특정 사용자 ID와 설문 유형(FREE/PAID) 기반 최신 문진 조회
+     */
     Optional<Questionnaire> findTopByUser_IdAndSurveyTypeOrderByCreatedAtDesc(Long userId, String surveyType);
 }
-

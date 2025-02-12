@@ -8,22 +8,27 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import "./Home.css";
 
 function Home() {
-  const { user, isLoggedIn } = useSelector((state) => state.auth);
-  const navigate = useNavigate(); // 🚀 useNavigate 훅을 사용하여 페이지 이동 처리
+  const { user, isLoggedIn } = useSelector((state) => state.auth); // 🔹 로그인 상태 가져오기
+  const navigate = useNavigate(); // 🔹 페이지 이동을 위한 useNavigate 훅
 
-  // ✅ 문진 페이지로 이동하는 함수 수정
-  const handleSurveyNavigation = (event) => {
-    event.preventDefault(); // 기본 링크 동작 방지
+  /**
+   * 🚀 "문진하러 가기" 클릭 시 회원 상태에 따라 자동 이동
+   * - 비로그인 상태 → 로그인 페이지 이동
+   * - 무료 회원 → 무료 문진 페이지 이동
+   * - 유료 회원 → 유료 문진 페이지 이동
+   */
+  const handleSurveyNavigation = (e) => {
+    e.preventDefault(); // 🔹 기본 링크 동작 방지 후 직접 이동
 
-    if (!isLoggedIn) {
-      // 🚀 로그인하지 않은 사용자 → 로그인 페이지로 이동
-      navigate("/login");
-    } else if (user?.role === "PAID") {
-      // 🚀 유료회원 → 유료회원 문진 검사 페이지로 이동
-      navigate("/survey/paid");
+    if (!isLoggedIn || !user) {
+      navigate("/login"); // 🔹 로그인 필요
+      return;
+    }
+
+    if (user.role === "PAID" || user.role === "VIP") {
+      navigate("/survey/paid"); // 🔹 유료 회원 → 유료 문진 이동
     } else {
-      // 🚀 무료회원 → 무료회원 문진 검사 페이지로 이동
-      navigate("/survey/free");
+      navigate("/survey/free"); // 🔹 무료 회원 → 무료 문진 이동
     }
   };
 

@@ -183,7 +183,7 @@ function FreeSurveyPage() {
           getRowId={(row) => row.id} // ✅ 각 행의 고유 ID 설정
           disableRowSelectionOnClick // ✅ 행 클릭 시 선택되지 않도록 설정
           loading={loading} // ✅ 로딩 상태 적용
-          rowHeight={100} // ✅ 행 높이 증가
+          rowHeight={150} // ✅ 행 높이 증가
           pageSizeOptions={[10, 20, 30]} // ✅ 페이지 크기 옵션 추가
           paginationModel={paginationModel} // ✅ 페이지네이션 모델 설정
           onPaginationModelChange={(newModel) => setPaginationModel(newModel)} // ✅ 페이지 변경 이벤트 처리
