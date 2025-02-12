@@ -11,12 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * 회원가입 폼 DTO
- * - 회원가입 폼 데이터를 전달하는 DTO 클래스
- * - 서비스 레이어에서 Entity로 변환하여 저장되고
- *   서비스에서 전달받은 Entity를 컨트롤러로 전달할 때 사용.
- * - DTO는 Entity와 다르게 데이터 전달만을 위한 클래스이다.
- * - DTO는 Entity와 다르게 비즈니스 로직을 포함하지 않는다.
- * - 화면으로 전달되어 화면에 데이터를 표시하기 위한 클래스이다.
  */
 @Getter @Setter
 @AllArgsConstructor
@@ -47,8 +41,6 @@ public class MemberFormDto {
 
     private Role role;
 
-    private String age;
-
     /**
      * 회원가입 전용 DTO에서 MemberFormDto로 변환
      */
@@ -64,7 +56,6 @@ public class MemberFormDto {
                 .email(memberFormDto.getEmail())
                 .password(passwordEncoder.encode(memberFormDto.getPassword())) // 비밀번호 암호화
                 .address(memberFormDto.getAddress())
-                .age(memberFormDto.getAge())
                 .phone(memberFormDto.getPhone())
                 .role(memberFormDto.getRole() != null ? memberFormDto.getRole() : Role.USER) // 기본 권한 USER
                 .social(false) // 일반 회원가입으로 설정

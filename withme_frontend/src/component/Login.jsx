@@ -112,12 +112,12 @@ export default function Login() {
                     <h1>로그인</h1>
                     <div className="login-form">
                         <div className="id">
-                            <label htmlFor="email">아이디</label>
+                            <label htmlFor="email">이메일</label>
                             <input
                                 type="text"
                                 id="email"
                                 name="email"
-                                placeholder="아이디를 입력하세요."
+                                placeholder="이메일을 입력하세요."
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />

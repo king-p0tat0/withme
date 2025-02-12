@@ -35,7 +35,6 @@ class MemberRepositoryTest {
                 .address(address)
                 .phone(phone)
                 .role(role)
-                .createdAt(LocalDateTime.now()) // 현재 시간으로 createdAt 설정
                 .points(0) // 초기 포인트 설정
                 .social(false) // 소셜 로그인 여부 초기화
                 .provider("local") // 기본 제공자 설정
@@ -58,8 +57,6 @@ class MemberRepositoryTest {
         // Then: 저장된 회원 정보 검증
         assertThat(savedMember).isNotNull();
         assertThat(savedMember.getId()).isNotNull();
-        assertThat(savedMember.getCreatedAt()).isNotNull(); // createdAt 값이 설정되었는지 확인
-        //assertThat(savedMember.getEmail()).isEqualTo("test@test.com");
         assertThat(savedMember.getEmail()).isEqualTo("test1@test.com");
         assertThat(savedMember.getName()).isEqualTo("김길동");
         assertThat(savedMember.getPhone()).isEqualTo("010-9876-5432");

@@ -44,8 +44,6 @@ public class Member extends BaseEntity{
 
     private String address;
 
-    private String age;
-
     @Builder
     public Member(String email, String password, String auth) {
         this.email = email;
@@ -83,7 +81,6 @@ public class Member extends BaseEntity{
         member.setPassword(password);
         member.setAddress(memberFormDto.getAddress());
         member.setPhone(memberFormDto.getPhone());
-        member.setAge(memberFormDto.getAge());
         member.setPoints(0);
         member.setSocial(false); // 일반 회원가입이므로 소셜 로그인 여부는 false
         member.setRole(memberFormDto.getRole());  // 회원가입 시 사용자의 권한 : USER  [수정]
