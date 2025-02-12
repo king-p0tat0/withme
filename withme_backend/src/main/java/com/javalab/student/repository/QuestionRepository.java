@@ -8,8 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * 질문 Repository
- * Question 엔티티에 대한 CRUD 작업을 처리하는 리포지토리
+ * 📌 질문 Repository
  */
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Long> {

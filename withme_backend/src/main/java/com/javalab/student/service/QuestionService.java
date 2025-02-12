@@ -1,5 +1,6 @@
 package com.javalab.student.service;
 
+import com.javalab.student.dto.QuestionDTO;
 import com.javalab.student.entity.Question;
 import com.javalab.student.entity.SurveyTopic;
 import com.javalab.student.entity.UserSelectedTopics;
@@ -14,8 +15,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * 📌 질문 서비스
- * - 설문 질문을 가져오는 서비스 로직
+ * 📌 질문 서비스 (무료 & 유료 문진)
  */
 @Service
 @RequiredArgsConstructor
@@ -41,23 +41,37 @@ public class QuestionService {
     }
 
     /**
-     * ✅ 특정 설문 ID의 질문 조회 (무료 문진)
+     * ✅ 무료 문진 (surveyId 기준 질문 & 선택지 조회)
      */
     @Transactional(readOnly = true)
-    public List<Question> getQuestionsBySurveyId(Long surveyId) {
-        return questionRepository.findBySurvey_SurveyId(surveyId);
+    public List<QuestionDTO> getFreeSurveyQuestions(Long surveyId) {
+        List<Question> questions = questionRepository.findBySurvey_SurveyId(surveyId);
+        return questions.stream().map(QuestionDTO::fromEntity).collect(Collectors.toList());
     }
 
     /**
-     * ✅ 특정 유저 ID의 질문 조회 (유료 문진)
+     * ✅ 유료 문진 (유저가 선택한 주제 기반 질문 & 선택지 조회)
      */
     @Transactional(readOnly = true)
-    public List<Question> getQuestionsByUserId(Long userId) {
-        List<UserSelectedTopics> selectedTopics = userSelectedTopicsRepository.findAllByMemberUserId(userId);
+    public List<QuestionDTO> getPaidSurveyQuestions(Long userId) {
+        List<UserSelectedTopics> selectedTopics = userSelectedTopicsRepository.findAllByMember_Id(userId);
+
+        if (selectedTopics.isEmpty()) {
+            System.out.println("❌ [getPaidSurveyQuestions] 유저가 선택한 주제가 없습니다. userId: " + userId);
+            return List.of();
+        }
+
         List<SurveyTopic> topics = selectedTopics.stream()
                 .map(UserSelectedTopics::getSurveyTopic)
                 .collect(Collectors.toList());
 
-        return questionRepository.findBySurveyTopicIn(topics);
+        List<Question> questions = questionRepository.findBySurveyTopicIn(topics);
+
+        if (questions.isEmpty()) {
+            System.out.println("❌ [getPaidSurveyQuestions] 선택한 주제에 대한 질문이 없습니다. userId: " + userId);
+            return List.of();
+        }
+
+        return questions.stream().map(QuestionDTO::fromEntity).collect(Collectors.toList());
     }
 }
