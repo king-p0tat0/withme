@@ -1,7 +1,7 @@
 package com.javalab.student.service;
 
-import com.javalab.student.dto.QuestionDTO;
 import com.javalab.student.entity.Question;
+import com.javalab.student.entity.SurveyTopic;
 import com.javalab.student.entity.UserSelectedTopics;
 import com.javalab.student.repository.QuestionRepository;
 import com.javalab.student.repository.UserSelectedTopicsRepository;
@@ -15,61 +15,49 @@ import java.util.stream.Collectors;
 
 /**
  * 📌 질문 서비스
- * 설문에 포함된 각 질문에 대한 비즈니스 로직을 처리하는 서비스 클래스
+ * - 설문 질문을 가져오는 서비스 로직
  */
 @Service
-@RequiredArgsConstructor  // ✅ 생성자 주입 자동 생성
+@RequiredArgsConstructor
 public class QuestionService {
 
     private final QuestionRepository questionRepository;
-    private final UserSelectedTopicsRepository userSelectedTopicsRepository; // ✅ 유료 문진을 위한 Repository 추가
+    private final UserSelectedTopicsRepository userSelectedTopicsRepository;
 
     /**
-     * ✅ 모든 질문 조회 (선택지 포함)
+     * ✅ 모든 질문 조회
      */
     @Transactional(readOnly = true)
-    public List<QuestionDTO> getAllQuestions() {
-        return questionRepository.findAll().stream()
-                .map(QuestionDTO::fromEntity)
-                .collect(Collectors.toList());
+    public List<Question> getAllQuestions() {
+        return questionRepository.findAll();
     }
 
     /**
-     * ✅ 질문 ID로 질문 조회 (선택지 포함)
+     * ✅ 특정 질문 ID로 질문 조회
      */
     @Transactional(readOnly = true)
-    public Optional<QuestionDTO> getQuestionById(Long questionId) {
-        return questionRepository.findById(questionId)
-                .map(QuestionDTO::fromEntity);
+    public Optional<Question> getQuestionById(Long questionId) {
+        return questionRepository.findById(questionId);
     }
 
     /**
-     * ✅ 특정 설문 ID에 해당하는 질문 조회 (무료 문진)
-     * 질문과 선택지를 함께 반환하도록 수정
+     * ✅ 특정 설문 ID의 질문 조회 (무료 문진)
      */
     @Transactional(readOnly = true)
-    public List<QuestionDTO> getFreeSurveyQuestions(Long surveyId) {
-        return questionRepository.findBySurvey_SurveyIdAndSurvey_Type(surveyId, "FREE").stream()
-                .map(QuestionDTO::fromEntity)
-                .collect(Collectors.toList());
+    public List<Question> getQuestionsBySurveyId(Long surveyId) {
+        return questionRepository.findBySurvey_SurveyId(surveyId);
     }
 
     /**
-     * ✅ 특정 userId에 해당하는 유료 문진 질문 리스트 반환 (선택지 포함)
+     * ✅ 특정 유저 ID의 질문 조회 (유료 문진)
      */
     @Transactional(readOnly = true)
-    public List<QuestionDTO> getPaidQuestionsByUserId(Long userId) {
-        // ✅ 유저가 선택한 주제 목록 조회
-        List<UserSelectedTopics> selectedTopics = userSelectedTopicsRepository.findAllByMember_Id(userId);
-
-        // ✅ 선택한 주제의 ID 목록 추출
-        List<Long> topicIds = selectedTopics.stream()
-                .map(topic -> topic.getSurveyTopic().getTopicId())
+    public List<Question> getQuestionsByUserId(Long userId) {
+        List<UserSelectedTopics> selectedTopics = userSelectedTopicsRepository.findAllByMemberUserId(userId);
+        List<SurveyTopic> topics = selectedTopics.stream()
+                .map(UserSelectedTopics::getSurveyTopic)
                 .collect(Collectors.toList());
 
-        // ✅ 선택한 주제에 해당하는 질문 목록 조회
-        return questionRepository.findBySurveyTopic_TopicIdIn(topicIds).stream()
-                .map(QuestionDTO::fromEntity)
-                .collect(Collectors.toList());
+        return questionRepository.findBySurveyTopicIn(topics);
     }
 }

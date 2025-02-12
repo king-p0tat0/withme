@@ -1,7 +1,7 @@
 import { DataGrid } from "@mui/x-data-grid";
 import { Button, Snackbar } from "@mui/material";
 import { useState, useEffect } from "react";
-import { API_URL } from "../../constant.js";  // ✅ 상위 디렉토리로 이동하여 정확한 경로로 수정
+import { API_URL } from "../../constant.js"; // ✅ API URL 상수
 import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
 
@@ -11,58 +11,69 @@ export default function FreeSurveyPage() {
     const [loading, setLoading] = useState(true);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
-    const [totalRows, setTotalRows] = useState(0);
-    const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
     const navigate = useNavigate();
-    const surveyId = 1; // ✅ 실제 Survey ID를 변수로 설정
+    const surveyId = 1; // ✅ 무료 설문 ID (고정값)
 
     useEffect(() => {
         fetchQuestions();
-    }, [paginationModel]);
-
+    }, []);
 
     /** ✅ 문진 질문 가져오기 */
     const fetchQuestions = async () => {
         try {
             setLoading(true);
-            const response = await fetchWithAuth(`${API_URL}questions/free/1`, { method: "GET" });
 
-            if (!response.ok) {
-                console.error("❌ 문진 데이터를 불러오지 못했습니다.", response.status);
+            // 1. 질문 데이터 가져오기
+            const questionResponse = await fetchWithAuth(`${API_URL}questions/free/${surveyId}`, { method: "GET" });
+
+            if (!questionResponse.ok) {
+                console.error("❌ 질문 데이터를 불러오지 못했습니다.", questionResponse.status);
                 setLoading(false);
                 return;
             }
 
-            const data = await response.json();
-            console.log("✅ 문진 데이터 로드 성공:", data);
+            const questionData = await questionResponse.json();
+            console.log("✅ 질문 데이터 로드 성공:", questionData);
 
-            if (!data || data.length === 0) {
+            if (!questionData || questionData.length === 0) {
                 console.warn("🚨 문진 질문이 없습니다.");
                 setLoading(false);
                 return;
             }
 
-            // ✅ DataGrid에서 사용할 수 있도록 데이터 가공
-            const formattedData = data.map((q) => ({
-                id: q.questionId, // DataGrid에서 사용될 고유 ID
-                seq: q.seq,
-                questionText: q.questionText,
-                choices: q.choices.map(choice => ({
-                    choiceId: choice.choiceId,
-                    choiceText: choice.choiceText,
-                    score: choice.score
-                }))
-            }));
+            // 2. 각 질문에 대한 선택지 데이터 가져오기
+            const questionsWithChoices = await Promise.all(
+                questionData.map(async (question) => {
+                    const choiceResponse = await fetchWithAuth(`${API_URL}choices/question/${question.questionId}`, {
+                        method: "GET",
+                    });
 
-            setQuestions(formattedData);
-            setTotalRows(data.length);
+                    if (!choiceResponse.ok) {
+                        console.error(`❌ 선택지 데이터를 불러오지 못했습니다. (질문 ID: ${question.questionId})`);
+                        return { ...question, choices: [] };
+                    }
+
+                    const choices = await choiceResponse.json();
+                    return {
+                        id: question.questionId,
+                        seq: question.seq,
+                        questionText: question.questionText,
+                        choices: choices.map((choice) => ({
+                            choiceId: choice.choiceId,
+                            choiceText: choice.choiceText,
+                            score: choice.score,
+                        })),
+                    };
+                })
+            );
+
+            setQuestions(questionsWithChoices);
         } catch (error) {
             console.error("❌ 문진 데이터 요청 중 오류 발생:", error.message);
         } finally {
             setLoading(false);
         }
     };
-
 
     /** ✅ 선택지 변경 핸들러 */
     const handleAnswerChange = (questionId, choiceId, score) => {
@@ -111,7 +122,6 @@ export default function FreeSurveyPage() {
         }
     };
 
-
     /** ✅ DataGrid 컬럼 정의 */
     const columns = [
         { field: "seq", headerName: "번호", flex: 1 },
@@ -148,7 +158,6 @@ export default function FreeSurveyPage() {
         },
     ];
 
-
     return (
         <div style={{ height: 700, width: "100%" }}>
             <h2 style={{ textAlign: "center", marginBottom: "20px" }}>무료 문진 검사</h2>
@@ -157,11 +166,6 @@ export default function FreeSurveyPage() {
             <DataGrid
                 rows={questions}
                 columns={columns}
-                rowCount={totalRows}
-                paginationMode="server"
-                pageSizeOptions={[5, 10, 20]}
-                paginationModel={paginationModel}
-                onPaginationModelChange={(newModel) => setPaginationModel(newModel)}
                 disableRowSelectionOnClick
                 loading={loading}
                 rowHeight={100}

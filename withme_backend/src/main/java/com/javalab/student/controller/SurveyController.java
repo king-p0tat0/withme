@@ -25,7 +25,7 @@ public class SurveyController {
     }
 
     /**
-     * 모든 설문 조회
+     * ✅ 모든 설문 조회
      */
     @GetMapping
     public ResponseEntity<List<Survey>> getAllSurveys() {
@@ -33,7 +33,7 @@ public class SurveyController {
     }
 
     /**
-     * 특정 설문 ID로 설문 조회
+     * ✅ 특정 설문 ID로 설문 조회
      */
     @GetMapping("/{surveyId}")
     public ResponseEntity<Survey> getSurveyById(@PathVariable Long surveyId) {
@@ -42,19 +42,10 @@ public class SurveyController {
     }
 
     /**
-     * 새로운 설문 생성
+     * ✅ 설문 유형별 조회 (무료 or 유료)
      */
-    @PostMapping
-    public ResponseEntity<Survey> createSurvey(@RequestBody Survey survey) {
-        return ResponseEntity.ok(surveyService.createSurvey(survey));
-    }
-
-    /**
-     * 설문 삭제
-     */
-    @DeleteMapping("/{surveyId}")
-    public ResponseEntity<Void> deleteSurvey(@PathVariable Long surveyId) {
-        surveyService.deleteSurvey(surveyId);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/type/{type}")
+    public ResponseEntity<List<Survey>> getSurveysByType(@PathVariable String type) {
+        return ResponseEntity.ok(surveyService.getSurveysByType(type));
     }
 }
