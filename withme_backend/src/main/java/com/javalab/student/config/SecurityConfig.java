@@ -11,6 +11,7 @@ import com.javalab.student.security.handler.CustomLogoutSuccessHandler;
 import com.javalab.student.security.oauth.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -41,6 +42,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@Log4j2
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService; // 사용자 정보를 가져오는 역할
@@ -172,9 +174,11 @@ public class SecurityConfig {
          * - customOAuth2UserService : OAuth2 공급자로부터 사용자 정보를 가져오는 엔드포인트를 구성하는 실제 서비스 클래스
          */
         http.oauth2Login(oauth2 -> oauth2
-                .loginPage("/members/login")
+                .loginPage("/api/auth/login")
+                .successHandler(customAuthenticationSuccessHandler) // JWT 발급
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
         );
+        log.info("SecurityConfig 소셜 메소드 실행 : " ,customOAuth2UserService);
 
         // 지금까지 설정한 내용을 빌드하여 반환, 반환 객체는 SecurityFilterChain 객체
         return http.build();

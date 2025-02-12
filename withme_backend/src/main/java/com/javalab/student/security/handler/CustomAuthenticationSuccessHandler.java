@@ -115,6 +115,9 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 userDetails.getRealName(),
                 roles
         ));
+        String redirectUrl = "http://localhost:3000/";
+        log.info("OAuth2 로그인 성공 후 프론트로 리디렉트: {}", redirectUrl);
+        response.sendRedirect(redirectUrl);
     }
 
 

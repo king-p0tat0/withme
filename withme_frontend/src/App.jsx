@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { Routes, Route, Link, Navigate } from "react-router-dom";
 import Login from "./component/Login";
 import MyPage from "./component/member/MyPage.jsx";
+import OAuth2RedirectHandler from "./component/OAuth2RedirectHandler.jsx"
 
 import MemberForm from "./component/member/MemberForm";
 
@@ -106,6 +107,7 @@ function App() {
         <Route path="/doctor/edit" element={<DoctorApplicationEdit user={user}/>} />
 
         <Route path="/login" element={<Login />} />
+        <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
         <Route path="/mypage/:id" element={<MyPage />} />
         {/* 공지사항 목록 */}
         <Route path="/notices" element={<NoticeList />} />
