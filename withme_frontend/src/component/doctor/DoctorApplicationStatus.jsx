@@ -31,7 +31,7 @@ export default function DoctorApplicationStatus({user}) {
                     setError("서버 오류로 신청 정보를 불러오지 못했습니다.");
                 }
             } catch (error) {
-                setError("네트워크 오류로 신청 정보를 가져오는데 실패했습니다.");
+                navigate("/unauthorized");
             } finally {
                 setLoading(false);
             }

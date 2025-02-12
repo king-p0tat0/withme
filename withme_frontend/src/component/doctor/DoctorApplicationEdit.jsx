@@ -30,7 +30,7 @@ export default function DoctorApplicationEdit({ user }) {
                     setError("의사 신청 정보를 불러올 수 없습니다.");
                 }
             } catch (error) {
-                setError("정보를 불러오는데 실패했습니다.");
+               navigate("/unauthorized");
             }
         };
 
