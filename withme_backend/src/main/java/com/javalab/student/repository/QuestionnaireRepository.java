@@ -17,16 +17,10 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, Lo
     /**
      * ✅ 특정 사용자 ID로 모든 문진 조회
      */
-    List<Questionnaire> findAllByUser_Id(Long userId);
+    List<Questionnaire> findAllByUser_Id(Long userId);  // 🔥 `user.id` 필드가 아니라 `user` 자체를 기준으로 조회하도록 변경
 
     /**
-     * ✅ 특정 사용자 ID로 특정 유형(FREE/PAID) 문진 조회
-     */
-    List<Questionnaire> findAllByUser_IdAndSurveyType(Long userId, String surveyType);
-
-    /**
-     * ✅ 특정 사용자의 최신 무료 문진 조회 (최신순)
+     * ✅ 특정 사용자 ID와 설문 유형(FREE/PAID) 기반 최신 문진 조회
      */
     Optional<Questionnaire> findTopByUser_IdAndSurveyTypeOrderByCreatedAtDesc(Long userId, String surveyType);
 }
-

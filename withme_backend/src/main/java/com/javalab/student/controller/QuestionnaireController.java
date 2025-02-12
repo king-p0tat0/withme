@@ -1,9 +1,8 @@
 package com.javalab.student.controller;
 
-import com.javalab.student.entity.Questionnaire;
+import com.javalab.student.dto.QuestionnaireDTO;
 import com.javalab.student.service.QuestionnaireService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +29,7 @@ public class QuestionnaireController {
      * ✅ 모든 문진 조회 (디버깅용)
      */
     @GetMapping
-    public ResponseEntity<List<Questionnaire>> getAllQuestionnaires() {
+    public ResponseEntity<List<QuestionnaireDTO>> getAllQuestionnaires() {
         return ResponseEntity.ok(questionnaireService.getAllQuestionnaires());
     }
 
@@ -38,53 +37,58 @@ public class QuestionnaireController {
      * ✅ 특정 questionnaireId 기반으로 문진 조회
      */
     @GetMapping("/{questionnaireId}")
-    public ResponseEntity<Questionnaire> getQuestionnaireById(@PathVariable @NotNull Long questionnaireId) {
-        Optional<Questionnaire> questionnaire = questionnaireService.getQuestionnaireById(questionnaireId);
-        return questionnaire.map(ResponseEntity::ok)
+    public ResponseEntity<QuestionnaireDTO> getQuestionnaireById(@PathVariable Long questionnaireId) {
+        return questionnaireService.getQuestionnaireById(questionnaireId)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
-     * ✅ 특정 userId 기반으로 문진 조회 (모든 문진 결과)
+     * ✅ 특정 userId 기반으로 모든 문진 조회
      */
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Questionnaire>> getQuestionnairesByUserId(@PathVariable Long userId) {
+    public ResponseEntity<List<QuestionnaireDTO>> getQuestionnairesByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(questionnaireService.getQuestionnairesByUserId(userId));
     }
 
     /**
-     * ✅ 특정 userId 기반으로 무료 문진 조회 (무료 문진만 필터링)
+     * ✅ 특정 userId 기반으로 최신 무료 문진 조회
      */
-    @GetMapping("/free/{userId}")
-    public ResponseEntity<List<Questionnaire>> getFreeSurveyResults(@PathVariable Long userId) {
-        List<Questionnaire> results = questionnaireService.getFreeSurveyResults(userId);
-        if (results.isEmpty()) {
-            return ResponseEntity.noContent().build(); // ✅ 데이터가 없으면 204 응답
-        }
-        return ResponseEntity.ok(results);
+    @GetMapping("/free/latest/{userId}")
+    public ResponseEntity<QuestionnaireDTO> getLatestFreeSurvey(@PathVariable Long userId) {
+        return questionnaireService.getLatestFreeSurvey(userId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
-     * ✅ 특정 userId 기반으로 유료 문진 조회 (유료 문진만 필터링)
+     * ✅ 특정 userId 기반으로 최신 유료 문진 조회
      */
-    @GetMapping("/paid/{userId}")
-    public ResponseEntity<List<Questionnaire>> getPaidSurveyResults(@PathVariable Long userId) {
-        List<Questionnaire> results = questionnaireService.getPaidSurveyResults(userId);
-        if (results.isEmpty()) {
-            return ResponseEntity.noContent().build(); // ✅ 데이터가 없으면 204 응답
-        }
-        return ResponseEntity.ok(results);
+    @GetMapping("/paid/latest/{userId}")
+    public ResponseEntity<QuestionnaireDTO> getLatestPaidSurvey(@PathVariable Long userId) {
+        return questionnaireService.getLatestPaidSurvey(userId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
-     * ✅ 새로운 문진 생성 (무료 & 유료 공통)
+     * ✅ 새로운 무료 문진 생성 (FREE Survey)
      */
-    @PostMapping
-    public ResponseEntity<Questionnaire> createQuestionnaire(@Valid @RequestBody Questionnaire questionnaire,
-                                                             @RequestParam Long userId,
-                                                             @RequestParam Long petId) {  // ✅ petId 추가
-        Questionnaire savedQuestionnaire = questionnaireService.createQuestionnaire(questionnaire, userId, petId);
-        return ResponseEntity.ok(savedQuestionnaire);
+    @PostMapping("/free")
+    public ResponseEntity<QuestionnaireDTO> createFreeQuestionnaire(
+            @RequestParam Long userId,
+            @RequestParam Long surveyId) {
+        return ResponseEntity.ok(questionnaireService.createFreeQuestionnaire(userId, surveyId));
+    }
+
+    /**
+     * ✅ 새로운 유료 문진 생성 (PAID Survey)
+     */
+    @PostMapping("/paid")
+    public ResponseEntity<QuestionnaireDTO> createPaidQuestionnaire(
+            @RequestParam Long userId,
+            @RequestParam Long surveyId) {
+        return ResponseEntity.ok(questionnaireService.createPaidQuestionnaire(userId, surveyId));
     }
 
     /**
