@@ -16,7 +16,6 @@ public class MemberDto {
     private String phone;
     private String address;
     private Role role;
-    private String age;
     private boolean social;
     private String provider;
 }

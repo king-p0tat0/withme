@@ -1,4 +1,11 @@
 import React, { useEffect } from "react";
+//import { AppBar, Toolbar, Typography, Button } from "@mui/material";
+import { Routes, Route, Link, Navigate } from "react-router-dom";
+import Login from "./component/Login";
+import MyPage from "./component/member/MyPage.jsx";
+import OAuth2RedirectHandler from "./component/OAuth2RedirectHandler.jsx"
+
+import MemberForm from "./component/member/MemberForm";
 import { Routes, Route } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUserInfo, clearUser } from "./redux/authSlice";
@@ -11,14 +18,18 @@ import { fetchWithAuth } from "./common/fetchWithAuth.js";
 import NoticeList from "./component/notice/NoticeList";
 import NoticeForm from "./component/notice/NoticeForm";
 import NoticeView from "./component/notice/NoticeView";
-
-// ✅ 커뮤니티
+// 전문가 신청, 수정
+import RegisterDoctor from "./component/doctor/RegisterDoctor";
+import DoctorApplicationStatus from "./component/doctor/DoctorApplicationStatus";
+import DoctorApplicationEdit from "./component/doctor/DoctorApplicationEdit";
+//커뮤니티
 import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
 import PostView from "./component/posts/PostView";
 
-// ✅ 관리자 페이지
+//관리자
 import Admin from "./component/admin/Admin";
+import Dashboard from "./component/admin/Dashboard";
 
 // ✅ 회원 관련
 import Login from "./component/Login";
@@ -44,7 +55,10 @@ import PaidSurveyResult from "./component/survey/PaidSurveyResult";
 import PaidSurveySelection from "./component/survey/PaidSurveySelection";
 import SurveyMain from "./component/survey/SurveyMain";
 
+
 function App() {
+  // 리덕스 스토어의 상태를 가져오기 위해 useSelector 훅 사용, auth 슬라이스에서 user, isLoggedIn 상태를 가져옴
+  // user: 사용자 정보 객체, isLoggedIn: 로그인 여부
   const { user, isLoggedIn } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
@@ -60,7 +74,7 @@ function App() {
         method: "POST"
       });
       dispatch(clearUser());
-      await persistor.purge();
+      await persistor.purge(); // Redux Persist 데이터 초기화
       window.location.href = "/";
     } catch (error) {
       console.error("로그아웃 실패:", error.message);
@@ -70,29 +84,33 @@ function App() {
 
   return (
     <div className="App">
+      {/*헤더 부분*/}
       <Header />
-      {/* 라우팅 부분 */}
+      {/*라우팅 부분*/}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/registerDoctor" element={<RegisterDoctor />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
-
-        {/* ✅ 공지사항 */}
+        {/* 공지사항 목록 */}
         <Route path="/notices" element={<NoticeList />} />
         <Route path="/notices/new" element={<NoticeForm />} />
         <Route path="/notices/:id" element={<NoticeView />} />
 
-        {/* ✅ 게시글 */}
+        {/* 게시글 목록 */}
         <Route path="/posts" element={<PostList />} />
+
+        {/* 게시글 등록 */}
         <Route path="/posts/new" element={<PostForm />} />
+        {/* 게시글 수정 */}
         <Route path="/posts/edit/:id" element={<PostForm />} />
+        {/* 게시글 상세 보기 */}
         <Route path="/posts/:id" element={<PostView />} />
 
         {/* ✅ 관리자 페이지 */}
         <Route path="/admin" element={<Admin />} />
 
-        {/* ✅ 회원가입 관련 */}
+        {/* 회원가입 페이지 */}
         <Route path="/policy" element={<Policy />} />
         <Route path="/registerMember" element={<RegisterMember />} />
         <Route path="/signupSuccess" element={<SignupSuccess />} />

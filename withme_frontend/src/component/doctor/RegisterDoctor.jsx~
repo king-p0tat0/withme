@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { API_URL } from "../../constant";
 import { fetchWithAuth } from "../../common/fetchWithAuth"; // 인증된 API 호출 함수
 import '../../assets/css/admin/RegisterDoctor.css';
-import { useNavigate } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 export default function DoctorApplicationForm({ user }) {
     // 사용자 정보 및 추가 입력 필드를 저장할 상태
@@ -15,7 +15,7 @@ export default function DoctorApplicationForm({ user }) {
 
     const [error, setError] = useState(null); // 에러 메시지 초기값 null로 설정
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+    const history = useHistory();
 
     // 입력 값 업데이트
     const handleChange = (e) => {
@@ -46,7 +46,7 @@ export default function DoctorApplicationForm({ user }) {
 
             if (response.ok) {
                 alert("전문가 신청이 완료되었습니다.");
-                navigate("/doctor/status"); // 신청 후 상태 페이지로 리다이렉트
+                history.push("/doctor/status"); // 신청 후 상태 페이지로 리다이렉트
             } else {
                 const errorMessage = await response.text();
                 setError(errorMessage || "신청에 실패했습니다.");
@@ -63,7 +63,7 @@ export default function DoctorApplicationForm({ user }) {
     useEffect(() => {
         if (error) {
             alert("신청 정보가 있습니다.");
-            navigate("/doctor/status"); // 신청 정보 조회 페이지로 리다이렉트
+            history.push("/doctor/status"); // 신청 정보 조회 페이지로 리다이렉트
         }
     }, [error, history]);
 

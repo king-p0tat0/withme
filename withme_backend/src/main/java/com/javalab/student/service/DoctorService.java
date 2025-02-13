@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +39,12 @@ public class DoctorService {
 
         log.info("Doctor 서비스- 전문가 신청에서 받은 회원 정보: {}", member);
 
+        // DoctorApplication 에 대기중인 신청 정보가 있으면 예외 처리
+        DoctorApplication doctor = doctorApplicationRepository.findByMemberId(member.getId());
+
+        if(doctor != null) {
+            throw new RuntimeException("대기중인 신청 정보가 있습니다.");
+        }
 
         // DoctorApplication 객체 생성 및 저장
         DoctorApplication doctorApplication = DoctorApplication.builder()
@@ -60,8 +67,7 @@ public class DoctorService {
      * - 로그인 사용자의 본인 신청정보만 조회
      */
     public DoctorApplication getDoctorApplication(Long id) {
-        return doctorApplicationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 의사 신청이 없습니다: " + id));
+        return doctorApplicationRepository.findByMemberId(id);
     }
 
     /**
@@ -71,10 +77,17 @@ public class DoctorService {
     public DoctorApplication updateDoctorApplication(Long id, DoctorFormDto doctorFormDto) {
         DoctorApplication doctor = getDoctorApplication(id);
 
+        // 현재 상태가 PENDING이 아닌 경우 상태를 재신청으로 변경
+        if (doctor.getStatus() != Status.PENDING) {
+            doctor.setStatus(Status.RESUBMITTED); // 재신청
+        }
+
+        // 신청 정보 수정
         doctor.setSubject(doctorFormDto.getSubject());
         doctor.setHospital(doctorFormDto.getHospital());
         doctor.setDoctorNumber(doctorFormDto.getDoctorNumber());
 
+        // 변경된 정보를 저장
         return doctorApplicationRepository.save(doctor);
     }
 
@@ -83,7 +96,9 @@ public class DoctorService {
      * - doctor 테이블에서 신청정보 삭제
      */
     public void deleteDoctorApplication(Long id) {
+        log.info("Doctor 신청정보 삭제 서비스 요청 : {}", id);
         DoctorApplication doctor = getDoctorApplication(id);
+        log.info("Doctor 신청정보 삭제 서비스 - 신청정보 조회 : {}", doctor);
         doctorApplicationRepository.delete(doctor);
     }
 

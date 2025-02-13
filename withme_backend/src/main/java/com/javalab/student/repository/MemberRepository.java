@@ -1,10 +1,14 @@
 package com.javalab.student.repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.javalab.student.entity.Member;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * Member 엔티티의 데이터베이스 작업을 처리하는 리포지토리
@@ -21,6 +25,9 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Member findByPhone(String phone);
 
     boolean existsByEmail(String email);
+
+    @Query("SELECT m FROM Member m WHERE m.regTime >= :threeMonthsAgo")
+    List<Member> findRecentMembers(@Param("threeMonthsAgo") LocalDateTime threeMonthsAgo);
 
 
 }

@@ -1,56 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import '../../css/DoctorList.css';
+import '../../assets/css/admin/DoctorList.css';
 import { API_URL } from '../../constant';
 import { fetchWithAuth } from '../../common/fetchWithAuth'; // fetchWithAuth import
 
 export default function UserList() {
     const [users, setUsers] = useState([]);  // 전체 유저 리스트 상태
+    const [filteredUsers, setFilteredUsers] = useState([]);  // 필터링된 유저 리스트 상태
     const [loading, setLoading] = useState(false);  // 로딩 상태
     const [error, setError] = useState(null);  // 에러 상태
     const [currentPage, setCurrentPage] = useState(0);  // 현재 페이지 (백엔드 기준 0부터 시작)
-    const [totalPages, setTotalPages] = useState(1);  // 전체 페이지 수
-    const [searchQuery, setSearchQuery] = useState({  // 검색 요소 상태
+    const [pageSize] = useState(10);  // 페이지 당 아이템 개수
+
+    // 전체 데이터에서 해당 페이지에 맞는 데이터만 추출
+    const totalPages = Math.ceil(filteredUsers.length / pageSize);  // 전체 페이지 수 계산
+    const currentPageData = filteredUsers.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+
+    // ✅ 검색 쿼리 상태
+    const [searchQuery, setSearchQuery] = useState({
         name: '',
         email: '',
         phone: '',
         role: ''
     });
 
-    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
-
-    // ✅ 검색어 디바운스 처리
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearchQuery(searchQuery);
-        }, 500); // 500ms 후에 변경된 검색어로 API 호출
-
-        return () => clearTimeout(timer); // 타이머 정리
-    }, [searchQuery]);
-
-    // ✅ 유저 리스트 가져오기 (페이징 적용 및 검색 조건 포함)
-    const fetchUsers = async (page = 0, size = 10, query = {}) => {
+    // ✅ 유저 리스트 가져오기 (페이징 없이 모든 데이터 가져오기)
+    const fetchUsers = async () => {
         setLoading(true);
         setError(null);
         try {
             const response = await fetchWithAuth(`${API_URL}members/list`, {
                 method: 'GET',
-                params: {
-                    page,
-                    size,
-                    ...query
-                }
             });
-        console.log("받아온 response : ", response);
-        const data = await response.json();
-        console.log("받아온 data : ", data);
 
+            const data = await response.json();
+            console.log("받아온 data : ", data);
 
-            if (data.dtoList) {
-                setUsers(data.dtoList);
-                setTotalPages(Math.ceil(data.total / size));  // 전체 페이지 수 계산
+            if (data) {
+                setUsers(data);  // 전체 데이터를 상태에 저장
+                setFilteredUsers(data);  // 필터링된 데이터도 초기화 (전체 데이터로 시작)
             } else {
                 setUsers([]);
-                setTotalPages(1);
+                setFilteredUsers([]);
             }
         } catch (err) {
             setError('사용자 데이터를 가져오는 데 실패했습니다.');
@@ -67,16 +57,37 @@ export default function UserList() {
         }
     };
 
-    // ✅ 컴포넌트 마운트 및 페이지 변경 시 데이터 가져오기
-    useEffect(() => {
-        fetchUsers(currentPage, 10, debouncedSearchQuery);  // 디바운스된 검색어로 데이터 가져오기
-    }, [currentPage, debouncedSearchQuery]);  // currentPage와 debouncedSearchQuery가 변경될 때마다 호출
-
-    // ✅ 검색어 입력 핸들러
+    // ✅ 검색어 변경 시 필터링 처리
     const handleSearchChange = (e) => {
         const { name, value } = e.target;
         setSearchQuery(prev => ({ ...prev, [name]: value }));
     };
+
+    // ✅ 필터링된 유저 리스트 업데이트 (검색 조건에 맞는 데이터만 필터링)
+    useEffect(() => {
+        let filtered = users;
+
+        if (searchQuery.name) {
+            filtered = filtered.filter(user => user.name.toLowerCase().includes(searchQuery.name.toLowerCase()));
+        }
+        if (searchQuery.email) {
+            filtered = filtered.filter(user => user.email.toLowerCase().includes(searchQuery.email.toLowerCase()));
+        }
+        if (searchQuery.phone) {
+            filtered = filtered.filter(user => user.phone.includes(searchQuery.phone));
+        }
+        if (searchQuery.role) {
+            filtered = filtered.filter(user => user.role.toLowerCase().includes(searchQuery.role.toLowerCase()));
+        }
+
+        setFilteredUsers(filtered);  // 필터링된 유저 리스트 상태 업데이트
+        setCurrentPage(0);  // 검색 후 첫 페이지로 리셋
+    }, [searchQuery, users]);
+
+    // ✅ 컴포넌트 마운트 시 데이터 가져오기
+    useEffect(() => {
+        fetchUsers();  // 데이터를 처음 불러옵니다.
+    }, []);
 
     return (
         <div className="doctor-list-container">
@@ -132,8 +143,8 @@ export default function UserList() {
                             </tr>
                         </thead>
                         <tbody>
-                            {users.length > 0 ? (
-                                users.map((user) => (
+                            {currentPageData.length > 0 ? (
+                                currentPageData.map((user) => (
                                     <tr key={user.id}>
                                         <td>{user.name}</td>
                                         <td>{user.email}</td>
@@ -141,7 +152,7 @@ export default function UserList() {
                                         <td>{user.phone}</td>
                                         <td>{user.role}</td>
                                         <td>{user.points}</td>
-                                        <td>{new Date(user.createdAt).toLocaleDateString('ko-KR')}</td>
+                                        <td>{new Date(user.regTime).toLocaleDateString('ko-KR')}</td>
                                     </tr>
                                 ))
                             ) : (
