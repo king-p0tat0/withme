@@ -83,7 +83,7 @@ public class Member extends BaseEntity{
         member.setPhone(memberFormDto.getPhone());
         member.setPoints(0);
         member.setSocial(false); // 일반 회원가입이므로 소셜 로그인 여부는 false
-        member.setRole(memberFormDto.getRole());  // 회원가입 시 사용자의 권한 : USER  [수정]
+        member.setRole(memberFormDto.getRole() != null ? memberFormDto.getRole() : Role.USER);  // 회원가입 시 사용자의 권한 : USER  [수정]
         return member;
     }
 
