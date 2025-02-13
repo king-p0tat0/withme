@@ -20,6 +20,7 @@ function Home() {
     e.preventDefault(); // 🔹 기본 링크 동작 방지 후 직접 이동
 
     if (!isLoggedIn || !user) {
+    alert('로그인이 필요한 서비스입니다.');
       navigate("/login"); // 🔹 로그인 필요
       return;
     }
@@ -57,9 +58,7 @@ function Home() {
 
         <div className="container">
           <div className="banner">
-            <img src="/assets/images/banner.png" alt="배너 이미지" />
-
-            {/* ✅ 기존 디자인 유지: 텍스트 링크 클릭 시 자동 이동 */}
+            <img src="/assets/images/banner.png" alt="배너 이미지" className="bannerImage" />
             <Link to="#" onClick={handleSurveyNavigation} className="survey-link">
               문진하러 가기 &gt;
             </Link>

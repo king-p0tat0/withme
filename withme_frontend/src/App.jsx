@@ -1,11 +1,4 @@
 import React, { useEffect } from "react";
-//import { AppBar, Toolbar, Typography, Button } from "@mui/material";
-import { Routes, Route, Link, Navigate } from "react-router-dom";
-import Login from "./component/Login";
-import MyPage from "./component/member/MyPage.jsx";
-import OAuth2RedirectHandler from "./component/OAuth2RedirectHandler.jsx"
-
-import MemberForm from "./component/member/MemberForm";
 import { Routes, Route } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUserInfo, clearUser } from "./redux/authSlice";
@@ -18,16 +11,18 @@ import { fetchWithAuth } from "./common/fetchWithAuth.js";
 import NoticeList from "./component/notice/NoticeList";
 import NoticeForm from "./component/notice/NoticeForm";
 import NoticeView from "./component/notice/NoticeView";
+
 // 전문가 신청, 수정
 import RegisterDoctor from "./component/doctor/RegisterDoctor";
 import DoctorApplicationStatus from "./component/doctor/DoctorApplicationStatus";
 import DoctorApplicationEdit from "./component/doctor/DoctorApplicationEdit";
-//커뮤니티
+
+// 커뮤니티
 import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
 import PostView from "./component/posts/PostView";
 
-//관리자
+// 관리자
 import Admin from "./component/admin/Admin";
 import Dashboard from "./component/admin/Dashboard";
 
@@ -37,9 +32,6 @@ import MyPage from "./component/member/MyPage.jsx";
 import Policy from "./component/member/Policy"; // 약관정책
 import RegisterMember from "./component/member/RegisterMember"; // 회원정보 입력
 import SignupSuccess from "./component/member/SignupSuccess"; // 가입 완료
-
-// ✅ 의사 관련
-import RegisterDoctor from "./component/doctor/RegisterDoctor";
 
 // ✅ 기타 페이지
 import Home from "./component/Home";
