@@ -8,27 +8,21 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import "./Home.css";
 
 function Home() {
-  const { user, isLoggedIn } = useSelector((state) => state.auth); // 🔹 로그인 상태 가져오기
-  const navigate = useNavigate(); // 🔹 페이지 이동을 위한 useNavigate 훅
+  const { user, isLoggedIn } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
-  /**
-   * 🚀 "문진하러 가기" 클릭 시 회원 상태에 따라 자동 이동
-   * - 비로그인 상태 → 로그인 페이지 이동
-   * - 무료 회원 → 무료 문진 페이지 이동
-   * - 유료 회원 → 유료 문진 페이지 이동
-   */
   const handleSurveyNavigation = (e) => {
-    e.preventDefault(); // 🔹 기본 링크 동작 방지 후 직접 이동
+    e.preventDefault();
 
     if (!isLoggedIn || !user) {
-      navigate("/login"); // 🔹 로그인 필요
+      navigate("/login");
       return;
     }
 
     if (user.role === "PAID" || user.role === "VIP") {
-      navigate("/survey/paid"); // 🔹 유료 회원 → 유료 문진 이동
+      navigate("/survey/paid");
     } else {
-      navigate("/survey/free"); // 🔹 무료 회원 → 무료 문진 이동
+      navigate("/survey/free");
     }
   };
 
@@ -53,7 +47,6 @@ function Home() {
           <div className="banner">
             <img src="/assets/images/banner.png" alt="배너 이미지" />
 
-            {/* ✅ 기존 디자인 유지: 텍스트 링크 클릭 시 자동 이동 */}
             <Link to="#" onClick={handleSurveyNavigation} className="survey-link">
               문진하러 가기 &gt;
             </Link>
@@ -64,7 +57,6 @@ function Home() {
               <span className="red" style={{ color: "red" }}>공지사항</span> 📢 <span className="line">|</span> " 폭설이 내릴 예정이에요 ⛄❄ 눈길 조심! "
             </div>
 
-            {/* 상품 리스트 */}
             <div className="product-list all-product-list">
               <p>전체 상품</p>
               <hr />
@@ -101,4 +93,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default Home; // 명시적 default export 추가

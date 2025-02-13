@@ -1,131 +1,107 @@
-import { useState, useEffect } from "react";
+import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-} from "recharts";
-import axios from "axios";
-import { useSelector } from "react-redux";
-import Header from "../common/Header"; // ✅ 공통 헤더 추가
-import Footer from "../common/Footer"; // ✅ 공통 푸터 추가
+import { RadialBarChart, RadialBar, Legend, Tooltip } from "recharts";
+import { Paper, Button } from "@mui/material";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
-
-/**
- * ✅ 유료 문진 검사 결과 페이지 (PaidSurveyResultPage)
- * - "당신의 애완견의 건강 점수는..." 문구 + 강아지 이미지 표시 🐶
- * - 선택한 주제별 합산 점수를 표로 표시
- * - 방사형 차트(RadarChart)로 시각화
- * - 전문의 문의하기 버튼 추가
- */
-function PaidSurveyResultPage() {
-  const location = useLocation();
+const PaidSurveyResultPage = () => {
   const navigate = useNavigate();
-  const user = useSelector((state) => state.auth.user); // Redux에서 사용자 정보 가져오기
-  const sessionId = location.state?.sessionId || null; // 문진 검사 세션 ID
-  const [results, setResults] = useState([]); // 문진 결과 데이터
-  const [totalScore, setTotalScore] = useState(0); // 총 점수
+  const location = useLocation();
+  const { topicScores } = location.state || { topicScores: [] };
 
-  /**
-   * ✅ 문진 검사 결과 불러오기
-   */
-  useEffect(() => {
-    if (sessionId && user) {
-      axios
-        .get(`${API_URL}/api/results/paid/${sessionId}`, {
-          params: { userId: user.id },
-        })
-        .then((response) => {
-          setResults(response.data);
-          // 총 점수 계산 (각 주제 점수 합산)
-          const total = response.data.reduce((sum, item) => sum + item.score, 0);
-          setTotalScore(total);
-        })
-        .catch((error) =>
-          console.error("결과 데이터를 불러오지 못했습니다.", error)
-        );
-    }
-  }, [sessionId, user]);
+  if (topicScores.length === 0) {
+    return (
+      <Paper elevation={3} className="p-8 m-4 text-center">
+        <h2 className="text-xl mb-4">결과를 찾을 수 없습니다</h2>
+        <Button variant="contained" onClick={() => navigate("/survey/paid/selection")}>
+          문진 시작하기
+        </Button>
+      </Paper>
+    );
+  }
 
-  /**
-   * ✅ 전문의 문의하기 버튼 클릭 시 실행
-   */
-  const handleExpertConsultation = () => {
-    navigate("/expert-question", { state: { sessionId } });
+  const totalPerTopic = 75; // 각 주제별 최대 점수 (예: 15문항 * 5점)
+  const data = topicScores.map(({ topic, score }) => ({
+    name: `${topic} : ${score} / ${totalPerTopic}점`,
+    score,
+    fill: "#FF8C00"
+  }));
+
+  const style = {
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    lineHeight: '24px',
+    fontSize: '1.1rem',
+    color: '#D67D00'
   };
 
   return (
-    <>
-      <Header /> {/* ✅ 공통 헤더 추가 */}
+    <Paper elevation={3} className="p-8 m-4" style={{ textAlign: "center" }}>
+      <h1 style={{
+        fontSize: "2.5rem",
+        fontWeight: "bold",
+        color: "#D67D00",
+        backgroundColor: "#FFF3E0",
+        padding: "10px 20px",
+        borderRadius: "10px",
+        display: "inline-block",
+        marginBottom: "30px"
+      }}>
+        🐶 유료 문진 검사 결과 🐾
+      </h1>
 
-      <div className="p-6 text-center">
-        {/* ✅ 건강 점수 및 강아지 이미지 */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-blue-600">
-            🐶 당신의 애완견의 건강 점수는...
-          </h2>
-          <img
-            src="/dog-health.png" // ✅ 강아지 건강 이미지 (이미지 경로 변경 가능)
-            alt="강아지 건강 이미지"
-            className="w-32 h-32 mx-auto mt-4"
-          />
-          <p className="text-3xl font-bold mt-4">🌟 {totalScore} 점 🌟</p>
-        </div>
-
-        {/* ✅ 선택한 주제별 합산 점수 */}
-        <div className="mb-6">
-          <h3 className="text-xl font-bold">주제별 건강 점수</h3>
-          <table className="w-full max-w-md mx-auto mt-3 border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border p-2">주제</th>
-                <th className="border p-2">점수</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((item) => (
-                <tr key={item.category}>
-                  <td className="border p-2">{item.category}</td>
-                  <td className="border p-2">{item.score}점</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ✅ 방사형 차트 (RadarChart) */}
-        <div className="flex justify-center items-center mb-6">
-          {results.length > 0 ? (
-            <RadarChart cx={300} cy={200} outerRadius={150} width={600} height={400} data={results}>
-              <PolarGrid />
-              <PolarAngleAxis dataKey="category" />
-              <PolarRadiusAxis angle={30} domain={[0, 5]} />
-              <Radar
-                name="점수"
-                dataKey="score"
-                stroke="#8884d8"
-                fill="#8884d8"
-                fillOpacity={0.6}
-              />
-            </RadarChart>
-          ) : (
-            <p>결과 데이터를 불러오는 중...</p>
-          )}
-        </div>
-
-        {/* ✅ 전문의 문의하기 버튼 */}
-        {sessionId && (
-          <button
-            onClick={handleExpertConsultation}
-            className="bg-red-500 text-white px-6 py-3 rounded mt-6 hover:bg-red-600 transition"
-          >
-            전문의 문의하기
-          </button>
-        )}
+      {/* ✅ 주제별 점수 */}
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "15px",
+        marginBottom: "40px"
+      }}>
+        {topicScores.map(({ topic, score }) => (
+          <div key={topic} style={{
+            backgroundColor: "#FFF3E0",
+            color: "#D67D00",
+            fontSize: "1.4rem",
+            fontWeight: "bold",
+            padding: "10px 20px",
+            borderRadius: "10px",
+            width: "80%",
+            textAlign: "center"
+          }}>
+            {topic} : {score} / {totalPerTopic}점
+          </div>
+        ))}
       </div>
 
-      <Footer /> {/* ✅ 공통 푸터 추가 */}
-    </>
+      {/* ✅ RadialBarChart 그래프 */}
+      <div className="flex justify-center mb-8">
+        <RadialBarChart
+          width={600}
+          height={500}
+          cx="50%"
+          cy="50%"
+          innerRadius="20%"
+          outerRadius="90%"
+          barSize={20}
+          data={data}
+        >
+          <RadialBar minAngle={15} background clockWise dataKey="score" />
+          <Legend iconSize={10} layout="vertical" verticalAlign="middle" wrapperStyle={style} />
+          <Tooltip />
+        </RadialBarChart>
+      </div>
+
+      <div className="text-center">
+        <Button variant="contained" color="primary" onClick={() => navigate("/expert-consultation")} sx={{ marginRight: "10px" }}>
+          전문의 상담 예약
+        </Button>
+        <Button variant="outlined" onClick={() => navigate("/survey/history")}>
+          검사 이력 보기
+        </Button>
+      </div>
+    </Paper>
   );
-}
+};
 
 export default PaidSurveyResultPage;

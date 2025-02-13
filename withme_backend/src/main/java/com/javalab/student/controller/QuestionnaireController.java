@@ -85,11 +85,12 @@ public class QuestionnaireController {
      * ✅ 새로운 유료 문진 생성 (PAID Survey)
      */
     @PostMapping("/paid")
-    public ResponseEntity<QuestionnaireDTO> createPaidQuestionnaire(
-            @RequestBody QuestionnaireDTO questionnaireDTO) {  // ✅ @RequestParam → @RequestBody 변경
-        QuestionnaireDTO savedQuestionnaire = questionnaireService.createPaidQuestionnaire(questionnaireDTO);
-        return ResponseEntity.ok(savedQuestionnaire);
+    public ResponseEntity<QuestionnaireDTO> createPaidSurveyResponse(@RequestBody QuestionnaireDTO questionnaireDTO) {
+        QuestionnaireDTO saved = questionnaireService.createPaidQuestionnaire(questionnaireDTO);
+        return ResponseEntity.ok(saved);
     }
+
+
 
     /**
      * ✅ 문진 삭제

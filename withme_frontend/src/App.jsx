@@ -56,7 +56,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await fetchWithAuth(`${API_URL}auth/logout`, {
+      await fetchWithAuth(`${API_URL}/auth/logout`, {
         method: "POST"
       });
       dispatch(clearUser());
@@ -98,7 +98,6 @@ function App() {
         <Route path="/signupSuccess" element={<SignupSuccess />} />
 
         {/* ✅ 추가: 문진(survey) 관련 페이지 */}
-        <Route path="/survey" element={<SurveyMain />} />
         <Route path="/survey/free" element={<FreeSurvey />} />
         <Route path="/survey/free/result" element={<FreeSurveyResult />} />
         <Route path="/survey/paid" element={<PaidSurvey />} />

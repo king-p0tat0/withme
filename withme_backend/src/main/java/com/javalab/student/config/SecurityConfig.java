@@ -9,7 +9,6 @@ import com.javalab.student.security.handler.CustomAuthenticationEntryPoint;
 import com.javalab.student.security.handler.CustomAuthenticationSuccessHandler;
 import com.javalab.student.security.handler.CustomLogoutSuccessHandler;
 import com.javalab.student.security.oauth.CustomOAuth2UserService;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -61,17 +59,17 @@ public class SecurityConfig {
                 .loginProcessingUrl("/api/auth/login")
                 .successHandler(customAuthenticationSuccessHandler)
                 .failureHandler((request, response, exception) -> {
-                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                            response.setContentType("application/json");
-                            response.getWriter().write("{\"error\":\"login failure!\"}");})
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"login failure!\"}");})
                 .permitAll()
         );
 
         /*
-            * [수정] 로그아웃 설정
-            * logout() : 스프링의 기본 로그아웃 관련 설정
-            * - /api/auth/logout 을 기본 로그아웃 요청을 처리하는 URL로 하겠다.
-            *   즉 리액트에서 이 요청을 보내면 시큐리티의 기본 로그아웃 처리가 진행된다.
+         * [수정] 로그아웃 설정
+         * logout() : 스프링의 기본 로그아웃 관련 설정
+         * - /api/auth/logout 을 기본 로그아웃 요청을 처리하는 URL로 하겠다.
+         *   즉 리액트에서 이 요청을 보내면 시큐리티의 기본 로그아웃 처리가 진행된다.
          */
         http.logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
@@ -79,33 +77,55 @@ public class SecurityConfig {
                 .permitAll()
         );
 
+
+
         /*
-            * 정적 자원 및 URL에 대한 접근 제어 설정(인가) 로드맵
-            * authorizeRequests() : 애플리케이션의 접근 제어(Authorization) 정책을 정의
-            * requestMatchers() : 요청에 대한 보안 검사를 설정
-            * permitAll() : 모든 사용자에게 접근을 허용
-            * hasRole() : 특정 권한을 가진 사용자만 접근을 허용
-            * anyRequest() : 모든 요청에 대해 접근을 허용
-            * authenticated() : 인증된 사용자만 접근을 허용
-            * favicon.ico : 파비콘 요청은 인증 없이 접근 가능, 이코드 누락시키면 계속 서버에 요청을 보내서 서버에 부하를 줄 수 있다.
+         * 정적 자원 및 URL에 대한 접근 제어 설정(인가) 로드맵
+         * authorizeRequests() : 애플리케이션의 접근 제어(Authorization) 정책을 정의
+         * requestMatchers() : 요청에 대한 보안 검사를 설정
+         * permitAll() : 모든 사용자에게 접근을 허용
+         * hasRole() : 특정 권한을 가진 사용자만 접근을 허용
+         * anyRequest() : 모든 요청에 대해 접근을 허용
+         * authenticated() : 인증된 사용자만 접근을 허용
+         * favicon.ico : 파비콘 요청은 인증 없이 접근 가능, 이코드 누락시키면 계속 서버에 요청을 보내서 서버에 부하를 줄 수 있다.
+         *
          */
         http.authorizeHttpRequests(request -> request
                 // ✅ WebSocket 관련 요청은 인증 검사 제외
-                //    WebSocket 접속이 정상인지 체크하는 핸드쉐이크 요청인 /ws/info와 WebSocket 연결, /ws/**는 인증 없이 접근할 수 있도록 설정합니다.
-                .requestMatchers("/ws/**").permitAll()  //
+                .requestMatchers("/ws/**").permitAll()
+                .requestMatchers("/topic/**").permitAll() // ✅ STOMP 메시지 브로커 경로 허용
+
+                // ✅ 문진(Questionnaire) 관련 API (별도 관리)
                 .requestMatchers("/api/questionnaires/free").permitAll()
-                .requestMatchers("/topic/**").permitAll()  // ✅ STOMP 메시지 브로커 경로 허용
-                .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail").permitAll() // 로그인 API 허용 [수정]
-                .requestMatchers(HttpMethod.GET, "/api/students/**").permitAll()    // GET 요청은 모든 사용자에게 허용
-                .requestMatchers("/api/students/**").hasRole("ADMIN")   // 학생 등록, 수정, 삭제는 ADMIN만 접근 가능
+                .requestMatchers("/api/questionnaires/{questionnaireId}").permitAll()
+                .requestMatchers("/api/questionnaires/user/{userId}").permitAll()
+                .requestMatchers("/api/questionnaires/free/latest/{userId}").permitAll()
+                .requestMatchers("/api/questionnaires/paid/latest/{userId}").permitAll()
+
+                // ✅ 인증 및 회원 관련 API
+                .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail").permitAll()
                 .requestMatchers("/api/auth/userInfo").permitAll() // 사용자 정보 조회 API는 모든 사용자에게 허용
-                .requestMatchers("/api/doctors/**").permitAll()
+                .requestMatchers("/api/members/**").hasAnyRole("USER", "ADMIN", "VIP", "DOCTOR") // 사용자 정보 수정 API는 USER, ADMIN만 접근 가능
+
+                // ✅ 관리자 관련 API
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/members/**").hasAnyRole("USER", "ADMIN") // 사용자 정보 수정 API는 USER, ADMIN만 접근 가능
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()  // 스웨거 Swagger UI는 인증을 거치지 않고 접근 가능
-                .requestMatchers("/api/messages/**").hasAnyRole("USER", "ADMIN") // 사용자의 읽지 않은 메시지 개수 조회 API는 USER, ADMIN만 접근 가능
-                .requestMatchers("/api/questions/**").hasAnyRole("USER","VIP")
-                .requestMatchers("/api/chat/**").hasAnyRole("USER", "ADMIN")// 채팅방 생성, 채팅방 목록 조회 API는 USER, ADMIN만 접근 가능
+
+                // ✅ 학생 관련 API
+                .requestMatchers(HttpMethod.GET, "/api/students/**").permitAll() // GET 요청은 모든 사용자에게 허용
+                .requestMatchers("/api/students/**").hasRole("ADMIN") // 학생 등록, 수정, 삭제는 ADMIN만 접근 가능
+
+                // ✅ 의사 관련 API
+                .requestMatchers("/api/doctors/**").permitAll()
+
+                // ✅ 메시지 및 커뮤니티 관련 API
+                .requestMatchers("/api/messages/**").hasAnyRole("USER", "ADMIN") // 메시지 조회는 USER, ADMIN만 가능
+                .requestMatchers("/api/questions/**").hasAnyRole("USER", "VIP") // 질문 관련 API
+                .requestMatchers("/api/chat/**").hasAnyRole("USER", "ADMIN") // 채팅방 생성, 조회는 USER, ADMIN만 가능
+
+                // ✅ Swagger UI (API 문서) 허용
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+
+                // ✅ 정적 리소스 허용 (CSS, JS, 이미지 등)
                 .requestMatchers(
                         "/images/**",
                         "/static-images/**",
@@ -122,16 +142,20 @@ public class SecurityConfig {
                         "/**/*.svg",
                         "/**/*.html",
                         "/ping.js"
-                ).permitAll() // 정적 리소스는 모두 허용
+                ).permitAll()
+
+                // ✅ 나머지 요청은 인증 필요
                 .anyRequest().authenticated()
         );
 
+
+
         /*
-        * 필터의 순서는 addFilterBefore 메서드를 사용하여 정의
-        * RefreshTokenCheckFilter -> TokenAuthenticationFilter -> UsernamePasswordAuthenticationFilter 순서로 실행
-        * UsernamePasswordAuthenticationFilter가 전체 필터 체인의 기준점
-        * 콘솔 로그에서 Filter 로 검색하면 전체 필터와 순서가 출력됨.
-        */
+         * 필터의 순서는 addFilterBefore 메서드를 사용하여 정의
+         * RefreshTokenCheckFilter -> TokenAuthenticationFilter -> UsernamePasswordAuthenticationFilter 순서로 실행
+         * UsernamePasswordAuthenticationFilter가 전체 필터 체인의 기준점
+         * 콘솔 로그에서 Filter 로 검색하면 전체 필터와 순서가 출력됨.
+         */
         /**
          * UsernamePasswordAuthenticationFilter 이전에 TokenAuthenticationFilter 추가
          * - 사용자의 인증이 일어나기 전에 토큰을 검증하고 인증 객체를 SecurityContext에 저장

@@ -1,6 +1,8 @@
 package com.javalab.student.config.jwt;
 
+
 import com.javalab.student.config.jwt.TokenProvider;
+
 import com.javalab.student.entity.RefreshToken;
 import com.javalab.student.service.RedisService;
 import com.javalab.student.service.RefreshTokenService;
@@ -38,6 +40,7 @@ public class RefreshTokenCheckFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        // "/refresh" 요청이 아니면 다음 필터로 이동 즉, /refresh 요청만 처리
         if (!request.getRequestURI().equals("/refresh")) {
             filterChain.doFilter(request, response);
             return;

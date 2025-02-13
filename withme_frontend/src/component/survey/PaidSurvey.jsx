@@ -1,183 +1,261 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useSelector } from "react-redux";
-import Header from "../common/Header"; // ✅ 공통 헤더 추가
-import Footer from "../common/Footer"; // ✅ 공통 푸터 추가
+import { API_URL } from "../../constant";
+import { fetchWithAuth } from "../../common/fetchWithAuth.js";
+import { DataGrid } from "@mui/x-data-grid";
+import { LinearProgress, Button } from "@mui/material";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
-
-/**
- * ✅ 유료회원 문진 검사 페이지
- * - 사용자가 선택한 주제에 따라 질문을 표시하고, 5지선다형 응답을 저장
- * - 이전/다음 버튼을 이용한 이동 기능 추가
- * - 진행 상태바(Progress Bar) 추가
- * - 마지막 질문에서는 "제출하기" 버튼 표시
- */
-function PaidSurveyPage() {
+const PaidSurveyPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.auth.user); // Redux에서 로그인된 사용자 정보 가져오기
-  const selectedTopics = location.state?.selectedTopics || []; // ✅ 선택한 주제 목록
-  const [questions, setQuestions] = useState([]); // 문진 질문 목록 상태
-  const [answers, setAnswers] = useState({}); // 사용자 응답 상태
-  const [currentIndex, setCurrentIndex] = useState(0); // 현재 질문 인덱스
+  const user = useSelector((state) => state.auth.user);
+  const selectedTopics = location.state?.selectedTopics || [];
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
+  const [currentQuestions, setCurrentQuestions] = useState([]);
+  const [groupedQuestions, setGroupedQuestions] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  /**
-   * ✅ 선택한 주제별 질문 불러오기
-   */
   useEffect(() => {
-    if (selectedTopics.length > 0) {
-      axios
-        .get(`${API_URL}/api/questions/paid`, {
-          params: { topics: selectedTopics.join(",") }, // ✅ 주제 ID 리스트를 query params로 전달
-        })
-        .then((response) => setQuestions(response.data))
-        .catch((error) =>
-          console.error("질문 데이터를 불러오지 못했습니다.", error)
-        );
-    }
-  }, [selectedTopics]);
-
-  /**
-   * ✅ 사용자의 응답을 저장하는 함수
-   * @param {number} questionId - 질문 ID
-   * @param {number} score - 사용자가 선택한 점수
-   */
-  const handleAnswerChange = (questionId, score) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: score }));
-  };
-
-  /**
-   * ✅ 다음 질문으로 이동
-   */
-  const handleNext = () => {
-    if (!answers[questions[currentIndex].id]) {
-      alert("응답을 선택해주세요.");
+    if (!location.state?.selectedTopics) {
+      navigate("/survey/paid/selection");
       return;
     }
-    setCurrentIndex((prev) => prev + 1);
+    if (!user || selectedTopics.length === 0) {
+      alert("문진을 진행하려면 주제를 선택해야 합니다.");
+      navigate("/survey/paid/selection");
+      return;
+    }
+    const fetchQuestions = async () => {
+      setLoading(true);
+      try {
+        const response = await fetchWithAuth(`${API_URL}questions/paid?topics=${selectedTopics.join(',')}`);
+        if (!response.ok) throw new Error("질문을 불러오는데 실패했습니다.");
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error("데이터 형식이 올바르지 않습니다.");
+        const grouped = selectedTopics.reduce((acc, topic) => {
+          acc[topic] = data.filter(q => String(q.topicId) === String(topic));
+          return acc;
+        }, {});
+        setGroupedQuestions(grouped);
+        setQuestions(data);
+        setCurrentQuestions(grouped[selectedTopics[0]] || []);
+      } catch (error) {
+        console.error("질문 로딩 오류:", error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, [user, selectedTopics, navigate, location.state]);
+
+  const handleAnswerChange = (questionId, choiceId, index) => {
+    const score = 5 - index;
+    setAnswers(prev => ({ ...prev, [questionId]: { choiceId, score } }));
   };
 
-  /**
-   * ✅ 이전 질문으로 이동
-   */
-  const handlePrev = () => {
-    setCurrentIndex((prev) => prev - 1);
-  };
-
-  /**
-   * ✅ 문진 검사 제출 처리
-   */
   const handleSubmit = () => {
     if (!user) {
       alert("로그인이 필요합니다.");
       navigate("/login");
       return;
     }
-
-    const requestBody = {
-      userId: user.id, // ✅ Redux에서 가져온 사용자 ID 포함
-      answers,
-    };
-
-    axios
-      .post(`${API_URL}/api/responses/paid`, requestBody)
-      .then(() =>
-        navigate("/survey/paid/result", { state: { answers } })
-      ) // ✅ 결과 페이지로 이동
-      .catch((error) => console.error("응답 제출 실패:", error));
+    const allAnswered = questions.every(q => answers[q.questionId]);
+    if (!allAnswered) {
+      alert("모든 문제에 답해주세요.");
+      return;
+    }
+    const topicScores = selectedTopics.map(topic => {
+      const topicQuestions = groupedQuestions[topic];
+      const topicScore = topicQuestions.reduce((sum, q) => sum + (answers[q.questionId]?.score || 0), 0);
+      return { topic, score: topicScore };
+    });
+    navigate("/survey/paid/result", { state: { topicScores } });
   };
 
-  return (
-    <>
-      <Header /> {/* ✅ 공통 헤더 추가 */}
+  const handleNext = () => {
+    const unansweredQuestion = currentQuestions.find(q => !answers[q.questionId]);
+    if (unansweredQuestion) {
+      alert("현재 주제의 모든 문제에 답해주세요.");
+      return;
+    }
+    if (currentTopicIndex < selectedTopics.length - 1) {
+      const nextTopic = selectedTopics[currentTopicIndex + 1];
+      setCurrentTopicIndex(prev => prev + 1);
+      setCurrentQuestions(groupedQuestions[nextTopic] || []);
+    }
+  };
 
-      <div className="p-6">
-        <h2 className="text-xl font-bold mb-4">유료 문진 검사</h2>
+  const handlePrev = () => {
+    if (currentTopicIndex > 0) {
+      const prevTopic = selectedTopics[currentTopicIndex - 1];
+      setCurrentTopicIndex(prev => prev - 1);
+      setCurrentQuestions(groupedQuestions[prevTopic] || []);
+    }
+  };
 
-        {/* ✅ 진행 상태바 (Progress Bar) */}
-        <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
-          <div
-            className="bg-blue-500 h-3 rounded-full transition-all"
-            style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
-          ></div>
+  const columns = [
+    { field: "seq", headerName: "번호", flex: 0.5, headerAlign: "center", align: "center" },
+    { field: "questionText", headerName: "질문", flex: 2, headerAlign: "center", align: "center" },
+    {
+      field: "choices",
+      headerName: "선택지",
+      flex: 3,
+      headerAlign: "center", align: "center",
+      renderCell: (params) => (
+        <div style={{ display: "flex", flexDirection: "row", gap: "10px" }}>
+          {params.row.choices.map((choice, index) => (
+            <label key={choice.choiceId} style={{ display: "flex", alignItems: "center" }}>
+              <input
+                type="radio"
+                name={`question-${params.row.questionId}`}
+                value={choice.choiceId}
+                onChange={() => handleAnswerChange(params.row.questionId, choice.choiceId, index)}
+                checked={answers[params.row.questionId]?.choiceId === choice.choiceId}
+              />
+              {choice.choiceText}
+            </label>
+          ))}
         </div>
+      ),
+    },
+  ];
 
-        {/* ✅ 선택한 주제 표시 */}
-        <p className="mb-4 text-gray-600">
-          선택한 주제:{" "}
-          {selectedTopics.length > 0
-            ? selectedTopics.join(", ")
-            : "주제가 선택되지 않았습니다."}
-        </p>
-
-        {/* ✅ 현재 질문 표시 */}
-        {questions.length > 0 ? (
-          <div key={questions[currentIndex].id} className="mb-6 p-4 bg-gray-100 rounded-md shadow-sm">
-            <p className="font-semibold">{questions[currentIndex].text}</p>
-            <div className="flex space-x-2 mt-3">
-              {[5, 4, 3, 2, 1].map((score) => (
-                <label key={score} className="cursor-pointer">
-                  <input
-                    type="radio"
-                    name={`question-${questions[currentIndex].id}`}
-                    value={score}
-                    onChange={() => handleAnswerChange(questions[currentIndex].id, score)}
-                    className="hidden"
-                  />
-                  <span
-                    className={`px-4 py-2 rounded-md text-white transition ${
-                      answers[questions[currentIndex].id] === score
-                        ? "bg-blue-500"
-                        : "bg-gray-400 hover:bg-gray-500"
-                    }`}
-                  >
-                    {score}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <p>문진 질문을 불러오는 중...</p>
-        )}
-
-        {/* ✅ 이전, 다음 버튼 및 제출 버튼 */}
-        <div className="flex justify-between mt-6">
-          {/* 이전 버튼 */}
-          <button
-            onClick={handlePrev}
-            className={`bg-gray-500 text-white px-6 py-3 rounded ${
-              currentIndex === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-600"
-            }`}
-            disabled={currentIndex === 0}
-          >
-            이전
-          </button>
-
-          {/* 다음 버튼 또는 제출 버튼 */}
-          {currentIndex < questions.length - 1 ? (
-            <button
-              onClick={handleNext}
-              className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600"
-            >
-              다음
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              className="bg-green-500 text-white px-6 py-3 rounded hover:bg-green-600"
-            >
-              제출하기
-            </button>
-          )}
-        </div>
+  if (loading) {
+    return (
+      <div className="p-6" style={{ textAlign: "center" }}>
+        <h2>데이터를 불러오는 중...</h2>
+        <LinearProgress />
       </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="p-6" style={{ textAlign: "center" }}>
+        <h2>오류가 발생했습니다</h2>
+        <p>{error}</p>
+        <Button onClick={() => window.location.reload()} variant="contained">다시 시도</Button>
+      </div>
+    );
+  }
 
-      <Footer /> {/* ✅ 공통 푸터 추가 */}
-    </>
+  const numberedQuestions = currentQuestions.map((q, index) => ({
+    ...q,
+    seq: index + 1,
+    id: q.questionId
+  }));
+
+  return (
+    <div className="p-4" style={{ textAlign: "center", maxWidth: "1200px", margin: "0 auto" }}>
+      <h2 style={{
+        fontSize: "2.5rem",
+        fontWeight: "bold",
+        color: "#D67D00",
+        backgroundColor: "#FFF3E0",
+        padding: "10px 20px",
+        borderRadius: "10px",
+        display: "inline-block",
+        marginBottom: "20px"
+      }}>
+        📝 유료 문진 검사
+      </h2>
+      <div style={{ marginBottom: "20px" }}>
+        <div style={{ marginBottom: "15px", fontSize: "1.2rem", fontWeight: "bold" }}>
+          현재 주제: {selectedTopics[currentTopicIndex]} ({currentTopicIndex + 1} / {selectedTopics.length})
+        </div>
+        <LinearProgress
+          variant="determinate"
+          value={((currentTopicIndex + 1) / selectedTopics.length) * 100}
+          sx={{
+            height: "16px",
+            borderRadius: "8px",
+            backgroundColor: "#FFE0B2",
+            '& .MuiLinearProgress-bar': {
+              backgroundColor: "#FF8C00"
+            }
+          }}
+        />
+      </div>
+      <div style={{ height: 700, width: "100%", marginTop: "20px" }}>
+        {currentQuestions.length > 0 ? (
+          <DataGrid
+            rows={numberedQuestions}
+            columns={columns}
+            hideFooter={true}
+            disableRowSelectionOnClick
+            sx={{
+              "& .MuiDataGrid-columnHeaders": {
+                fontSize: "1.2rem",
+                fontWeight: "bold",
+                backgroundColor: "#FFB74D", // ✅ 주황색 배경
+                color: "#fff",
+                textAlign: "center"
+              },
+              "& .MuiDataGrid-cell": {
+                fontSize: "1rem",
+                textAlign: "center"
+              },
+              "@media (max-width: 768px)": {
+                "& .MuiDataGrid-columnHeaders": { fontSize: "1rem" },
+                "& .MuiDataGrid-cell": { fontSize: "0.9rem" }
+              }
+            }}
+          />
+        ) : (
+          <div>이 주제에 대한 문제가 없습니다.</div>
+        )}
+      </div>
+      <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
+        <Button
+          onClick={handlePrev}
+          disabled={currentTopicIndex === 0}
+          sx={{
+            backgroundColor: "#FFE0B2", // ✅ 연한 주황색
+            color: "#D67D00",
+            fontSize: "1.1rem",
+            width: "48%",  // ✅ 반씩 자리 차지
+            "&:hover": { backgroundColor: "#FFB74D" }, // ✅ 호버 시 진한 주황색
+            margin: "5px"
+          }}
+        >
+          이전 주제
+        </Button>
+        {currentTopicIndex < selectedTopics.length - 1 ? (
+          <Button
+            onClick={handleNext}
+            sx={{
+              backgroundColor: "#FF8C00", // ✅ 진한 주황색
+              color: "white",
+              fontSize: "1.1rem",
+              width: "48%",  // ✅ 반씩 자리 차지
+              "&:hover": { backgroundColor: "#FF7043" }, // ✅ 호버 시 더 진하게
+              margin: "5px"
+            }}
+          >
+            다음 주제
+          </Button>
+        ) : (
+          <Button
+            onClick={handleSubmit}
+            sx={{
+              backgroundColor: "#FF8C00",
+              color: "white",
+              fontSize: "1.1rem",
+              width: "48%",
+              "&:hover": { backgroundColor: "#FF7043" },
+              margin: "5px"
+            }}
+          >
+            제출하기
+          </Button>
+        )}
+      </div>
+    </div>
   );
-}
+};
 
 export default PaidSurveyPage;
