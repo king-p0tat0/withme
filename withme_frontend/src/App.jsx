@@ -101,6 +101,7 @@ function App() {
 
         {/* ✅ 관리자 페이지 */}
         <Route path="/admin" element={<Admin />} />
+        <Route path="/survey-main" element={<SurveyMain />} />
 
         {/* 회원가입 페이지 */}
         <Route path="/policy" element={<Policy />} />

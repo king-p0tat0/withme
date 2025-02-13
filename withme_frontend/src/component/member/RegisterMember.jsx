@@ -19,40 +19,36 @@ export default function RegisterMember() {
         address: "",
     });
 
-    // 이메일 중복 체크 오류 메시지 상태
     const [emailError, setEmailError] = useState(""); // 이메일 중복 체크 메시지 상태
-
-    // 비밀번호 상태
     const [passwordError, setPasswordError] = useState(""); // 비밀번호 확인 오류 메시지 상태
 
     const navigate = useNavigate();
 
-// 회원 정보 입력 시 상태 변경
-const onMemberChange = (event) => {
-    const { name, value } = event.target;
-    setMember({ ...member, [name]: value });
+    // 회원 정보 입력 시 상태 변경
+    const onMemberChange = (event) => {
+        const { name, value } = event.target;
+        setMember({ ...member, [name]: value });
 
-    if (name === "email") {
-        checkEmailDuplicate(value); // 이메일 입력 시 중복 체크 실행
-    }
+        if (name === "email") {
+            checkEmailDuplicate(value); // 이메일 입력 시 중복 체크 실행
+        }
 
-    if (name === "password" || name === "confirmPassword") {
-        // 비밀번호 및 비밀번호 확인 값이 변경될 때마다 비밀번호 일치 여부 체크
-        checkPasswordMatch(value);
-    }
-};
+        if (name === "password" || name === "confirmPassword") {
+            // 비밀번호 및 비밀번호 확인 값이 변경될 때마다 비밀번호 일치 여부 체크
+            checkPasswordMatch(value);
+        }
+    };
 
-// 비밀번호 확인 함수
-const checkPasswordMatch = (value) => {
-    if (member.password !== value) {
-        setPasswordError("비밀번호가 일치하지 않습니다.");
-    } else {
-        setPasswordError(""); // 일치하면 오류 메시지 초기화
-    }
-};
+    // 비밀번호 확인 함수
+    const checkPasswordMatch = (value) => {
+        if (member.password !== value) {
+            setPasswordError("비밀번호가 일치하지 않습니다.");
+        } else {
+            setPasswordError(""); // 일치하면 오류 메시지 초기화
+        }
+    };
 
-
-    // 이메일 중복 체크 함수(fetch 대신 axios 사용)
+    // 이메일 중복 체크 함수 (fetch 대신 axios 사용)
     const checkEmailDuplicate = async (email) => {
         if (!email.includes("@")) return;
 
@@ -70,14 +66,24 @@ const checkPasswordMatch = (value) => {
         }
     };
 
+    const formatPhoneNumber = (phone) => {
+        if (phone.length === 11) {
+            return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
+        }
+        return phone;
+    };
+
     // 회원가입 처리
     const handleOnSubmit = async () => {
         try {
             console.log("회원가입 시작");
 
+            // 변환된 전화번호로 회원 정보 업데이트
+            const requestMember = { ...member, phone: formatPhoneNumber(member.phone) };
+
             const requestOptions = {
                 method: "POST",
-                body: JSON.stringify(member),
+                body: JSON.stringify(requestMember),
             };
 
             const response = await fetchWithoutAuth(`${API_URL}members/register`, requestOptions);

@@ -272,3 +272,37 @@ hr {
     text-align: center;
     z-index: 10;
 }
+
+/* 관리자 버튼 CSS */
+.admin-btn {
+    font-family: 'Nanum Gothic', sans-serif;
+    font-weight: bold;
+    background: white;
+    border: none;
+    font-size: 1em;
+    color: #333;
+    width: 80px;
+    padding: 0;
+    height: auto;
+}
+
+.admin-dropdown {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    list-style: none;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    width: 150px;
+    text-align: center;
+}
+
+.admin-dropdown li {
+    padding: 5px 0;
+    cursor: pointer;
+}
+
+.admin-dropdown li:hover {
+    background-color: #fc8d4d !important;
+    color: black;
+}

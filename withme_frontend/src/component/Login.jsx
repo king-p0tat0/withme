@@ -12,7 +12,7 @@ export default function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState(""); // 오류 메시지 상태 추가!
+    const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
         // 카카오 SDK 초기화 확인
