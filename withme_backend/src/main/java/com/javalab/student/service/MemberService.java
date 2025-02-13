@@ -146,7 +146,6 @@ public class MemberService {
                 .email(member.getEmail())
                 .phone(member.getPhone())
                 .address(member.getAddress())
-                .age(member.getAge())
                 .role(member.getRole())
                 .social(member.isSocial())
                 .provider(member.getProvider())

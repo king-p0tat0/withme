@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 //import { AppBar, Toolbar, Typography, Button } from "@mui/material";
-import { Routes, Route, Link, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-router-dom";
 import Login from "./component/Login";
 import MyPage from "./component/member/MyPage.jsx";
 import OAuth2RedirectHandler from "./component/OAuth2RedirectHandler.jsx"
@@ -45,6 +45,10 @@ import RegisterMember from "./component/member/RegisterMember"; // 회원정보 
 import SignupSuccess from "./component/member/SignupSuccess"; // 가입 완료
 
 import SurveyMain from "./component/survey/SurveyMain";
+
+// 쇼핑몰
+import ItemList from "./component/shop/Product/ItemList";
+import ItemView from "./component/shop/Product/ItemView";
 
 
 function App() {
@@ -136,6 +140,10 @@ function App() {
         <Route path="/policy" element={<Policy />} />
         <Route path="/registerMember" element={<RegisterMember />} />
         <Route path="/signupSuccess" element={<SignupSuccess />} />
+
+        {/* 쇼핑몰 */}
+        <Route path="/item/list" element={<ItemList />} />
+        <Route path="/item/view/:itemId" element={<ItemView user={user}/>} />
 
 
 

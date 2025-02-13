@@ -106,8 +106,15 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()  // 스웨거 Swagger UI는 인증을 거치지 않고 접근 가능
                 .requestMatchers("/api/messages/**").hasAnyRole("USER", "ADMIN") // 사용자의 읽지 않은 메시지 개수 조회 API는 USER, ADMIN만 접근 가능
                 .requestMatchers("/api/chat/**").hasAnyRole("USER", "ADMIN") // 채팅방 생성, 채팅방 목록 조회 API는 USER, ADMIN만 접근 가능
+                // 쇼핑몰
+                .requestMatchers("/api/item/list", "/api/item/view/**").permitAll()
+                .requestMatchers("/api/item/new", "/api/item/edit/**","/api/item/delete/**").hasRole("ADMIN")
+                .requestMatchers("/api/cart/**","/api/orders/**").hasAnyRole("ADMIN","USER","VIP","DOCTOR")
+
+
                 .requestMatchers(
                         "/images/**",
+                        "/image/**",
                         "/static-images/**",
                         "/css/**",
                         "/img/**",

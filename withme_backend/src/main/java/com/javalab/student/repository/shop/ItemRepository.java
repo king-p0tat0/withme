@@ -1,5 +1,6 @@
 package com.javalab.student.repository.shop;
 
+import com.javalab.student.constant.ItemSellStatus;
 import com.javalab.student.entity.shop.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -56,4 +57,6 @@ public interface ItemRepository extends JpaRepository<Item, Long>,
     @Query(value="select * from item i where i.item_detail like " +
             "%:itemDetail% order by i.price desc", nativeQuery = true)
     List<Item> findByItemDetailByNative(@Param("itemDetail") String itemDetail);
+
+    List<Item> findByItemSellStatus(ItemSellStatus itemSellStatus);
 }

@@ -1,6 +1,5 @@
 package com.javalab.student.controller.shop;
 
-
 import com.javalab.student.dto.shop.CartDetailDto;
 import com.javalab.student.dto.shop.CartItemDto;
 import com.javalab.student.dto.shop.CartOrderItemDto;
@@ -8,6 +7,7 @@ import com.javalab.student.dto.shop.CartOrderRequestDto;
 import com.javalab.student.service.shop.CartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -19,112 +19,106 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 
-/**************************************************************************************
- * 장바구니 컨트롤러
- *  - 장바구니 담기
- *  - 장바구니 목록
- *  - 장바구니 수정
- *  - 장바구니 삭제
- *  - 장바구니 주문
- **************************************************************************************/
+/**
+ *  장바구니 컨트롤러
+ *  - /api/cart/add : 장바구니 상품 추가
+ *  - /api/cart/list : 장바구니 조회
+ *  - /api/cart/cartItem/{cartItemId} : 장바구니 수량 수정(Patch)
+ *  - /api/cart/cartItem/{cartItemId} : 장바구니 아이템 삭제(Delete)
+ *  - /api/cart/orders : 장바구니 아이템 주문 처리
+ */
 @Controller
 @RequiredArgsConstructor
+@RequestMapping("/api/cart")
+@Log4j2
 public class CartController {
 
     private final CartService cartService;
 
-    @PostMapping(value = "/cart")
-    public @ResponseBody ResponseEntity order(@RequestBody @Valid CartItemDto cartItemDto,
-                                              BindingResult bindingResult, Principal principal){
+    /**
+     *  장바구니 상품 추가
+     */
+    @PostMapping("/add")
+    public @ResponseBody ResponseEntity<?> order(@RequestBody @Valid CartItemDto cartItemDto,
+                                                 BindingResult bindingResult, Principal principal) {
+        log.info("장바구니 담기 요청: {}, 사용자: {}", cartItemDto, principal.getName());
 
-        // 1. 오류 검증
-        if(bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             StringBuilder sb = new StringBuilder();
-            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-
-            for (FieldError fieldError : fieldErrors) {
-                sb.append(fieldError.getDefaultMessage());
+            for (FieldError fieldError : bindingResult.getFieldErrors()) {
+                sb.append(fieldError.getDefaultMessage()).append(" ");
             }
-
-            return new ResponseEntity<String>(sb.toString(), HttpStatus.BAD_REQUEST);
+            log.warn("입력값 검증 실패: {}", sb);
+            return new ResponseEntity<>(sb.toString(), HttpStatus.BAD_REQUEST);
         }
-        // 2. 현재 로그인한 회원의 이메일 정보를 가져옴
-        String email = principal.getName();
-        Long cartItemId;
 
         try {
-            // 화면으로 부터 전달된 장바구니에 담을 상품정보와 현재 로그인한 회원의 이메일 정보를 이용하여
-            // 장바구니에 상품을 담는 메소드 호출
-            cartItemId = cartService.addCart(cartItemDto, email);
-        } catch(Exception e){
-            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            Long cartItemId = cartService.addCart(cartItemDto, principal.getName());
+            log.info("장바구니에 상품 추가 완료: {}", cartItemId);
+            return new ResponseEntity<>(cartItemId, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("장바구니 추가 중 오류 발생", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-
-        return new ResponseEntity<Long>(cartItemId, HttpStatus.OK);
     }
 
-    /**
-     * 장바구니 페이지로 이동
-     * @param principal
-     * @param model
-     * @return
-     */
-    @GetMapping(value = "/cart")
-    public String orderHist(Principal principal, Model model){
+    @GetMapping("/list")
+    public String orderHist(Principal principal, Model model) {
+        log.info("장바구니 목록 조회 요청: 사용자 {}", principal.getName());
         List<CartDetailDto> cartDetailList = cartService.getCartList(principal.getName());
         model.addAttribute("cartItems", cartDetailList);
         return "cart/cartList";
     }
 
     /**
-     * 장바구니 상품 수량 수정
-     * @param cartItemId
-     * @param count
-     * @param principal
+     *  장바구니 상품 수량 수정
+     *    PatchMapping  : 데이터 일부만 수정
+     *    PutMapping    : 전체 데이터 수정
+     *    - PutMapping을 쓰면 데이터 전체가 변경되고, PatchMapping을 쓰면 데이터 일부만 변경
      */
     @PatchMapping("/cartItem/{cartItemId}")
-    public @ResponseBody ResponseEntity updateCartItem(@PathVariable("cartItemId") Long cartItemId,
-                                                       @RequestParam("count") int count,
-                                                       Principal principal){
+    public @ResponseBody ResponseEntity<?> updateCartItem(@PathVariable("cartItemId") Long cartItemId,
+                                                          @RequestParam("count") int count,
+                                                          Principal principal) {
+        log.info("장바구니 상품 수량 수정 요청: 상품ID {}, 수량 {}, 사용자 {}", cartItemId, count, principal.getName());
 
-        if(count <= 0){
-            return new ResponseEntity<String>("최소 1개 이상 담아주세요", HttpStatus.BAD_REQUEST);
-        } else if(!cartService.validateCartItem(cartItemId, principal.getName())){
-            return new ResponseEntity<String>("수정 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        if (count <= 0) {
+            return new ResponseEntity<>("최소 1개 이상 담아주세요", HttpStatus.BAD_REQUEST);
+        } else if (!cartService.validateCartItem(cartItemId, principal.getName())) {
+            return new ResponseEntity<>("수정 권한이 없습니다.", HttpStatus.FORBIDDEN);
         }
 
         cartService.updateCartItemCount(cartItemId, count);
-        return new ResponseEntity<Long>(cartItemId, HttpStatus.OK);
+        log.info("장바구니 상품 수량 수정 완료: 상품ID {}", cartItemId);
+        return new ResponseEntity<>(cartItemId, HttpStatus.OK);
     }
 
     /**
      * 장바구니 상품 삭제
-     * @param cartItemId
-     * @param principal
-     * @return
      */
-    @DeleteMapping(value = "/cartItem/{cartItemId}")
-    public @ResponseBody ResponseEntity deleteCartItem(@PathVariable("cartItemId") Long cartItemId,
-                                                       Principal principal){
+    @DeleteMapping("/cartItem/{cartItemId}")
+    public @ResponseBody ResponseEntity<?> deleteCartItem(@PathVariable("cartItemId") Long cartItemId,
+                                                          Principal principal) {
+        log.info("장바구니 상품 삭제 요청: 상품ID {}, 사용자 {}", cartItemId, principal.getName());
 
-        if(!cartService.validateCartItem(cartItemId, principal.getName())){
-            return new ResponseEntity<String>("수정 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        if (!cartService.validateCartItem(cartItemId, principal.getName())) {
+            return new ResponseEntity<>("삭제 권한이 없습니다.", HttpStatus.FORBIDDEN);
         }
 
         cartService.deleteCartItem(cartItemId);
-
-        return new ResponseEntity<Long>(cartItemId, HttpStatus.OK);
+        log.info("장바구니 상품 삭제 완료: 상품ID {}", cartItemId);
+        return new ResponseEntity<>(cartItemId, HttpStatus.OK);
     }
 
     /**
-     * 장바구니 상품 주문
-     * - 장바구니에서 여러 상품을 선택하여 주문
+     * 장바구니 상품 주문처리
      */
-    @PostMapping(value = "/cart/orders")
-    public @ResponseBody ResponseEntity orderCartItem(@RequestBody CartOrderRequestDto cartOrderRequestDto, Principal principal) {
+    @PostMapping("/orders")
+    public @ResponseBody ResponseEntity<?> orderCartItem(@RequestBody CartOrderRequestDto cartOrderRequestDto,
+                                                         Principal principal) {
+        log.info("장바구니 주문 요청: {}, 사용자 {}", cartOrderRequestDto, principal.getName());
 
         List<CartOrderItemDto> cartOrderItems = cartOrderRequestDto.getCartOrderItems();
-
         if (cartOrderItems == null || cartOrderItems.isEmpty()) {
             return new ResponseEntity<>("주문할 상품을 선택해주세요", HttpStatus.FORBIDDEN);
         }
@@ -136,7 +130,7 @@ public class CartController {
         }
 
         Long orderId = cartService.orderCartItem(cartOrderItems, principal.getName());
+        log.info("장바구니 주문 완료: 주문ID {}", orderId);
         return new ResponseEntity<>(orderId, HttpStatus.OK);
     }
-
 }

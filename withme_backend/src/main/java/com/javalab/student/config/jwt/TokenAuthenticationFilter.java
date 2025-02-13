@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * - Spring Security의 요청 필터로 동작한다.
  * - 요청마다 JWT 토큰을 검증하고 인증 객체를 SecurityContext에 저장하는 역할.
  * - 시큐리티의 정상적인 동작 보다 먼저 실행되어야 한다.
- *   그래서 SecurityConfig에서 addFilterBefore() 메소드로 등록한다.
+ * 그래서 SecurityConfig에서 addFilterBefore() 메소드로 등록한다.
  */
 @Component
 @RequiredArgsConstructor
@@ -40,19 +40,19 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     /**
      * 사용자의 모든 요청을 가로채서 JWT 토큰을 검증하고 인증 객체를 SecurityContext에 저장
      * 1. 사용자가 어떤 자원을 요청했을 때 SecurityConfig에서 설정한 인가 권한을 확인해야 한다.
-     *   인가 권한을 확인할 때 사용되는 것이 SecurityContext에 저장된 인증 객체이다. 거기에 권한이 있으니까.
+     * 인가 권한을 확인할 때 사용되는 것이 SecurityContext에 저장된 인증 객체이다. 거기에 권한이 있으니까.
      * 2. 알반적인 세션 기반 시큐리티 인증 매커니즘에서는 로그인을 할 때 스프링 시큐리티 필터 체인에 의해서
-     *   인증객체가 만들어지고 그것이 SecurityContext에 저장된다. 그리고 그걸로 SecurityConfig 설정에
-     *   의해서 인가 권한을 확인한다. 또한 SecurityContext가 세션에 저장되어 로그인 이후의 요청에서는
-     *   세션에서 인증 객체를 꺼내서 사용한다.
+     * 인증객체가 만들어지고 그것이 SecurityContext에 저장된다. 그리고 그걸로 SecurityConfig 설정에
+     * 의해서 인가 권한을 확인한다. 또한 SecurityContext가 세션에 저장되어 로그인 이후의 요청에서는
+     * 세션에서 인증 객체를 꺼내서 사용한다.
      * 3. 반면에 JWT를 사용할 때는 사용자의 인가 정보가 세션에 보관되지 않기 때문에 요청할 때마다 인증 객체를
-     *   만들어서 SecurityContext에 저장해야 한다. 그리고 그걸로 SecurityConfig의 인가 설정과 비교해서
-     *   허가/거부를 결정해야 한다. 또한 현재의 필터인 TokenAuthenticationFilter 단계에서는 인증 객체가
-     *   SecurityContext에 저장되어 있지 않다. 단지 사용자로 부터 받은 JWT토큰만 가지고 있다. 그래서
-     *   여기서 권한정보를 추출하고 인증 객체를 만들어서 SecurityContext에 저장해야 한다. 그런데 매번
-     *   이 작업을 하는 것은 상당히 번거롭기 때문에 로그인 시 사용자의 권한 정보를 Redis에 저장해두고
-     *   사용자의 요청 때마다 Redis에서 꺼내서 권한을 확인하고 인증 객체를 만들어서 SecurityContext에
-     *   저장하는 방식을 사용한다.
+     * 만들어서 SecurityContext에 저장해야 한다. 그리고 그걸로 SecurityConfig의 인가 설정과 비교해서
+     * 허가/거부를 결정해야 한다. 또한 현재의 필터인 TokenAuthenticationFilter 단계에서는 인증 객체가
+     * SecurityContext에 저장되어 있지 않다. 단지 사용자로 부터 받은 JWT토큰만 가지고 있다. 그래서
+     * 여기서 권한정보를 추출하고 인증 객체를 만들어서 SecurityContext에 저장해야 한다. 그런데 매번
+     * 이 작업을 하는 것은 상당히 번거롭기 때문에 로그인 시 사용자의 권한 정보를 Redis에 저장해두고
+     * 사용자의 요청 때마다 Redis에서 꺼내서 권한을 확인하고 인증 객체를 만들어서 SecurityContext에
+     * 저장하는 방식을 사용한다.
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -60,15 +60,44 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
         log.info("TokenAuthenticationFilter.doFilterInternal 시작 - 요청 URI: {}", request.getRequestURI());
 
-        // Swagger 및 로그인/특정 경로는 필터 건너뛰기
+      /*  // Swagger 및 로그인/특정 경로는 필터 건너뛰기
         String path = request.getRequestURI();
         if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") ||
                 path.equals("/api/auth/login") || path.equals("/api/auth/userInfo") ||
                 path.equals("/api/members/register") || path.equals("/api/members/checkEmail") ||
+                path.equals("/api/item/list") || path.equals("/api/item/view/**") ||
                 path.equals("/ping.js") ||
                 path.startsWith("/ws") || path.startsWith("/ws/info") ||
                 path.startsWith("/topic/chat/")|| path.startsWith("/api/notices")|| path.startsWith("/api/posts")) {
 
+            filterChain.doFilter(request, response);
+            return;
+        }*/
+
+        // Swagger 및 로그인/특정 경로는 필터 건너뛰기
+        String path = request.getRequestURI();
+
+        // 필터를 건너뛰어야 할 경로 목록
+        Set<String> bypassPathsExact = Set.of(   // 정확히 일치해야 하는 경로
+                "/api/auth/login", "/api/auth/userInfo",
+                "/api/members/register", "/api/members/checkEmail",
+                "/ping.js"
+        );
+
+        Set<String> bypassPathsStartsWith = Set.of(   // 접두사로 시작해야 하는 경로
+                "/swagger-ui", "/v3/api-docs", "/ws", "/ws/info",
+                "/api/item/list", "/api/item/view/",
+                "/topic/chat/", "/api/notices", "/api/posts"
+        );
+
+        // 정확히 일치하는 경로 확인
+        if (bypassPathsExact.contains(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 접두사로 시작하는 경로 확인
+        if (bypassPathsStartsWith.stream().anyMatch(path::startsWith)) {
             filterChain.doFilter(request, response);
             return;
         }

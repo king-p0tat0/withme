@@ -1,0 +1,32 @@
+.item-list-container {
+    padding: 20px;
+}
+
+.search-bar {
+    margin-bottom: 15px;
+}
+
+.item-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.item-table th, .item-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.item-table th {
+    background-color: #f4f4f4;
+}
+
+.pagination {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.pagination button {
+    margin: 0 5px;
+    padding: 5px 10px;
+}

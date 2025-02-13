@@ -7,4 +7,5 @@ package com.javalab.student.repository.shop;
  */
 public interface ItemRepositoryCustom {
 
+
 }

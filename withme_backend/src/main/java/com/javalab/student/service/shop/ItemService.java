@@ -1,14 +1,19 @@
 package com.javalab.student.service.shop;
 
 
+import com.javalab.student.constant.ItemSellStatus;
 import com.javalab.student.dto.shop.ItemFormDto;
 import com.javalab.student.dto.shop.ItemImgDto;
+import com.javalab.student.dto.shop.ItemSearchDto;
+import com.javalab.student.dto.shop.MainItemDto;
+import com.javalab.student.entity.shop.CartItem;
 import com.javalab.student.entity.shop.Item;
 import com.javalab.student.entity.shop.ItemImg;
 import com.javalab.student.repository.shop.ItemImgRepository;
 import com.javalab.student.repository.shop.ItemRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -117,30 +122,27 @@ public class ItemService {
         return item.getId();
     }
 
+
     /**
-     * 상품 목록 조회
-     * @param itemSearchDto : 복잡한 검색 조건을 담은 DTO
-     * @param pageable : 페이징 처리를 위한 Pageable 객체
+     * 아이템 전체 리스트
      */
-   /* @Transactional(readOnly = true)
-    public Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable){
-        return itemRepository.getAdminItemPage(itemSearchDto, pageable);
+    public List<Item> getItemList() {
+        return itemRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
-    public Page<MainItemDto> getMainItemPage(ItemSearchDto itemSearchDto, Pageable pageable){
-        return itemRepository.getMainItemPage(itemSearchDto, pageable);
-    }*/
+    /**
+     * 판매 상태로 검색
+     */
+    public List<Item> getItemListByItemSellStatus(ItemSellStatus itemSellStatus) {
+        return itemRepository.findByItemSellStatus(itemSellStatus);
+    }
 
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     * 아이템 삭제
+     */
+    public void delete(Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(EntityNotFoundException::new);
+        itemRepository.delete(item);
+    }
 }

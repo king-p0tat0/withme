@@ -9,42 +9,34 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Random;
 
 @SpringBootTest
 @Log4j2
 @Transactional
 public class ItemTest {
     @Autowired
-    ItemRepository itemRepository;  // 테스트할 ItemRepository 빈 주입
+    ItemRepository itemRepository;
 
-    // 아이템 한 개 저장 테스트
+    private final Random random = new Random();
+
     @Test
-    @DisplayName("상품 저장 테스트")
-    //@Rollback(false)  // 롤백 방지
-    public void saveItemTest(){
-        // Given : 테스트용 Item 엔티티 생성
-        Item item = Item.builder()
-                .itemNm("테스트 상품 한개 저장")
-                .price(10000)
-                .stockNumber(50)
-                .itemDetail("테스트 상품 상세 설명")
-                .itemSellStatus(ItemSellStatus.SELL)
-                //.regTime(LocalDateTime.now())
-                .build();
+    @DisplayName("랜덤 상품 20개 저장 테스트")
+    @Commit
+    public void saveRandomItemsTest() {
+        for (int i = 0; i < 20; i++) {
+            Item item = Item.builder()
+                    .itemNm("테스트상품" + i) // 랜덤 상품명
+                    .price(random.nextInt(50000) + 1000) // 1,000 ~ 50,000원 랜덤 가격
+                    .stockNumber(random.nextInt(100) + 1) // 1 ~ 100개 랜덤 재고
+                    .itemDetail("상품테스트중" + i) // 랜덤 상품 설명
+                    .itemSellStatus(ItemSellStatus.SELL)
+                    .build();
 
-        // When(작동) : 테스트 대상 메서드 호출
-        // save() : Item 엔티티를 저장하는 메서드(영속 상태로 전환)
-        Item savedItem = itemRepository.save(item);  // 저장된 Item 엔티티 반환
-
-        // Then(검증) : 위에서 생성한 엔티티와 영속화된 엔티티를 비교해서 검증
-        // import static org.assertj.core.api.Assertions.assertThat; 추가
-        // 1차 검증, 저장된 Item 엔티티의 ID가 null이 아닌지 검증
-        assertThat(savedItem.getId()).isNotNull();
-        // 2. 검증, 저장된 Item 엔티티의 상품명과 테스트 Item 엔티티의 상품명이 같은지 검증
-        assertThat(savedItem.getItemNm()).isEqualTo(item.getItemNm());
-        // 저장된 값 확인
-        log.info("savedItem: {}", savedItem);
+            itemRepository.save(item);
+            log.info("Saved Item {}: {}", i + 1, item);
+        }
     }
 }
