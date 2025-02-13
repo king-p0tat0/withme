@@ -14,6 +14,7 @@ export default function RegisterMember() {
         name: "",
         email: "",
         password: "",
+        confirmPassword: "", // 비밀번호 확인 상태 추가
         phone: "",
         address: "",
     });
@@ -21,30 +22,44 @@ export default function RegisterMember() {
     // 이메일 중복 체크 오류 메시지 상태
     const [emailError, setEmailError] = useState(""); // 이메일 중복 체크 메시지 상태
 
+    // 비밀번호 상태
+    const [passwordError, setPasswordError] = useState(""); // 비밀번호 확인 오류 메시지 상태
+
     const navigate = useNavigate();
 
-    // 회원 정보 입력 시 상태 변경
-    const onMemberChange = (event) => {
-        const { name, value } = event.target;
-        setMember({ ...member, [name]: value });
+// 회원 정보 입력 시 상태 변경
+const onMemberChange = (event) => {
+    const { name, value } = event.target;
+    setMember({ ...member, [name]: value });
 
-        if (name === "email") {
-            checkEmailDuplicate(value); // 이메일 입력 시 중복 체크 실행
-        }
-    };
+    if (name === "email") {
+        checkEmailDuplicate(value); // 이메일 입력 시 중복 체크 실행
+    }
+
+    if (name === "password" || name === "confirmPassword") {
+        // 비밀번호 및 비밀번호 확인 값이 변경될 때마다 비밀번호 일치 여부 체크
+        checkPasswordMatch(value);
+    }
+};
+
+// 비밀번호 확인 함수
+const checkPasswordMatch = (value) => {
+    if (member.password !== value) {
+        setPasswordError("비밀번호가 일치하지 않습니다.");
+    } else {
+        setPasswordError(""); // 일치하면 오류 메시지 초기화
+    }
+};
+
 
     // 이메일 중복 체크 함수(fetch 대신 axios 사용)
     const checkEmailDuplicate = async (email) => {
         if (!email.includes("@")) return;
 
         try {
-            // 🔹 `await`를 사용하여 서버 응답을 기다림
             const response = await axios.get(`${API_URL}members/checkEmail`, { params: { email } });
-
-            // 🔹 응답에서 JSON 데이터 추출 (가독성 향상)
             const result = await response.data;
 
-            // 🔹 상태 값 확인 후 처리
             if (result.status === "available") {
                 setEmailError(""); // 사용 가능한 이메일이면 오류 메시지 초기화
             } else if (result.status === "duplicate") {
@@ -57,11 +72,6 @@ export default function RegisterMember() {
 
     // 회원가입 처리
     const handleOnSubmit = async () => {
-        if (emailError) {
-            alert("이메일을 확인해 주세요.");
-            return;
-        }
-
         try {
             console.log("회원가입 시작");
 
@@ -74,7 +84,6 @@ export default function RegisterMember() {
 
             if (response.ok) {
                 alert("회원가입이 완료되었습니다.");
-
                 navigate("/signupSuccess", { state: { name: member.name } });
             } else {
                 const errorData = await response.json();
@@ -86,51 +95,64 @@ export default function RegisterMember() {
         }
     };
 
-
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "20px" }}>
             <Typography variant="h4" style={{ marginBottom: "20px", fontWeight: "bold" }}>
                 회원가입
             </Typography>
             <TextField
-                label="Name"
+                label="이름"
                 name="name"
                 value={member.name}
                 onChange={onMemberChange}
                 style={{ width: "400px", marginBottom: "10px" }}
+                placeholder="한글 2 ~ 8자 입력 가능"
             />
             <TextField
-                label="Email"
+                label="이메일"
                 name="email"
                 value={member.email}
                 onChange={onMemberChange}
                 style={{ width: "400px", marginBottom: "10px" }}
                 error={!!emailError} // 에러 여부 표시
                 helperText={emailError} // 오류 메시지 표시
+                placeholder="예: withme@dog.com"
             />
             <TextField
-                label="Password"
+                label="비밀번호"
                 name="password"
                 type="password"
                 value={member.password}
                 onChange={onMemberChange}
                 style={{ width: "400px", marginBottom: "10px" }}
+                placeholder="영문, 숫자, 특수문자 포함 8 ~ 16자 입력 가능"
             />
             <TextField
-                label="Phone"
+                label="비밀번호 확인"
+                name="confirmPassword"
+                type="password"
+                value={member.confirmPassword}
+                onChange={onMemberChange}
+                style={{ width: "400px", marginBottom: "10px" }}
+                error={!!passwordError} // 비밀번호 불일치 시 오류 표시
+                helperText={passwordError} // 비밀번호 불일치 메시지 표시
+            />
+            <TextField
+                label="전화번호"
                 name="phone"
                 value={member.phone}
                 onChange={onMemberChange}
                 style={{ width: "400px", marginBottom: "10px" }}
+                placeholder="'-'를 제외한 숫자만 입력 가능 (예: 01012341234)"
             />
             <TextField
-                label="Address"
+                label="주소"
                 name="address"
                 value={member.address}
                 onChange={onMemberChange}
                 style={{ width: "400px", marginBottom: "10px" }}
             />
-            <Button variant="contained" onClick={handleOnSubmit} disabled={!!emailError}>
+            <Button variant="contained" onClick={handleOnSubmit} disabled={!!emailError || !!passwordError}>
                 회원가입
             </Button>
         </div>
