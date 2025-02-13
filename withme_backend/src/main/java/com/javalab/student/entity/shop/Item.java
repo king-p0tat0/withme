@@ -1,9 +1,10 @@
 package com.javalab.student.entity.shop;
 
-import com.javalab.shop.constant.ItemSellStatus;
-import com.javalab.shop.dto.ItemFormDto;
-import com.javalab.shop.exception.OutOfStockException;
+
+import com.javalab.student.constant.ItemSellStatus;
+import com.javalab.student.dto.shop.ItemFormDto;
 import com.javalab.student.entity.BaseEntity;
+import com.javalab.student.exception.OutOfStockException;
 import jakarta.persistence.*;
 import lombok.*;
 

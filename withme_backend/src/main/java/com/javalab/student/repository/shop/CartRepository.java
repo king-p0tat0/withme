@@ -1,6 +1,6 @@
 package com.javalab.student.repository.shop;
 
-import com.javalab.shop.entity.Cart;
+import com.javalab.student.entity.shop.Cart;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CartRepository extends JpaRepository<Cart, Long> {

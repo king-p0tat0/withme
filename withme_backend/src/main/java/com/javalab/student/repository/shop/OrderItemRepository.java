@@ -1,6 +1,6 @@
 package com.javalab.student.repository.shop;
 
-import com.javalab.shop.entity.OrderItem;
+import com.javalab.student.entity.shop.OrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

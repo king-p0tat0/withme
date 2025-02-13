@@ -1,21 +1,26 @@
 package com.javalab.student.service.shop;
 
-import com.javalab.shop.dto.OrderDto;
-import com.javalab.shop.dto.OrderHistDto;
-import com.javalab.shop.dto.OrderItemDto;
-import com.javalab.shop.entity.*;
-import com.javalab.shop.repository.ItemImgRepository;
-import com.javalab.shop.repository.ItemRepository;
-import com.javalab.shop.repository.MemberRepository;
-import com.javalab.shop.repository.OrderRepository;
+
+import com.javalab.student.dto.shop.OrderDto;
+import com.javalab.student.dto.shop.OrderHistDto;
+import com.javalab.student.dto.shop.OrderItemDto;
+import com.javalab.student.entity.Member;
+import com.javalab.student.entity.shop.Item;
+import com.javalab.student.entity.shop.ItemImg;
+import com.javalab.student.entity.shop.Order;
+import com.javalab.student.entity.shop.OrderItem;
+import com.javalab.student.repository.MemberRepository;
+import com.javalab.student.repository.shop.ItemImgRepository;
+import com.javalab.student.repository.shop.ItemRepository;
+import com.javalab.student.repository.shop.OrderRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.thymeleaf.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;

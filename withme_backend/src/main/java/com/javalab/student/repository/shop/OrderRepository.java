@@ -1,6 +1,6 @@
 package com.javalab.student.repository.shop;
 
-import com.javalab.shop.entity.Order;
+import com.javalab.student.entity.shop.Order;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

@@ -1,7 +1,7 @@
 package com.javalab.student.service.shop;
 
-import com.javalab.shop.entity.ItemImg;
-import com.javalab.shop.repository.ItemImgRepository;
+import com.javalab.student.entity.shop.ItemImg;
+import com.javalab.student.repository.shop.ItemImgRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

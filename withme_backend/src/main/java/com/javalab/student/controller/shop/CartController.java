@@ -1,7 +1,11 @@
 package com.javalab.student.controller.shop;
 
-import com.javalab.shop.dto.*;
-import com.javalab.shop.service.CartService;
+
+import com.javalab.student.dto.shop.CartDetailDto;
+import com.javalab.student.dto.shop.CartItemDto;
+import com.javalab.student.dto.shop.CartOrderItemDto;
+import com.javalab.student.dto.shop.CartOrderRequestDto;
+import com.javalab.student.service.shop.CartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -1,7 +1,7 @@
 package com.javalab.student.dto.shop;
 
-import com.javalab.shop.constant.ItemSellStatus;
-import com.javalab.shop.entity.Item;
+import com.javalab.student.constant.ItemSellStatus;
+import com.javalab.student.entity.shop.Item;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

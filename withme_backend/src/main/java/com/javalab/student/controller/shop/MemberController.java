@@ -1,8 +1,9 @@
 package com.javalab.student.controller.shop;
 
-import com.javalab.shop.dto.MemberFormDto;
-import com.javalab.shop.entity.Member;
-import com.javalab.shop.service.MemberService;
+
+import com.javalab.student.dto.MemberFormDto;
+import com.javalab.student.entity.Member;
+import com.javalab.student.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;

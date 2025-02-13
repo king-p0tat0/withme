@@ -1,11 +1,11 @@
 package com.javalab.student.controller.shop;
 
-import com.javalab.shop.constant.ItemSellStatus;
-import com.javalab.shop.dto.ItemDto;
-import com.javalab.shop.dto.ItemFormDto;
-import com.javalab.shop.dto.ItemSearchDto;
-import com.javalab.shop.entity.Item;
-import com.javalab.shop.service.ItemService;
+
+import com.javalab.student.constant.ItemSellStatus;
+import com.javalab.student.dto.shop.ItemDto;
+import com.javalab.student.dto.shop.ItemFormDto;
+import com.javalab.student.dto.shop.ItemSearchDto;
+import com.javalab.student.service.shop.ItemService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,8 +1,9 @@
 package com.javalab.student.controller.shop;
 
-import com.javalab.shop.dto.OrderDto;
-import com.javalab.shop.dto.OrderHistDto;
-import com.javalab.shop.service.OrderService;
+
+import com.javalab.student.dto.shop.OrderDto;
+import com.javalab.student.dto.shop.OrderHistDto;
+import com.javalab.student.service.shop.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

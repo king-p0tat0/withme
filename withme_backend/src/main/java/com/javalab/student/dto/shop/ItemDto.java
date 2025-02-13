@@ -1,6 +1,6 @@
 package com.javalab.student.dto.shop;
 
-import com.javalab.shop.constant.ItemSellStatus;
+import com.javalab.student.constant.ItemSellStatus;
 import lombok.*;
 
 import java.time.LocalDateTime;

@@ -1,6 +1,6 @@
 package com.javalab.student.dto.shop;
 
-import com.javalab.shop.entity.ItemImg;
+import com.javalab.student.entity.shop.ItemImg;
 import lombok.*;
 import org.modelmapper.ModelMapper;
 

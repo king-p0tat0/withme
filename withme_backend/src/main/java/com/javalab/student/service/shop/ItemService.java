@@ -1,17 +1,14 @@
 package com.javalab.student.service.shop;
 
-import com.javalab.shop.dto.ItemFormDto;
-import com.javalab.shop.dto.ItemImgDto;
-import com.javalab.shop.dto.ItemSearchDto;
-import com.javalab.shop.dto.MainItemDto;
-import com.javalab.shop.entity.Item;
-import com.javalab.shop.entity.ItemImg;
-import com.javalab.shop.repository.ItemImgRepository;
-import com.javalab.shop.repository.ItemRepository;
+
+import com.javalab.student.dto.shop.ItemFormDto;
+import com.javalab.student.dto.shop.ItemImgDto;
+import com.javalab.student.entity.shop.Item;
+import com.javalab.student.entity.shop.ItemImg;
+import com.javalab.student.repository.shop.ItemImgRepository;
+import com.javalab.student.repository.shop.ItemRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -125,7 +122,7 @@ public class ItemService {
      * @param itemSearchDto : 복잡한 검색 조건을 담은 DTO
      * @param pageable : 페이징 처리를 위한 Pageable 객체
      */
-    @Transactional(readOnly = true)
+   /* @Transactional(readOnly = true)
     public Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable){
         return itemRepository.getAdminItemPage(itemSearchDto, pageable);
     }
@@ -133,7 +130,7 @@ public class ItemService {
     @Transactional(readOnly = true)
     public Page<MainItemDto> getMainItemPage(ItemSearchDto itemSearchDto, Pageable pageable){
         return itemRepository.getMainItemPage(itemSearchDto, pageable);
-    }
+    }*/
 
 
 

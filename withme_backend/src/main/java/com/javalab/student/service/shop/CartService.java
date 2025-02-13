@@ -1,14 +1,18 @@
 package com.javalab.student.service.shop;
 
-import com.javalab.shop.dto.*;
-import com.javalab.shop.entity.Cart;
-import com.javalab.shop.entity.CartItem;
-import com.javalab.shop.entity.Item;
-import com.javalab.shop.entity.Member;
-import com.javalab.shop.repository.CartItemRepository;
-import com.javalab.shop.repository.CartRepository;
-import com.javalab.shop.repository.ItemRepository;
-import com.javalab.shop.repository.MemberRepository;
+
+import com.javalab.student.dto.shop.CartDetailDto;
+import com.javalab.student.dto.shop.CartItemDto;
+import com.javalab.student.dto.shop.CartOrderItemDto;
+import com.javalab.student.dto.shop.OrderDto;
+import com.javalab.student.entity.Member;
+import com.javalab.student.entity.shop.Cart;
+import com.javalab.student.entity.shop.CartItem;
+import com.javalab.student.entity.shop.Item;
+import com.javalab.student.repository.MemberRepository;
+import com.javalab.student.repository.shop.CartItemRepository;
+import com.javalab.student.repository.shop.CartRepository;
+import com.javalab.student.repository.shop.ItemRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

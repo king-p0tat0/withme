@@ -1,7 +1,8 @@
 package com.javalab.student.dto.shop;
 
-import com.javalab.shop.constant.OrderStatus;
-import com.javalab.shop.entity.Order;
+
+import com.javalab.student.constant.OrderStatus;
+import com.javalab.student.entity.shop.Order;
 import lombok.Getter;
 import lombok.Setter;
 

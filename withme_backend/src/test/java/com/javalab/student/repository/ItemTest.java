@@ -1,5 +1,8 @@
 package com.javalab.student.repository;
 
+import com.javalab.student.constant.ItemSellStatus;
+import com.javalab.student.entity.shop.Item;
+import com.javalab.student.repository.shop.ItemRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.DisplayName;
