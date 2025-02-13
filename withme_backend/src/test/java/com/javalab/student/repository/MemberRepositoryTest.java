@@ -83,7 +83,7 @@ class MemberRepositoryTest {
             String password = "1234";  // 가짜 비밀번호
             String address = addresses[i % addresses.length];
             String phone = phoneNumbers[i % phoneNumbers.length];
-            Role role = (i % 2 == 0) ? Role.USER : Role.ADMIN;  // 간단히 USER와 ADMIN을 번갈아가며 배정
+            Role role = Role.USER;
 
             // Member 객체 생성
             Member member = createMember(name, email, password, address, phone, role);

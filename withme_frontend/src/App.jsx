@@ -107,7 +107,7 @@ function App() {
         <Route path="/doctor/edit" element={<DoctorApplicationEdit user={user}/>} />
 
         <Route path="/login" element={<Login />} />
-        <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
+        <Route path="/oauth2/authorization/kakao" element={<OAuth2RedirectHandler />} />
         <Route path="/mypage/:id" element={<MyPage />} />
         {/* 공지사항 목록 */}
         <Route path="/notices" element={<NoticeList />} />
