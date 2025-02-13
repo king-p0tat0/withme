@@ -12,7 +12,6 @@ export default function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
         // 카카오 SDK 초기화 확인
@@ -94,7 +93,7 @@ export default function Login() {
 
             const data = await response.json();
             if (data.status !== "success") {
-                setErrorMessage(data.message || "로그인 실패");
+                alert("이메일 또는 비밀번호를 확인하세요.");
                 return;
             }
 
@@ -102,57 +101,65 @@ export default function Login() {
             navigate("/");
         } catch (error) {
             console.error("로그인 요청 실패:", error);
-            setErrorMessage("서버 오류가 발생했습니다.");
+            alert("서버 오류가 발생했습니다.");
+        }
+    };
+
+    // 엔터 키를 눌렀을 때 로그인 실행
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+            handleLogin();
         }
     };
 
     return (
-            <div className="login-container">
-                <div className="login-wrap">
-                    <h1>로그인</h1>
-                    <div className="login-form">
-                        <div className="id">
-                            <label htmlFor="email">이메일</label>
-                            <input
-                                type="text"
-                                id="email"
-                                name="email"
-                                placeholder="이메일을 입력하세요."
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-                        <div className="password">
-                            <label htmlFor="password">비밀번호</label>
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                placeholder="비밀번호를 입력하세요."
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
-                        {errorMessage && <p className="error-message">{errorMessage}</p>}
-                        <button className="loginBtn" onClick={handleLogin}>
-                            로그인
-                        </button>
-                        <p>
-                            아직 회원이 아니신가요? <Link to="/policy" className="signUpLink">회원가입</Link>
-                        </p>
+        <div className="login-container">
+            <div className="login-wrap">
+                <h1>로그인</h1>
+                <div className="login-form">
+                    <div className="id">
+                        <label htmlFor="email">이메일</label>
+                        <input
+                            type="text"
+                            id="email"
+                            name="email"
+                            placeholder="이메일을 입력하세요."
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            onKeyDown={handleKeyDown}  // 엔터 키 이벤트 처리
+                        />
                     </div>
-                </div>
-                <div className="login-sns">
-                    <p>소셜 계정으로 간편하게 로그인하세요!</p>
-                    <div className="snsLoginBtn-wrap">
-                        <button className="snsLoginBtn kakaoBtn" onClick={handleKakaoLogin}>
-                            <img src="/assets/images/icon/kakao.png" alt="카카오 로그인" />
-                        </button>
-                        <button className="snsLoginBtn naverBtn" onClick={handleNaverLogin}>
-                            <img src="/assets/images/icon/naver.png" alt="네이버 로그인" />
-                        </button>
+                    <div className="password">
+                        <label htmlFor="password">비밀번호</label>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="비밀번호를 입력하세요."
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={handleKeyDown}  // 엔터 키 이벤트 처리
+                        />
                     </div>
+                    <button className="loginBtn" onClick={handleLogin}>
+                        로그인
+                    </button>
+                    <p>
+                        아직 회원이 아니신가요? <Link to="/policy" className="signUpLink">회원가입</Link>
+                    </p>
                 </div>
             </div>
+            <div className="login-sns">
+                <p>소셜 계정으로 간편하게 로그인하세요!</p>
+                <div className="snsLoginBtn-wrap">
+                    <button className="snsLoginBtn kakaoBtn" onClick={handleKakaoLogin}>
+                        <img src="/assets/images/icon/kakao.png" alt="카카오 로그인" />
+                    </button>
+                    <button className="snsLoginBtn naverBtn" onClick={handleNaverLogin}>
+                        <img src="/assets/images/icon/naver.png" alt="네이버 로그인" />
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 }

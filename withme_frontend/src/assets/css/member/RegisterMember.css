@@ -10,6 +10,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    margin-top: 100px;
 }
 
 .description-container {
@@ -18,70 +19,31 @@ body {
     align-items: center;
     width: 80%;
     height: auto;
-    margin-bottom: 20px;
+    margin: 80px auto 20px;
     text-align: center;
 }
 
-.description-container img {
+.description-container .icon {
     width: 100px;
     height: auto;
 }
 
-.box {
+.box, .fontawesome-icon {
     margin-right: 40px;
 }
 
-.description-container i {
+.description-container .fontawesome-icon {
     font-size: 3em;
     margin-bottom: 40px;
     font-weight: bold;
 }
 
-.form-wrap {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* 좌측 정렬로 변경 */
-    justify-content: center; /* 상단 정렬로 변경 */
+h2{
+    margin-top: 50px;
+    margin-bottom: 40px;
+    text-align: left;
 }
 
-.register-form {
-    width: 40%;
-    padding: 20px;
-    width: 40%;
-    max-width: 650px;
-}
-
-.input-group label {
-    display: block;
-    margin: 10px 0;
-}
-
-.input-group input[type="text"], input[type="password"] {
-    cursor: pointer;
-    width: 70%;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    padding: 5px;
-}
-
-.input-group i {
-    cursor: pointer;
-}
-
-.submit-btn {
-    margin-top: 30px;
-    background-color: #ff7c24;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    width: 100%;
-    cursor: pointer;
-    height: 50px;
-    font-size: 1.2em;
-    margin-bottom: 200px;
-}
-
-.submit-btn:hover {
-    background-color: #e67022;
+h3, label {
+    text-align: left;
 }
