@@ -58,13 +58,15 @@ public class MemberFormDto {
      * @return Member 엔티티 객체
      */
     public static Member toEntity(MemberFormDto memberFormDto, PasswordEncoder passwordEncoder) {
+        Role role = memberFormDto.getRole() != null ? memberFormDto.getRole() : Role.USER;
+
         return Member.builder()
                 .name(memberFormDto.getName())
                 .email(memberFormDto.getEmail())
                 .password(passwordEncoder.encode(memberFormDto.getPassword())) // 비밀번호 암호화
                 .address(memberFormDto.getAddress())
                 .phone(memberFormDto.getPhone())
-                .role(memberFormDto.getRole() != null ? memberFormDto.getRole() : Role.USER) // 기본 권한 USER
+                .role(role)
                 .social(false) // 일반 회원가입으로 설정
                 .build();
     }

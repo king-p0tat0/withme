@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUserInfo, clearUser } from "./redux/authSlice";
 import { PersistGate } from "redux-persist/integration/react";
@@ -12,7 +12,8 @@ import NoticeList from "./component/notice/NoticeList";
 import NoticeForm from "./component/notice/NoticeForm";
 import NoticeView from "./component/notice/NoticeView";
 
-// 전문가 신청, 수정
+// 전문가 가입, 신청, 수정
+import SignupDoctor from "./component/member/SignupDoctor"; // 수의사 회원가입 페이지
 import RegisterDoctor from "./component/doctor/RegisterDoctor";
 import DoctorApplicationStatus from "./component/doctor/DoctorApplicationStatus";
 import DoctorApplicationEdit from "./component/doctor/DoctorApplicationEdit";
@@ -30,7 +31,7 @@ import Dashboard from "./component/admin/Dashboard";
 import Login from "./component/Login";
 import MyPage from "./component/member/MyPage.jsx";
 import Policy from "./component/member/Policy"; // 약관정책
-import RegisterMember from "./component/member/RegisterMember"; // 회원정보 입력
+import RegisterMember from "./component/member/RegisterMember"; // 일반 회원가입 페이지
 import SignupSuccess from "./component/member/SignupSuccess"; // 가입 완료
 
 // ✅ 기타 페이지
@@ -38,6 +39,7 @@ import Home from "./component/Home";
 import UnauthorizedPage from "./component/UnAuthorizedPage.jsx";
 import Header from "./component/common/Header";
 import Footer from "./component/common/Footer";
+import NavBar from "./component/common/NavBar"
 
 // ✅ 추가: 문진(survey) 관련 컴포넌트 import
 import FreeSurvey from "./component/survey/FreeSurvey";
@@ -53,6 +55,7 @@ function App() {
   // user: 사용자 정보 객체, isLoggedIn: 로그인 여부
   const { user, isLoggedIn } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const location = useLocation();
 
   useEffect(() => {
     if (!user && isLoggedIn) {
@@ -78,25 +81,24 @@ function App() {
     <div className="App">
       {/*헤더 부분*/}
       <Header />
-      {/*라우팅 부분*/}
+      {/* Home을 제외한 모든 페이지에 NavBar 노출하도록 설정 */}
+      {location.pathname !== "/" && <NavBar />}
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/registerDoctor" element={<RegisterDoctor />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
-        {/* 공지사항 목록 */}
+
+        {/* 공지사항 */}
         <Route path="/notices" element={<NoticeList />} />
         <Route path="/notices/new" element={<NoticeForm />} />
         <Route path="/notices/:id" element={<NoticeView />} />
 
-        {/* 게시글 목록 */}
+        {/* 게시글 */}
         <Route path="/posts" element={<PostList />} />
-
-        {/* 게시글 등록 */}
         <Route path="/posts/new" element={<PostForm />} />
-        {/* 게시글 수정 */}
         <Route path="/posts/edit/:id" element={<PostForm />} />
-        {/* 게시글 상세 보기 */}
         <Route path="/posts/:id" element={<PostView />} />
 
         {/* ✅ 관리자 페이지 */}
@@ -115,6 +117,9 @@ function App() {
         <Route path="/survey/paid" element={<PaidSurvey />} />
         <Route path="/survey/paid/selection" element={<PaidSurveySelection />} />
         <Route path="/survey/paid/result" element={<PaidSurveyResult />} />
+
+        {/* 수의사 */}
+        <Route path="/signupDoctor" element={<SignupDoctor />} />
 
         {/* ✅ 기타 페이지 */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />

@@ -7,10 +7,7 @@ import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
-/**
- * 회원가입 컴포넌트
- */
-export default function RegisterMember() {
+export default function SignupDoctor() {
     // 입력된 회원 정보를 저장할 상태 변수
     const [member, setMember] = useState({
         name: "",
@@ -28,11 +25,6 @@ export default function RegisterMember() {
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
     const [phoneError, setPhoneError] = useState("");
     const [isEmailVerified, setIsEmailVerified] = useState(false);
-    const [role, setRole] = useState('USER');
-
-    const handleRoleChange = (selectedRole) => {
-        setRole(selectedRole);
-    };
 
     const navigate = useNavigate();
 
@@ -137,8 +129,11 @@ export default function RegisterMember() {
             console.log("회원가입 시작");
 
             // 변환된 전화번호로 회원 정보 업데이트
-            const requestMember = { ...member, phone: formatPhoneNumber(member.phone), role: role };
-
+            const requestMember = {
+                ...member,
+                phone: formatPhoneNumber(member.phone),
+                role: "PENDING_DOCTOR",
+            };
             const requestOptions = {
                 method: "POST",
                 body: JSON.stringify(requestMember),
@@ -159,14 +154,14 @@ export default function RegisterMember() {
         }
     };
 
-    // 수의사 가입 페이지로 이동
-    const navigateToDoctorRegister = () => {
+    // 일반 가입 페이지로 이동
+    const navigateToRegister = () => {
         const isConfirmed = window.confirm(
-            "수의사로 가입하시겠습니까? 확인시 지금까지 입력한 내용은 모두 초기화됩니다."
+            "일반 회원으로 가입하시겠습니까? 확인시 지금까지 입력한 내용은 모두 초기화됩니다."
         );
 
         if (isConfirmed) {
-            navigate("/signupDoctor");
+            navigate("/registerMember");
         }
     };
 
@@ -191,6 +186,7 @@ export default function RegisterMember() {
 
             <div style={{ marginTop: "20px" }}>
                 <Button
+                    onClick={navigateToRegister}
                     style={{
                         width: "400px",
                         height: "50px",
@@ -203,8 +199,6 @@ export default function RegisterMember() {
                     일반 가입
                 </Button>
                 <Button
-                    onClick={() => handleRoleChange('PENDING_DOCTOR')}
-                    onClick={navigateToDoctorRegister}
                     style={{
                         width: "400px",
                         height: "50px",
@@ -218,7 +212,6 @@ export default function RegisterMember() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "20px" }}>
-                {/* 기존 회원가입 폼 */}
                 <TextField
                     label="이름"
                     name="name"
