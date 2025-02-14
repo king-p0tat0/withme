@@ -74,6 +74,9 @@ const Header = () => {
                 <li>
                   <Link to={`/doctor/edit`}>전문가 수정페이지</Link>
                 </li>
+                <li>
+                  <Link to={`/item/list`}>쇼핑몰</Link>
+                </li>
               </>
             ) : (
               <li>
