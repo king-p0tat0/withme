@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { API_URL } from "../../constant";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Tab, Button, Pagination } from "@mui/material";
 import TabPanel from "../elements/TabPanel";
-import { fetchWithAuth, fetchWithoutAuth } from "../../utils/fetchWithAuth";
 
 const categories = [
   "전체",
@@ -12,65 +12,64 @@ const categories = [
   "펫일상",
   "펫수다",
   "행사/정보"
-]; // 카테고리 목록
+];
 
 const PostList = () => {
-  const [posts, setPosts] = useState([]); // 전체 게시글
-  const [filteredPosts, setFilteredPosts] = useState([]); // 필터링된 게시글
-  const [activeCategoryIndex, setActiveCategoryIndex] = useState(0); // 현재 활성화된 카테고리 인덱스
-  const [currentUserId, setCurrentUserId] = useState(null); // 현재 로그인한 사용자 ID
-  const [totalRows, setTotalRows] = useState(0); // 전체 게시글 수
+  const { isLoggedIn } = useSelector((state) => state.auth); // Redux에서 로그인 여부 가져오기
+  const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+  const [totalRows, setTotalRows] = useState(0);
   const [paginationModel, setPaginationModel] = useState({
     page: 1,
     pageSize: 10
-  }); // 페이지네이션 상태
+  });
+
   const navigate = useNavigate();
 
-
-  // 컴포넌트가 마운트될 때 데이터 가져오기
-  useEffect(() => {
-    fetchCurrentUser(); // 사용자 정보 가져오기
-    fetchPosts(); // 게시글 목록 가져오기
-  }, [paginationModel]);
-
-  /**
-   * 현재 로그인한 사용자 정보 가져오기
-   * 로그인하지 않은 경우 currentUserId를 null로 설정
-   */
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await fetchWithAuth(`${API_URL}/auth/me`);
-      const data = await response.json();
-      setCurrentUserId(data.userId);
-    } catch (error) {
-      console.warn("사용자 정보 가져오기 실패:", error.message);
-      setCurrentUserId(null); // 로그인하지 않은 상태로 설정
-    }
-  };
-
-  /**
-   * 게시글 데이터 가져오기 (인증 불필요)
-   */
+  // 게시글 목록 가져오기
   const fetchPosts = async () => {
-    const { page, pageSize } = paginationModel;
-
     try {
-      const response = await fetchWithoutAuth(
-        `${API_URL}/posts?page=${page - 1}&size=${pageSize}`
+      const response = await fetch(
+        `${API_URL}posts?page=${paginationModel.page - 1}&size=${
+          paginationModel.pageSize
+        }`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
       );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `HTTP error! Status: ${response.status}, Body: ${errorText}`
+        );
+      }
+
       const data = await response.json();
-      setPosts(data.dtoList || []);
-      setFilteredPosts(data.dtoList || []);
+
+      // API 응답 데이터 확인 (디버깅용)
+      console.log("API 응답 데이터:", data);
+      console.log("posts:", data.posts);
+
+      // dtoList 대신 posts 사용
+      setPosts(data.posts || []);
+      setFilteredPosts(data.posts || []);
       setTotalRows(data.total || 0);
     } catch (error) {
-      console.error("게시글 목록 가져오는 중 오류 발생:", error.message);
-      alert("게시글 목록 가져오기 실패: 네트워크 또는 서버 오류");
+      console.error("게시글 목록 가져오기 실패:", error.message);
+      alert("게시글 목록을 불러오는 중 오류가 발생했습니다.");
     }
   };
 
-  /**
-   * 카테고리 변경 시 필터링 처리
-   */
+  useEffect(() => {
+    fetchPosts();
+  }, [paginationModel]);
+
+  // 카테고리 변경 처리
   const handleCategoryChange = (event, newValue) => {
     setActiveCategoryIndex(newValue);
     const selectedCategory = categories[newValue];
@@ -78,28 +77,31 @@ const PostList = () => {
       setFilteredPosts(posts);
     } else {
       setFilteredPosts(
-        posts.filter((post) => post.category === selectedCategory)
+        posts.filter((post) => post.postCategory === selectedCategory)
       );
     }
   };
 
-  /**
-   * 페이지네이션 변경 처리
-   */
+  // 페이지네이션 처리
   const handlePageChange = (event, newPage) => {
     setPaginationModel((prev) => ({ ...prev, page: newPage }));
   };
 
-  /**
-   * 글 작성 버튼 클릭 처리
-   */
+  // 글 작성 버튼 클릭 처리
   const handleWritePostClick = () => {
-    if (!currentUserId) {
+    if (!isLoggedIn) {
       alert("로그인이 필요합니다.");
-      navigate("/login");
+      //navigate("/login"); // 로그인 페이지로 이동
     } else {
-      navigate("/posts/new");
+      window.scrollTo(0, 0);
+      navigate("/posts/new"); // 글 작성 페이지로 이동
     }
+  };
+
+  // 게시글 클릭 핸들러
+  const handlePostClick = (postId) => {
+    window.scrollTo(0, 0);
+    navigate(`/posts/${postId}`); // Navigate to the post view page with the post ID
   };
 
   return (
@@ -110,51 +112,61 @@ const PostList = () => {
       <Tabs
         value={activeCategoryIndex}
         onChange={handleCategoryChange}
-        variant="scrollable"
-        scrollButtons="auto"
-        aria-label="posts-category-tabs">
-        {categories.map((category, index) => (
-          <Tab key={index} label={category} />
+        aria-label="posts_category_tabs">
+        {categories.map((postCategory) => (
+          <Tab key={postCategory} label={postCategory} />
         ))}
       </Tabs>
 
       {/* TabPanels */}
-      {categories.map((category, index) => (
-        <TabPanel key={index} value={activeCategoryIndex} index={index}>
+      {categories.map((category) => (
+        <TabPanel
+          key={category}
+          value={activeCategoryIndex}
+          index={categories.indexOf(category)}>
           <ul>
             {filteredPosts.map((post) => (
-              <li key={post.postId} style={{ marginBottom: "20px" }}>
-                <h2>{post.postTitle}</h2>
-                <p>{post.postContent}</p>
-                <p>
-                  <strong>카테고리:</strong> {post.category}
-                </p>
-                {/* 작성자만 수정/삭제 버튼 표시 */}
-                {currentUserId === post.userId && (
-                  <>
-                    <Button
-                      onClick={() => navigate(`/posts/edit/${post.postId}`)}
-                      style={{
-                        padding: "8px",
-                        marginRight: "10px",
-                        backgroundColor: "#28a745",
-                        color: "#fff",
-                        borderRadius: "5px"
-                      }}>
-                      수정
-                    </Button>
-                    <Button
-                      onClick={() => deletePost(post.postId)}
-                      style={{
-                        padding: "8px",
-                        backgroundColor: "#dc3545",
-                        color: "#fff",
-                        borderRadius: "5px"
-                      }}>
-                      삭제
-                    </Button>
-                  </>
+              <li
+                key={post.id}
+                style={{ marginBottom: "20px", cursor: "pointer" }}
+                onClick={() => handlePostClick(post.id)}>
+                {post.thumbnailUrl && (
+                  <img
+                    src={post.thumbnailUrl}
+                    alt="게시물 썸네일"
+                    className="w-full h-48 object-cover"
+                  />
                 )}
+                <h2>{post.content || "내용 없음"}</h2>
+                <div>
+                  <span>조회수: {post.views}</span>
+                  <div className="text-sm text-gray-600">
+                    {post.updateTime && post.updateTime !== post.regTime ? (
+                      <div>
+                        수정일:{" "}
+                        {new Date(post.updateTime).toLocaleString("ko-KR", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })}
+                      </div>
+                    ) : (
+                      <div>
+                        작성일:{" "}
+                        {post.regTime &&
+                          new Date(post.regTime).toLocaleString("ko-KR", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </li>
             ))}
           </ul>

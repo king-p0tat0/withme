@@ -4,6 +4,8 @@ import com.javalab.student.config.jwt.TokenProvider;
 import com.javalab.student.entity.Member;
 import com.javalab.student.service.MemberService;
 import com.javalab.student.service.RefreshTokenService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -91,8 +94,6 @@ public class AuthController {
         response.put("error", "로그인에 실패했습니다.");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
-
-
 
 }
 

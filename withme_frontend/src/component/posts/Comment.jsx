@@ -1,27 +1,25 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 
-const Comment = ({ comment, onReply, onEdit, onDelete, currentUserId }) => {
-  const [showReplyForm, setShowReplyForm] = useState(false); // 대댓글 입력 폼 표시 여부
-  const [replyContent, setReplyContent] = useState(""); // 대댓글 내용
-  const [isEditing, setIsEditing] = useState(false); // 댓글 수정 모드 여부
-  const [editContent, setEditContent] = useState(comment.content); // 수정 중인 댓글 내용
-
-  // 날짜 포맷 함수
-  const formatDate = (date) => {
-    return new Date(date).toLocaleString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  };
+const Comment = ({
+  comment,
+  onReply,
+  onEdit,
+  onDelete,
+  currentUserId,
+  currentUserName,
+  depth = 0
+}) => {
+  const [showReplyForm, setShowReplyForm] = useState(false);
+  const [replyContent, setReplyContent] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
+  const [isHovered, setIsHovered] = useState(false);
 
   // 대댓글 작성 핸들러
   const handleReplySubmit = (e) => {
     e.preventDefault();
-    onReply(comment.commentId, replyContent); // 부모 댓글 ID와 대댓글 내용 전달
+    onReply(comment.id, replyContent);
     setReplyContent("");
     setShowReplyForm(false);
   };
@@ -29,12 +27,21 @@ const Comment = ({ comment, onReply, onEdit, onDelete, currentUserId }) => {
   // 댓글 수정 핸들러
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    onEdit(comment.commentId, editContent); // 댓글 ID와 수정된 내용 전달
+    onEdit(comment.id, editContent);
     setIsEditing(false);
   };
 
   return (
-    <div style={{ marginLeft: "20px", marginTop: "10px" }}>
+    <div
+      style={{
+        marginLeft: `${depth * 20}px`,
+        borderLeft: depth > 0 ? "2px solid #e0e0e0" : "none",
+        paddingLeft: depth > 0 ? "10px" : "0",
+        marginBottom: "10px",
+        position: "relative"
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}>
       {isEditing ? (
         <form onSubmit={handleEditSubmit}>
           <textarea
@@ -44,152 +51,167 @@ const Comment = ({ comment, onReply, onEdit, onDelete, currentUserId }) => {
             style={{ width: "100%", padding: "10px" }}
             required
           />
-          <button
-            type="submit"
-            style={{
-              backgroundColor: "#28a745",
-              color: "#fff",
-              borderRadius: "5px",
-              padding: "5px 10px",
-              cursor: "pointer"
-            }}>
-            저장
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsEditing(false)}
-            style={{
-              backgroundColor: "#dc3545",
-              color: "#fff",
-              borderRadius: "5px",
-              padding: "5px 10px",
-              cursor: "pointer",
-              marginLeft: "10px"
-            }}>
-            취소
-          </button>
+          <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+            <button type="submit">저장</button>
+            <button type="button" onClick={() => setIsEditing(false)}>
+              취소
+            </button>
+          </div>
         </form>
       ) : (
-        <>
-          <p>
-            <strong>{comment.author}</strong>: {comment.content}
-          </p>
-          <p style={{ fontSize: "12px", color: "#555" }}>
-            {comment.updatedAt && comment.updatedAt !== comment.createdAt ? (
-              <>[수정일자]: {formatDate(comment.updatedAt)}</>
-            ) : (
-              <>작성일자: {formatDate(comment.createdAt)}</>
+        <div>
+          <div style={{ position: "relative" }}>
+            <div>
+              <strong>{comment.userName}</strong>
+              <p>{comment.content}</p>
+              <div className="text-sm text-gray-600">
+                {comment.updateTime &&
+                comment.updateTime !== comment.regTime ? (
+                  <div>
+                    수정일:{" "}
+                    {new Date(comment.updateTime).toLocaleString("ko-KR", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })}
+                  </div>
+                ) : (
+                  <div>
+                    작성일:{" "}
+                    {comment.regTime &&
+                      new Date(comment.regTime).toLocaleString("ko-KR", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                      })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {isHovered && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  display: "flex",
+                  gap: "10px",
+                  backgroundColor: "rgba(255,255,255,0.9)",
+                  padding: "5px",
+                  borderRadius: "5px",
+                  boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
+                }}>
+                {currentUserId === comment.userId && (
+                  <>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#007bff",
+                        cursor: "pointer"
+                      }}>
+                      수정
+                    </button>
+                    <button
+                      onClick={() => onDelete(comment.id)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#dc3545",
+                        cursor: "pointer"
+                      }}>
+                      삭제
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => setShowReplyForm(!showReplyForm)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#28a745",
+                    cursor: "pointer"
+                  }}>
+                  답글
+                </button>
+              </div>
             )}
-          </p>
+          </div>
 
-          {/* 작성자만 수정/삭제 버튼 표시 */}
-          {currentUserId === comment.userId && (
-            <>
-              <button
-                onClick={() => setIsEditing(true)}
-                style={{
-                  backgroundColor: "#ffc107",
-                  color: "#000",
-                  borderRadius: "5px",
-                  padding: "5px 10px",
-                  cursor: "pointer",
-                  marginRight: "10px"
-                }}>
-                수정
-              </button>
-              <button
-                onClick={() => onDelete(comment.commentId)}
-                style={{
-                  backgroundColor: "#dc3545",
-                  color: "#fff",
-                  borderRadius: "5px",
-                  padding: "5px 10px",
-                  cursor: "pointer"
-                }}>
-                삭제
-              </button>
-            </>
+          {showReplyForm && (
+            <form
+              onSubmit={handleReplySubmit}
+              style={{
+                marginTop: "10px",
+                backgroundColor: "#f9f9f9",
+                padding: "10px",
+                borderRadius: "5px"
+              }}>
+              <textarea
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                placeholder="답글을 작성하세요"
+                rows="3"
+                style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
+                required
+              />
+              <button type="submit">답글 저장</button>
+            </form>
           )}
-
-          <button
-            onClick={() => setShowReplyForm(!showReplyForm)}
-            style={{
-              backgroundColor: "#007BFF",
-              color: "#fff",
-              borderRadius: "5px",
-              padding: "5px 10px",
-              cursor: "pointer"
-            }}>
-            답글
-          </button>
-        </>
+        </div>
       )}
 
-      {/* 대댓글 입력 폼 */}
-      {showReplyForm && (
-        <form onSubmit={handleReplySubmit} style={{ marginTop: "10px" }}>
-          <textarea
-            value={replyContent}
-            onChange={(e) => setReplyContent(e.target.value)}
-            placeholder="답글을 작성하세요..."
-            rows="3"
-            style={{ width: "100%", padding: "10px" }}
-            required
-          />
-          <button
-            type="submit"
-            style={{
-              backgroundColor: "#28a745",
-              color: "#fff",
-              borderRadius: "5px",
-              padding: "5px 10px",
-              cursor: "pointer"
-            }}>
-            답글 저장
-          </button>
-        </form>
+      {comment.replies && comment.replies.length > 0 && (
+        <div>
+          {comment.replies.map((childComment) => (
+            <Comment
+              key={childComment.id}
+              comment={childComment}
+              onReply={onReply}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              currentUserId={currentUserId}
+              currentUserName={currentUserName}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
       )}
-
-      {/* 대댓글 렌더링 */}
-      {comment.childComments &&
-        comment.childComments.map((childComment) => (
-          <Comment
-            key={childComment.commentId}
-            comment={childComment}
-            onReply={onReply}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            currentUserId={currentUserId}
-          />
-        ))}
     </div>
   );
 };
 
-// PropTypes 정의
 Comment.propTypes = {
   comment: PropTypes.shape({
-    commentId: PropTypes.number.isRequired,
-    userId: PropTypes.string.isRequired,
-    author: PropTypes.string.isRequired,
+    id: PropTypes.number.isRequired,
+    userId: PropTypes.number.isRequired,
+    userName: PropTypes.string.isRequired,
+    author: PropTypes.string,
     content: PropTypes.string.isRequired,
-    createdAt: PropTypes.string.isRequired,
-    updatedAt: PropTypes.string,
-    childComments: PropTypes.arrayOf(
+    regTime: PropTypes.string.isRequired,
+    replies: PropTypes.arrayOf(
       PropTypes.shape({
-        commentId: PropTypes.number.isRequired,
-        userId: PropTypes.string.isRequired,
-        author: PropTypes.string.isRequired,
+        id: PropTypes.number.isRequired,
+        userId: PropTypes.number.isRequired,
+        userName: PropTypes.string.isRequired,
+        author: PropTypes.string,
         content: PropTypes.string.isRequired,
-        createdAt: PropTypes.string.isRequired,
-        updatedAt: PropTypes.string
+        regTime: PropTypes.string.isRequired
       })
     )
   }).isRequired,
-  currentUserId: PropTypes.string.isRequired,
+  currentUserId: PropTypes.number.isRequired,
+  //currentUserName: PropTypes.string.isRequired,
   onReply: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired
+  onDelete: PropTypes.func.isRequired,
+  depth: PropTypes.number
 };
 
 export default Comment;

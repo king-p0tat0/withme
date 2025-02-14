@@ -115,8 +115,6 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 userDetails.getRealName(),
                 roles
         ));
-
-
     }
 
 

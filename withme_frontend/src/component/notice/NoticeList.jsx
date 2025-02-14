@@ -28,9 +28,9 @@ const NoticeList = () => {
       const response = await fetch(`${API_URL}notices`, {
         method: "GET",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        credentials: "include"
+        credentials: "include",
       });
 
       if (!response.ok) {

@@ -1,10 +1,19 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 3000, // 프론트 엔드를 원하는 포트 번호 지정
+  plugins: [
+    react(),
+    nodePolyfills({
+      include: ["global"]
+    })
+  ],
+  define: {
+    global: "globalThis"
   },
-})
+  server: {
+    port: 3000
+  }
+});
