@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import '../../../assets/css/shop/ItemView.css';
 import { API_URL, SERVER_URL2 } from '../../../constant';
 import { fetchWithAuth } from '../../../common/fetchWithAuth';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 export default function ItemView({ user }) {
     const { itemId } = useParams();
     const [item, setItem] = useState(null); // 상품 상세 정보를 저장할 상태
     const [loading, setLoading] = useState(true); // 로딩 상태
     const [error, setError] = useState(null); // 에러 상태
+    const navigate = useNavigate();
 
     console.log("받아온 user : " , user);
 
@@ -46,6 +47,11 @@ export default function ItemView({ user }) {
     if (!item) {
         return <div>상품을 찾을 수 없습니다.</div>; // item이 없을 경우 표시할 UI
     }
+
+    // 상세보기 페이지로 이동
+    const handleEdit = (itemId) => {
+        navigate(`/item/edit/${itemId}`);
+    };
 
     const handleDelete = async () => {
         // 삭제 요청 처리
@@ -91,7 +97,7 @@ export default function ItemView({ user }) {
                     {/* 관리자인 경우에만 수정 및 삭제 버튼을 표시 */}
                     {user && user.roles && user.roles.includes('ROLE_ADMIN') && (
                         <div className="admin-actions">
-                            <button onClick={() => alert('상품 수정 기능을 구현하세요.')}>상품 수정</button>
+                            <button onClick={() => handleEdit(item.id)} >상품 수정</button>
                             <button onClick={handleDelete}>상품 삭제</button>
                         </div>
                     )}

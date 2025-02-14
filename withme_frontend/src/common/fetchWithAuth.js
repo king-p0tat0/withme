@@ -57,7 +57,7 @@ export const refreshAccessToken = async () => {
  * @param {string} url 요청할 URL
  * @param {Object} options fetch API의 두 번째 인자로 전달할 옵션 객체
  */
-/*export const fetchWithAuth = async (url, options = {}) => {
+export const fetchWithAuth = async (url, options = {}) => {
     const config = {
         ...options,
         headers: {
@@ -94,54 +94,6 @@ export const refreshAccessToken = async () => {
 
         // 3. 정상 응답 반환
         return response;
-    } catch (error) {
-        console.error("API 요청 실패:", error.message);
-        throw error;
-    }
-};*/
-
-export const fetchWithAuth = async (url, options = {}) => {
-    const config = {
-        ...options,
-        headers: {
-            ...options.headers, // 기존 헤더 유지
-        },
-        credentials: "include",
-    };
-
-    // FormData를 사용하는 경우 Content-Type 헤더를 설정하지 않음
-    if (!(options.body instanceof FormData)) {
-        config.headers["Content-Type"] = "application/json";
-    }
-
-    try {
-        // 1. 서버로 첫 번째 요청, fetch API의 반환 결과는 Promise 객체로 반환되며, response 객체를 반환한다. response 객체는 응답에 대한 정보를 담고 있다. 예를 들면 응답이 성공이면 response.ok는 true이다.
-                let response = await fetch(url, config);
-
-                // 2. 1.번 요청 결과 401 Unauthorized 상태 처리가 반환 되었을 때
-                if (response.status === 401) {
-                    const errorData = await response.json();
-                    console.warn(`401 Error: ${errorData.message}`);
-
-                    if (errorData.message.includes("만료")) {
-                        // 액세스 토큰 만료: 리프레시 토큰으로 액세스 토큰 갱신 시도
-                        console.log("fetchWithAuth.js: 액세스 토큰 만료되어 refreshAccessToken() 호출 - 1");
-                        const refreshSuccess = await refreshAccessToken();
-
-                        if (refreshSuccess) {
-                            console.log("리프레시 토큰 성공, 기존 요청 재시도");
-                            response = await fetch(url, config); // 기존 요청 재시도
-                        } else {
-                            console.error("리프레시 토큰 갱신 실패");
-                            throw new Error("Unauthorized: 리프레시 토큰 갱신 실패");
-                        }
-                    } else {
-                        throw new Error(`Unauthorized: ${errorData.message}`);
-                    }
-                }
-
-                // 3. 정상 응답 반환
-                return response;
     } catch (error) {
         console.error("API 요청 실패:", error.message);
         throw error;

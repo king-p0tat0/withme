@@ -37,7 +37,7 @@ function Home() {
       <nav>
         <ul>
           <li><Link to="/">홈</Link></li>
-          <li><Link to="#">전체상품</Link></li>
+          <li><Link to="/item/list">전체상품</Link></li>
           <li><Link to="/notice">공지사항</Link></li>
           <li><Link to="/posts">커뮤니티</Link></li>
           <li className="search-box">

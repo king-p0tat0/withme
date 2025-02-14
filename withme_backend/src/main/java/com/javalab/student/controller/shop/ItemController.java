@@ -23,6 +23,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -68,12 +69,6 @@ public class ItemController {
         }
     }
 
-
-
-
-
-
-
     /**
      * 상품 상세 조회 API
      */
@@ -93,9 +88,9 @@ public class ItemController {
      */
     @PutMapping("/edit/{itemId}")
     public ResponseEntity<?> updateItem(@PathVariable("itemId") Long itemId,
-                                        @Valid @RequestBody ItemFormDto itemFormDto,
+                                        @Valid @RequestPart ItemFormDto itemFormDto,
                                         BindingResult bindingResult,
-                                        @RequestParam("itemImgFile") List<MultipartFile> itemImgFileList) {
+                                        @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body("입력값이 유효하지 않습니다.");
         }
@@ -111,7 +106,14 @@ public class ItemController {
         try {
             itemService.updateItem(itemFormDto, itemImgFileList);
             return ResponseEntity.ok("상품이 수정되었습니다.");
+        } catch (EntityNotFoundException e) {
+            log.info(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("상품을 찾을 수 없습니다.");
+        } catch (IOException e) {
+            log.info(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("이미지 처리 중 오류가 발생했습니다.");
         } catch (Exception e) {
+            log.info(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("상품 수정 중 에러가 발생하였습니다.");
         }
     }

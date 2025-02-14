@@ -9,7 +9,7 @@ const NavBar = () => {
     <nav className="nav-bar">
       {[
         { name: "홈", path: "/" },
-        { name: "전체상품", path: "/" },
+        { name: "전체상품", path: "/item/list" },
         { name: "공지사항", path: "/notice" },
         { name: "커뮤니티", path: "/posts" },
       ].map((item) => (

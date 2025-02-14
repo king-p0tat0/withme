@@ -55,6 +55,7 @@ import SurveyMain from "./component/survey/SurveyMain";
 import ItemList from "./component/shop/Product/ItemList";
 import ItemView from "./component/shop/Product/ItemView";
 import ItemAdd from "./component/shop/Product/ItemAdd";
+import ItemEdit from "./component/shop/Product/ItemEdit";
 
 
 function App() {
@@ -109,7 +110,8 @@ function App() {
         <Route path="/posts/:id" element={<PostView />} />
 
         {/* ✅ 관리자 페이지 */}
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<Admin user={user}/>} />
+        <Route path="/admin/dashboard" element={<Dashboard user={user}/>} />
         <Route path="/doctor/status" element={<DoctorUpdate />} />
         <Route path="/survey-main" element={<SurveyMain />} />
 
@@ -130,6 +132,7 @@ function App() {
         <Route path="/item/list" element={<ItemList />} />
         <Route path="/item/view/:itemId" element={<ItemView user={user}/>} />
         <Route path="/item/add" element={<ItemAdd user={user}/>} />
+        <Route path="/item/edit/:itemId" element={<ItemEdit />} />
 
 
         {/* 수의사 */}
