@@ -25,6 +25,7 @@ import PostView from "./component/posts/PostView";
 
 // 관리자
 import Admin from "./component/admin/Admin";
+import DoctorUpdate from "./component/admin/DoctorUpdate";
 import Dashboard from "./component/admin/Dashboard";
 
 // ✅ 회원 관련
@@ -109,6 +110,7 @@ function App() {
 
         {/* ✅ 관리자 페이지 */}
         <Route path="/admin" element={<Admin />} />
+        <Route path="/doctor/status" element={<DoctorUpdate />} />
         <Route path="/survey-main" element={<SurveyMain />} />
 
         {/* 회원가입 페이지 */}
