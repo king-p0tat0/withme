@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import "../../assets/css/member/SignupSuccess.css";
 
-
-function SignupSuccess() {
-  // location 상태에서 사용자명 가져오기
+/*
+ * 수의사 회원가입 완료 후 로드될 컴포넌트
+ */
+function DoctorSignupSuccess() {
   const location = useLocation();
-  const { name } = location.state || {}; // 이전 페이지에서 state로 전달된 username
+  const { name } = location.state || {};
 
    useEffect(() => {
       document.body.style.backgroundColor = "#FEF9F6";
@@ -14,6 +16,15 @@ function SignupSuccess() {
         document.body.style.backgroundColor = "";
       };
     }, []);
+
+    const handleNavigation = (e) => {
+      e.preventDefault();
+      if (!isLoggedIn || !user) {
+        alert('로그인 후 이용 가능합니다.');
+        navigate("/login");
+        return;
+      }
+    };
 
   return (
     <div className="container" style={{ backgroundColor: "#FEF9F6" }}>
@@ -23,13 +34,14 @@ function SignupSuccess() {
           회원가입이 <span style={{ fontWeight: 'bold' }}>완료</span> 되었습니다.
         </p>
         <p>
-          <span className="userName" style={{ fontWeight: 'bold' }}>
+          <span className="userName" style={{ fontWeight: 'bold', marginRight: "5px" }}>
             {name}
           </span>
-          님의 회원가입을 축하합니다.
+           수의사님을 진심으로 환영합니다.
         </p>
         <p className="last">
-          위드미와 함께 더 건강하고 행복한 반려생활을 시작해보세요!
+          아래 링크에서 권한 신청 및 관리자 승인 후 관련 서비스 이용이 가능합니다.<br /><br />
+          <Link onClick="handleNavigation" to="/registerDoctor" style={{ margin: "16x auto 20px", fontWeight: 'bold', color: "#FF6946", fontSize: "1.2em" }}>[ 수의사 신청 하러 가기 ]</Link>
         </p>
       </div>
       <div className="btn-wrap">
@@ -47,4 +59,4 @@ function SignupSuccess() {
   );
 }
 
-export default SignupSuccess;
+export default DoctorSignupSuccess;

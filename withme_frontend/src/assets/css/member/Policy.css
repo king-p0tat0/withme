@@ -10,7 +10,6 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-top: 100px;
 }
 
 .description-container {
@@ -19,7 +18,7 @@ body {
     align-items: center;
     width: 80%;
     height: auto;
-    margin-bottom: 20px;
+    margin: 50px auto 20px;
     text-align: center;
 }
 
@@ -68,13 +67,19 @@ h3, label {
     resize: none;
 }
 
-label {
-    display: block;
-}
-
-.terms-box input {
+.terms-box label {
+    display: inline-block;
+    white-space: nowrap;
+    margin-right: 10px;
+    width: 100%;
     margin-bottom: 40px;
 }
+
+input {
+    display: inline-block;
+    width: 30px;
+}
+
 
 .submit-btn {
     margin-top: 30px;

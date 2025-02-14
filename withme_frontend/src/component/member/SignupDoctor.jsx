@@ -7,10 +7,7 @@ import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
-/**
- * 회원가입 컴포넌트
- */
-export default function RegisterMember() {
+export default function SignupDoctor() {
     // 입력된 회원 정보를 저장할 상태 변수
     const [member, setMember] = useState({
         name: "",
@@ -28,7 +25,6 @@ export default function RegisterMember() {
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
     const [phoneError, setPhoneError] = useState("");
     const [isEmailVerified, setIsEmailVerified] = useState(false);
-    const [role, setRole] = useState('USER');   // 일반 회원가입 페이지에서 가입시 권한 USER 부여
 
     const navigate = useNavigate();
 
@@ -133,8 +129,11 @@ export default function RegisterMember() {
             console.log("회원가입 시작");
 
             // 변환된 전화번호로 회원 정보 업데이트
-            const requestMember = { ...member, phone: formatPhoneNumber(member.phone), role: role };
-
+            const requestMember = {
+                ...member,
+                phone: formatPhoneNumber(member.phone),
+                role: "PENDING_DOCTOR",
+            };
             const requestOptions = {
                 method: "POST",
                 body: JSON.stringify(requestMember),
@@ -143,8 +142,8 @@ export default function RegisterMember() {
             const response = await fetchWithoutAuth(`${API_URL}members/register`, requestOptions);
 
             if (response.ok) {
-                alert("회원가입이 완료되었습니다.");
-                navigate("/signupSuccess", { state: { name: member.name } });
+                alert("회원가입이 완료되었습니다. 관리자의 권한 승인 후 관련 서비스 이용이 가능합니다.");
+                navigate("/doctorSignupSuccess", { state: { name: member.name } });
             } else {
                 const errorData = await response.json();
                 alert(`회원가입 실패: ${errorData.message || "오류 발생"}`);
@@ -155,14 +154,14 @@ export default function RegisterMember() {
         }
     };
 
-    // 수의사 가입 페이지로 이동
-    const navigateToDoctorRegister = () => {
+    // 일반 가입 페이지로 이동
+    const navigateToRegister = () => {
         const isConfirmed = window.confirm(
-            "수의사로 가입하시겠습니까? 확인시 지금까지 입력한 내용은 모두 초기화됩니다."
+            "일반 회원으로 가입하시겠습니까? 확인시 지금까지 입력한 내용은 모두 초기화됩니다."
         );
 
         if (isConfirmed) {
-            navigate("/signupDoctor");
+            navigate("/registerMember");
         }
     };
 
@@ -203,20 +202,7 @@ export default function RegisterMember() {
 
             <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", marginTop: "20px", marginBottom: "30px" }}>
                 <Button
-                    style={{
-                        width: "200px",
-                        height: "50px",
-                        backgroundColor: "#ff7c24",
-                        color: "white",
-                        fontSize: "1.1em",
-                        marginRight: "20px",
-                        borderRadius: "8px"
-                    }}
-                >
-                    일반 회원
-                </Button>
-                <Button
-                    onClick={navigateToDoctorRegister}
+                    onClick={navigateToRegister}
                     style={{
                         width: "200px",
                         height: "50px",
@@ -227,12 +213,24 @@ export default function RegisterMember() {
                         borderRadius: "8px"
                     }}
                 >
+                    일반 회원
+                </Button>
+                <Button
+                    style={{
+                        width: "200px",
+                        height: "50px",
+                        backgroundColor: "#ff7c24",
+                        color: "white",
+                        fontSize: "1.1em",
+                        marginRight: "20px",
+                        borderRadius: "8px"
+                    }}
+                >
                     수의사 회원
                 </Button>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "20px" }}>
-                {/* 기존 회원가입 폼 */}
                 <TextField
                     label="이름"
                     name="name"
@@ -319,6 +317,7 @@ export default function RegisterMember() {
                         height: "50px",
                         backgroundColor: isFormValid ? "#FF7C24" : "#D3D3D3",
                         color: isFormValid ? "white" : "#8B8B8B",
+                        color: "white",
                         fontSize: "1.1em",
                     }}
                     disabled={!isFormValid}

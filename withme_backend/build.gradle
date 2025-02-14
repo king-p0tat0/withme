@@ -25,8 +25,8 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // JPA 사용
-    implementation 'org.springframework.boot:spring-boot-starter-web' //웹 어플리케이션 기본
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'// JPA 사용
+    implementation 'org.springframework.boot:spring-boot-starter-web'//웹 어플리 케이션 기본
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -56,7 +56,7 @@ dependencies {
     // 롬복 의존성 추가
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    // Test Case에서 롬복 사용
+    // Test Case 에서 롬복 사용
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
@@ -75,17 +75,19 @@ dependencies {
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     // 보안
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    // 유효성 검증
+    //유효성 검증
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    // JWT 인증
+    //JWT 인증
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     // JWT 구현
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
     // JWT JSON 파싱
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-    // MariaDB 드라이버
+    // MariaDB  드라이버
     implementation 'org.mariadb.jdbc:mariadb-java-client'
+
+
 
     // Swagger 의존성
     // [스웨거]Springdoc OpenAPI Starter for Spring Boot 3.x
@@ -96,8 +98,11 @@ dependencies {
 
     // redis 의존성, redis는 메모리 기반의 key-value 저장소로서, 데이터를 빠르게 저장하고 조회할 수 있는 오픈소스 데이터베이스입니다.
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
+

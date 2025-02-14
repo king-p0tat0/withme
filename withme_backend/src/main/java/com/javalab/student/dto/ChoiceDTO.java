@@ -1,5 +1,6 @@
 package com.javalab.student.dto;
 
+import com.javalab.student.entity.Choice;
 import lombok.*;
 
 /**
@@ -13,8 +14,19 @@ import lombok.*;
 @Builder
 public class ChoiceDTO {
     private Long choiceId;   // 선택지 ID
-    private Long questionId; // ✅ 해당 선택지가 속한 질문 ID (필드명 확인 완료)
     private String choiceText; // 선택지 텍스트
     private Integer seq; // 선택지 순서
     private Integer score; // 선택지 점수
+
+    /**
+     * ✅ Choice 엔티티 → ChoiceDTO 변환 메서드
+     */
+    public static ChoiceDTO fromEntity(Choice choice) {
+        return ChoiceDTO.builder()
+                .choiceId(choice.getChoiceId())
+                .choiceText(choice.getChoiceText())
+                .seq(choice.getSeq())
+                .score(choice.getScore())
+                .build();
+    }
 }

@@ -38,7 +38,7 @@ public class MemberController {
     private final RefreshTokenService refreshTokenService;
 
     /**
-     * 회원가입 처리
+     * 일반 회원가입 처리
      * @param memberFormDto - 클라이언트에서 전송한 회원가입 데이터
      * @return 성공 또는 실패 메시지를 포함한 JSON 응답
      */

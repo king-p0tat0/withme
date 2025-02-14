@@ -3,7 +3,6 @@ package com.javalab.student.entity;
 import com.javalab.student.constant.Role;
 import com.javalab.student.dto.MemberFormDto;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,7 +30,6 @@ public class Member extends BaseEntity{
     @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
     private String name;
 
     // 이메일은 중복될 수 없다. unique = true
@@ -39,11 +37,8 @@ public class Member extends BaseEntity{
     private String email;
 
     private String password;
-
     private String phone;
-
     private String address;
-
 
     @Builder
     public Member(String email, String password, String auth) {
@@ -65,14 +60,6 @@ public class Member extends BaseEntity{
 
     /*
         * 회원 엔티티 생성 정적 메서드
-        * - MemberFormDto의 값들이 -> Member 엔티티로 이동
-        * - 회원가입 폼 DTO를 전달받아 회원 엔티티를 생성하는 역할을 한다.
-        * - Member 객체 생성 로직을 엔티티 내부에 숨기고, 외부에서는 이 메서드를 통해 객체를 생성하도록 한다.
-        * - 이 메소드를 만들어 두면 외부에서 이 엔티티 객체를 생성하고 값을 할당하는 코드를 중복으로 작성할 필요가 없다.
-        * - 정적 메소드이기 때문에 외부에 객체 생성없이 바로 호출이 가능하다는 장점이 있다.
-        * - Member 엔티티의 속성이 변화된다고 할지라도 여기서만 바꿔주면 된다.
-        * - passwordEncoder.encode : 비밀번호 암호화 함수
-        * - 사용자가 입력한 암호는 "평문"이다. 즉 암호화가 안된 문자열이다.
      */
     public static Member createMember(MemberFormDto memberFormDto, PasswordEncoder passwordEncoder) {
         Member member = new Member();
@@ -84,7 +71,7 @@ public class Member extends BaseEntity{
         member.setPhone(memberFormDto.getPhone());
         member.setPoints(0);
         member.setSocial(false); // 일반 회원가입이므로 소셜 로그인 여부는 false
-        member.setRole(memberFormDto.getRole());  // 회원가입 시 사용자의 권한 : USER  [수정]
+        member.setRole(memberFormDto.getRole()); // 소셜 사용자는 기본적으로 USER 권한
         return member;
     }
 
