@@ -90,7 +90,7 @@ const Header = () => {
     </li>
     {user.roles.includes("PENDING_DOCTOR") && (
       <li>
-        <Link to={`/doctor/register`}>전문가 신청</Link>
+        <Link to={`/doctor/register`}>수의사 신청</Link>
       </li>
     )}
   </>

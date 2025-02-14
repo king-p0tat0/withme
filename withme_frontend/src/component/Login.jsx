@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { API_URL } from "../constant";
 import { useDispatch } from "react-redux";
 import { setUser } from "../redux/authSlice";
@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 
 export default function Login() {
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
 
     const [email, setEmail] = useState("");
@@ -98,7 +99,9 @@ export default function Login() {
             }
 
             dispatch(setUser({ id: data.id, name: data.name, email: email, roles: data.roles }));
-            navigate("/");
+
+            // 🔹 로그인 성공 후 원래 페이지로 이동 (없으면 홈)
+            navigate(location.state?.from || "/");
         } catch (error) {
             console.error("로그인 요청 실패:", error);
             alert("서버 오류가 발생했습니다.");

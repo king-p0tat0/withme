@@ -142,8 +142,8 @@ export default function SignupDoctor() {
             const response = await fetchWithoutAuth(`${API_URL}members/register`, requestOptions);
 
             if (response.ok) {
-                alert("회원가입이 완료되었습니다.");
-                navigate("/signupSuccess", { state: { name: member.name } });
+                alert("회원가입이 완료되었습니다. 관리자의 권한 승인 후 관련 서비스 이용이 가능합니다.");
+                navigate("/doctorSignupSuccess", { state: { name: member.name } });
             } else {
                 const errorData = await response.json();
                 alert(`회원가입 실패: ${errorData.message || "오류 발생"}`);

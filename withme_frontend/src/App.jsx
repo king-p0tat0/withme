@@ -33,6 +33,7 @@ import MyPage from "./component/member/MyPage.jsx";
 import Policy from "./component/member/Policy"; // 약관정책
 import RegisterMember from "./component/member/RegisterMember"; // 일반 회원가입 페이지
 import SignupSuccess from "./component/member/SignupSuccess"; // 가입 완료
+import DoctorSignupSuccess from "./component/member/DoctorSignupSuccess"; // 가입 완료
 
 // ✅ 기타 페이지
 import Home from "./component/Home";
@@ -109,6 +110,7 @@ function App() {
         <Route path="/policy" element={<Policy />} />
         <Route path="/registerMember" element={<RegisterMember />} />
         <Route path="/signupSuccess" element={<SignupSuccess />} />
+        <Route path="/doctorSignupSuccess" element={<DoctorSignupSuccess />} />
 
         {/* ✅ 추가: 문진(survey) 관련 페이지 */}
         <Route path="/survey" element={<SurveyMain />} />
