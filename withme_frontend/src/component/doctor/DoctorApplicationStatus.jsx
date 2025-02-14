@@ -2,16 +2,18 @@ import React, { useState, useEffect } from "react";
 import { fetchWithAuth } from "../../common/fetchWithAuth"; // 인증된 fetch 함수
 import { API_URL } from "../../constant"; // API 기본 URL
 import { useSelector } from "react-redux";
+import DoctorApplicationEdit from "./DoctorApplicationEdit";
+import { useNavigate } from "react-router-dom";
 
 /**
  * 전문가 신청 상태 조회(사용자)
  */
-export default function DoctorApplicationStatus() {
+export default function DoctorApplicationStatus({user}) {
     const [doctor, setDoctor] = useState(null);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true); // 로딩 상태 추가
-    // Redux에서 사용자 정보 가져오기
-    const { user } = useSelector((state) => state.auth);
+    const navigate = useNavigate();
+
 
     useEffect(() => {
         const fetchDoctorApplication = async () => {
@@ -29,7 +31,7 @@ export default function DoctorApplicationStatus() {
                     setError("서버 오류로 신청 정보를 불러오지 못했습니다.");
                 }
             } catch (error) {
-                setError("네트워크 오류로 신청 정보를 가져오는데 실패했습니다.");
+                navigate("/unauthorized");
             } finally {
                 setLoading(false);
             }
@@ -75,10 +77,12 @@ export default function DoctorApplicationStatus() {
                 </p>
             )}
 
-            <p><strong>이름:</strong> {doctor.name}</p>
+            {/* 전문가 신청 정보 출력 */}
             <p><strong>병원명:</strong> {doctor.hospital}</p>
             <p><strong>전문분야:</strong> {doctor.subject}</p>
             <p><strong>신청 상태:</strong> {getStatusText(doctor.status)}</p>
+            {/* 수정 페이지로 이동하는 버튼 */}
+            <button onClick={() => navigate(`/doctor/edit/`)}>수정하기</button>
         </div>
     );
 }

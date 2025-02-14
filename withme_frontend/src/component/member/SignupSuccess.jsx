@@ -5,7 +5,7 @@ import "../../assets/css/member/SignupSuccess.css";
 function SignupSuccess() {
   // location 상태에서 사용자명 가져오기
   const location = useLocation();
-  const { username } = location.state || {}; // 이전 페이지에서 state로 전달된 username
+  const { name } = location.state || {}; // 이전 페이지에서 state로 전달된 username
 
    useEffect(() => {
       document.body.style.backgroundColor = "#FEF9F6";
@@ -23,7 +23,7 @@ function SignupSuccess() {
         </p>
         <p>
           <span className="userName" style={{ fontWeight: 'bold' }}>
-            {username}
+            {name}
           </span>
           님의 회원가입을 축하합니다.
         </p>

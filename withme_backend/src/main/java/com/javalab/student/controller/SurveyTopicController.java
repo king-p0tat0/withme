@@ -3,6 +3,7 @@ package com.javalab.student.controller;
 import com.javalab.student.entity.SurveyTopic;
 import com.javalab.student.service.SurveyTopicService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -45,13 +46,22 @@ public class SurveyTopicController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    /**
-     * ✅ 유료 문진(PAID) 주제 목록 조회 (surveyId 기반)
-     */
     @GetMapping("/paid/{surveyId}")
-    public ResponseEntity<List<SurveyTopic>> getPaidTopics(@PathVariable Long surveyId) {
-        return ResponseEntity.ok(surveyTopicService.getPaidTopics(surveyId));
+    public ResponseEntity<?> getPaidTopics(@PathVariable Long surveyId) {
+        System.out.println("✅ surveyId 값: " + surveyId); // 👉 디버깅 로그 추가
+
+        List<SurveyTopic> topics = surveyTopicService.getPaidTopics(surveyId);
+
+        if (topics.isEmpty()) {
+            System.out.println("❌ survey_id=" + surveyId + "에 해당하는 주제가 없습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❗ 해당 surveyId에 대한 주제가 없습니다.");
+        }
+
+        System.out.println("✅ 조회된 주제 개수: " + topics.size());
+        return ResponseEntity.ok(topics);
     }
+
+
 
     /**
      * ✅ 새로운 설문 주제 생성

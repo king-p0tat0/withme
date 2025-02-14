@@ -11,8 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
-
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -143,13 +146,11 @@ public class MemberService {
                 .email(member.getEmail())
                 .phone(member.getPhone())
                 .address(member.getAddress())
-                .age(member.getAge())
                 .role(member.getRole())
                 .social(member.isSocial())
                 .provider(member.getProvider())
                 .build();
     }
-
 
      /**
      * 사용자 인증 메서드
@@ -175,6 +176,28 @@ public class MemberService {
         }
 
         return member; // 인증 성공 시 Member 객체 반환
+    }
+
+    /**
+     * 일별 신규 가입자 수를 반환하는 메서드
+     */
+    public List<NewRegistrationDTO> getNewRegistrationsPerDay() {
+        List<Member> members = memberRepository.findAll();  // 모든 회원을 가져옴
+
+        // 날짜 포맷 정의 (yyyy-MM-dd)
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        // 가입일(reg_time)을 기준으로 날짜별 그룹화하여 신규 가입자 수 집계
+        Map<String, Long> newRegistrationsCount = members.stream()
+                .collect(Collectors.groupingBy(
+                        member -> member.getRegTime().format(formatter),  // LocalDateTime을 문자열로 변환
+                        Collectors.counting()  // 각 날짜별 가입자 수 계산
+                ));
+
+        // 결과를 NewRegistrationDTO 형태로 변환
+        return newRegistrationsCount.entrySet().stream()
+                .map(entry -> new NewRegistrationDTO(entry.getKey(), entry.getValue().intValue()))
+                .collect(Collectors.toList());
     }
 
 }

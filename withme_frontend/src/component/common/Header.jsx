@@ -51,6 +51,7 @@ const Header = () => {
             {isLoggedIn ? (
               <>
                 <li>{user.name}님</li>
+                <li>{user.roles}</li>
                 {user?.roles?.includes("ROLE_ADMIN") && (
                   <li>
                     <Link to="/admin">관리자 페이지</Link>
@@ -63,6 +64,15 @@ const Header = () => {
                 </li>
                 <li>
                   <Link to={`/mypage/${user.id}`}>마이페이지</Link>
+                </li>
+                <li>
+                  <Link to={`/doctor/register`}>전문가 신청</Link>
+                </li>
+                <li>
+                  <Link to={`/doctor/status`}>전문가 신청상태</Link>
+                </li>
+                <li>
+                  <Link to={`/doctor/edit`}>전문가 수정페이지</Link>
                 </li>
               </>
             ) : (
