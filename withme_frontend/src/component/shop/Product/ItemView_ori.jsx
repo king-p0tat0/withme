@@ -12,8 +12,15 @@ export default function ItemView({ user }) {
 
     console.log("받아온 user : " , user);
 
+    useEffect(() => {
+        if (item) {
+            console.log("이미지 URL 리스트:", item.itemImgDtoList);
+        }
+    }, [item]);
+
     // 상품 상세 정보를 가져오는 함수
     useEffect(() => {
+        // 상품 id가 없으면 종료
         if (!itemId) return;
 
         const fetchItemDetail = async () => {
@@ -65,37 +72,37 @@ export default function ItemView({ user }) {
         }
     };
 
+
+
+
     return (
-        <div className="item-view-container">
-            <div className="item-view-content">
-                {/* 상품 이미지 */}
-                {item.itemImgDtoList && item.itemImgDtoList.length > 0 && (
-                    <div className="item-image-container">
-                        <img
-                            src={`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`}
-                            alt={item.itemNm}
-                            className="item-image"
-                        />
-                    </div>
+        <div className="modal-overlay">
+            <div className="modal-content">
+                <h2>상품 상세 정보</h2>
+                <p><strong>상품명:</strong> {item.itemNm}</p>
+                <p><strong>가격:</strong> {item.price.toLocaleString()}원</p>
+                <p><strong>재고:</strong> {item.stockNumber}</p>
+                <p><strong>상태:</strong> {item.itemSellStatus === 'SELL' ? '판매중' : '품절'}</p>
+                <p><strong>설명:</strong> {item.itemDetail}</p>
+               {item.itemImgDtoList && item.itemImgDtoList.length > 0 && (
+                   <div className="item-images">
+                       {item.itemImgDtoList.map((img, index) => (
+                           img.imgUrl && (
+                               <img key={index} src={`${SERVER_URL2}${img.imgUrl}`}  />
+                           )
+                       ))}
+                   </div>
+               )}
+
+                <button>장바구니 담기</button>
+
+                {/* 관리자인 경우에만 수정 및 삭제 버튼을 표시 */}
+                {user && user.roles && user.roles.includes('ROLE_ADMIN') && (
+                    <>
+                        <button onClick={() => alert('상품 수정 기능을 구현하세요.')}>상품 수정</button>
+                        <button onClick={handleDelete}>상품 삭제</button>
+                    </>
                 )}
-
-                <div className="item-details">
-                    <h2>{item.itemNm}</h2>
-                    <p><strong>가격:</strong> {item.price.toLocaleString()}원</p>
-                    <p><strong>재고:</strong> {item.stockNumber}</p>
-                    <p><strong>상태:</strong> {item.itemSellStatus === 'SELL' ? '판매중' : '품절'}</p>
-                    <p><strong>설명:</strong> {item.itemDetail}</p>
-
-                    <button className="add-to-cart-btn">장바구니 담기</button>
-
-                    {/* 관리자인 경우에만 수정 및 삭제 버튼을 표시 */}
-                    {user && user.roles && user.roles.includes('ROLE_ADMIN') && (
-                        <div className="admin-actions">
-                            <button onClick={() => alert('상품 수정 기능을 구현하세요.')}>상품 수정</button>
-                            <button onClick={handleDelete}>상품 삭제</button>
-                        </div>
-                    )}
-                </div>
             </div>
         </div>
     );

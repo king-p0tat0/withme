@@ -87,7 +87,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         Set<String> bypassPathsStartsWith = Set.of(   // 접두사로 시작해야 하는 경로
                 "/swagger-ui", "/v3/api-docs", "/ws", "/ws/info",
                 "/api/item/list", "/api/item/view/",
-                "/topic/chat/", "/api/notices", "/api/posts"
+                "/topic/chat/", "/api/notices", "/api/posts",
+                "/images/"
         );
 
         // 정확히 일치하는 경로 확인

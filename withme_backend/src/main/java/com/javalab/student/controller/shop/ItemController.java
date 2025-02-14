@@ -24,9 +24,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 상품 관련 컨트롤러
@@ -49,7 +48,7 @@ public class ItemController {
      * 판매중인 상품 목록 페이지
      */
     @GetMapping("/list")
-    public ResponseEntity<List<Item>> getItemList() {
+    public ResponseEntity<List<ItemFormDto>> getItemList() {
         return ResponseEntity.ok(itemService.getItemListByItemSellStatus(ItemSellStatus.SELL));
     }
 
@@ -59,28 +58,21 @@ public class ItemController {
      * BindingResult : 유효성 검사 결과
      */
     @PostMapping("/new")
-    public ResponseEntity<?> createItem(@Valid @RequestBody ItemFormDto itemFormDTO,
-                                        BindingResult bindingResult,
-                                        @RequestParam("itemImgFile") List<MultipartFile> itemImgFileList) {
-        if (bindingResult.hasErrors()) {
-            return ResponseEntity.badRequest().body("입력값이 유효하지 않습니다.");
-        }
-
-        if (itemImgFileList.get(0).isEmpty() && itemFormDTO.getId() == null) {
-            return ResponseEntity.badRequest().body("첫번째 상품 이미지는 필수 입력 값입니다.");
-        }
-
-        itemImgFileList = itemImgFileList.stream()
-                .filter(file -> !file.isEmpty())
-                .toList();
-
+    public ResponseEntity<?> createItem(@Valid @RequestPart("itemFormDto") ItemFormDto itemFormDto,
+                                        @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList) {
         try {
-            itemService.saveItem(itemFormDTO, itemImgFileList);
-            return ResponseEntity.ok("상품이 등록되었습니다.");
+            Long savedItemId = itemService.saveItem(itemFormDto, itemImgFileList);
+            return ResponseEntity.ok().body(savedItemId);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("상품 등록 중 에러가 발생했습니다.");
+            return ResponseEntity.badRequest().body("상품 등록 실패: " + e.getMessage());
         }
     }
+
+
+
+
+
+
 
     /**
      * 상품 상세 조회 API

@@ -133,9 +133,49 @@ public class ItemService {
     /**
      * 판매 상태로 검색
      */
-    public List<Item> getItemListByItemSellStatus(ItemSellStatus itemSellStatus) {
+    /*public List<Item> getItemListByItemSellStatus(ItemSellStatus itemSellStatus) {
         return itemRepository.findByItemSellStatus(itemSellStatus);
+    }*/
+
+    /**
+     * 판매중인 상품 리스트
+     * 대표 이미지만 반환
+     * @param itemSellStatus
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public List<ItemFormDto> getItemListByItemSellStatus(ItemSellStatus itemSellStatus) {
+        // 1. 판매 상태에 따라 상품 목록 조회
+        List<Item> itemList = itemRepository.findByItemSellStatus(itemSellStatus);
+
+        // 2. 조회된 상품 목록을 ItemFormDto 리스트로 변환
+        List<ItemFormDto> itemFormDtoList = new ArrayList<>();
+
+        for (Item item : itemList) {
+            // 3. 해당 상품의 대표 이미지 조회 (repimgYn = 'Y'인 이미지만 가져오기)
+            ItemImg repItemImg = itemImgRepository.findByItemIdAndRepimgYn(item.getId(), "Y");
+
+            // 4. 대표 이미지가 있을 경우, ItemImgDto로 변환
+            ItemImgDto repItemImgDto = null;
+            if (repItemImg != null) {
+                repItemImgDto = ItemImgDto.entityToDto(repItemImg); // 대표 이미지 DTO 변환
+            }
+
+            // 5. 상품 정보를 ItemFormDto로 변환하고, 대표 이미지 정보 추가
+            ItemFormDto itemFormDto = ItemFormDto.of(item);
+            if (repItemImgDto != null) {
+                itemFormDto.setItemImgDtoList(List.of(repItemImgDto)); // 대표 이미지만 리스트에 추가
+            } else {
+                itemFormDto.setItemImgDtoList(new ArrayList<>()); // 대표 이미지가 없는 경우 빈 리스트
+            }
+
+            // 6. 변환된 DTO를 리스트에 추가
+            itemFormDtoList.add(itemFormDto);
+        }
+
+        return itemFormDtoList;
     }
+
 
     /**
      * 아이템 삭제

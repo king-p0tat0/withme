@@ -49,7 +49,6 @@ import SurveyMain from "./component/survey/SurveyMain";
 // 쇼핑몰
 import ItemList from "./component/shop/Product/ItemList";
 import ItemView from "./component/shop/Product/ItemView";
-import ItemAdd from "./component/shop/Product/ItemAdd";
 
 
 function App() {
@@ -145,7 +144,6 @@ function App() {
         {/* 쇼핑몰 */}
         <Route path="/item/list" element={<ItemList />} />
         <Route path="/item/view/:itemId" element={<ItemView user={user}/>} />
-        <Route path="/item/add" element={<ItemAdd user={user}/>} />
 
 
 

@@ -1,89 +1,76 @@
-import React, { useState } from 'react';
-import { fetchWithAuth } from '../../../common/fetchWithAuth';
-import { API_URL } from '../../../constant';
-import '../../../assets/css/shop/ItemCreateForm.css';
+import { Button, TextField, Typography } from "@mui/material";
+import React, { useState } from "react";
+import { fetchWithAuth } from "../../../common/fetchWithAuth";
+import { API_URL } from "../../../constant";
+import { useNavigate } from "react-router-dom";
 
-export default function ItemForm() {
-    const [formData, setFormData] = useState({
-        itemNm: '',
-        price: '',
-        itemDetail: '',
-        stockNumber: '',
-        itemSellStatus: 'SELL',
-        itemImgFile: []
+const ItemRegistration = () => {
+  const [item, setItem] = useState({
+    itemNm: '',
+    price: '',
+    itemDetail: '',
+    stockNumber: '',
+    itemSellStatus: 'SELL'
+  });
+  const [images, setImages] = useState([]);
+
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setItem(prevItem => ({
+      ...prevItem,
+      [name]: value
+    }));
+  };
+
+  const handleImageChange = (e) => {
+    setImages(Array.from(e.target.files));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('itemFormDto', new Blob([JSON.stringify(item)], { type: 'application/json' }));
+    images.forEach((image, index) => {
+      formData.append('itemImgFile', image);
     });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    try {
+      const response = await fetchWithAuth(`${API_URL}item/new`, {
+        method: 'POST',
+        body: formData,
 
-    const handleFileChange = (e) => {
-        setFormData({ ...formData, itemImgFile: e.target.files });
-    };
+      });
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
+      if (response.ok) {
+        alert('상품이 성공적으로 등록되었습니다.');
+        // 성공 후 리스트로 이동
+        navigate("/item/list");
+      } else {
+        const errorData = await response.json();
+        alert(`상품 등록 실패: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('상품 등록 중 오류 발생:', error);
+      alert('상품 등록 중 오류가 발생했습니다.');
+    }
+  };
 
-        const data = new FormData();
-        Object.keys(formData).forEach((key) => {
-            if (key === 'itemImgFile') {
-                Array.from(formData.itemImgFile).forEach(file => data.append('itemImgFile', file));
-            } else {
-                data.append(key, formData[key]);
-            }
-        });
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="text" name="itemNm" value={item.itemNm} onChange={handleChange} placeholder="상품명" required />
+      <input type="number" name="price" value={item.price} onChange={handleChange} placeholder="가격" required />
+      <textarea name="itemDetail" value={item.itemDetail} onChange={handleChange} placeholder="상품 상세 설명" required />
+      <input type="number" name="stockNumber" value={item.stockNumber} onChange={handleChange} placeholder="재고 수량" required />
+      <select name="itemSellStatus" value={item.itemSellStatus} onChange={handleChange}>
+        <option value="SELL">판매중</option>
+        <option value="SOLD_OUT">품절</option>
+      </select>
+      <input type="file" multiple onChange={handleImageChange} />
+      <button type="submit">상품 등록</button>
+    </form>
+  );
+};
 
-        try {
-            const response = await fetchWithAuth(`${API_URL}item/new`, {
-                method: 'POST',
-                body: data
-            });
-
-            if (!response.ok) {
-                throw new Error('상품 등록에 실패했습니다.');
-            }
-            alert('상품이 등록되었습니다.');
-            // 상품 리스트로 이동
-            window.location.href = '/item/list';
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="item-create-container">
-            <h2>상품 등록</h2>
-            {error && <p className="error">{error}</p>}
-            <form onSubmit={handleSubmit}>
-                <label>상품명:
-                    <input type="text" name="itemNm" value={formData.itemNm} onChange={handleChange} required />
-                </label>
-                <label>가격:
-                    <input type="number" name="price" value={formData.price} onChange={handleChange} required />
-                </label>
-                <label>상품 상세 설명:
-                    <textarea name="itemDetail" value={formData.itemDetail} onChange={handleChange} required />
-                </label>
-                <label>재고 수량:
-                    <input type="number" name="stockNumber" value={formData.stockNumber} onChange={handleChange} required />
-                </label>
-                <label>판매 상태:
-                    <select name="itemSellStatus" value={formData.itemSellStatus} onChange={handleChange}>
-                        <option value="SELL">판매중</option>
-                        <option value="SOLD_OUT">품절</option>
-                    </select>
-                </label>
-                <label>상품 이미지:
-                    <input type="file" multiple onChange={handleFileChange} />
-                </label>
-                <button type="submit" disabled={loading}>{loading ? '등록 중...' : '상품 등록'}</button>
-            </form>
-        </div>
-    );
-}
+export default ItemRegistration;

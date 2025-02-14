@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL, SERVER_URL2 } from '../../../constant';
-import { useNavigate } from 'react-router-dom';
+import ItemView from './ItemView'; // 상세보기 컴포넌트
+import { fetchWithAuth } from '../../../common/fetchWithAuth';
+import { API_URL } from '../../../constant';
 import '../../../assets/css/shop/ItemList.css';
+import { useNavigate } from 'react-router-dom';
 
 export default function ItemList() {
     const [items, setItems] = useState([]); // 상품 목록 상태
@@ -10,6 +12,8 @@ export default function ItemList() {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
     const navigate = useNavigate();
 
     const itemsPerPage = 10;
@@ -20,9 +24,9 @@ export default function ItemList() {
         setError(null);
         try {
             console.log('상품 목록 가져오기...');
-            const response = await fetch(`${API_URL}item/list`); // 상품 목록 API 호출
+            const response = await fetch(`${API_URL}item/list`);
             const data = await response.json();
-            setItems(data); // 상품 데이터를 상태에 저장
+            setItems(data);
             console.log("가져온 상품 데이터 : ", data);
         } catch (err) {
             setError('상품 데이터를 가져오는 데 실패했습니다.');
@@ -31,25 +35,25 @@ export default function ItemList() {
         }
     };
 
+
     useEffect(() => {
-        fetchItems(); // 컴포넌트 렌더링 시 상품 목록을 가져옵니다.
+        fetchItems();
     }, []);
 
     // 검색 딜레이 적용 (0.5초)
     useEffect(() => {
         const timer = setTimeout(() => {
-            setDebouncedQuery(searchQuery); // 검색어 변경 후 0.5초 후에 디바운스 처리
+            setDebouncedQuery(searchQuery);
         }, 500);
 
-        return () => clearTimeout(timer); // 타이머 정리
+        return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    // 검색 필터링
+    // 검색 필터
     const filteredData = items.filter((item) =>
         item.itemNm.toLowerCase().includes(debouncedQuery.toLowerCase())
     );
 
-    // 페이지네이션
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     const currentData = filteredData.slice(
         (currentPage - 1) * itemsPerPage,
@@ -62,9 +66,19 @@ export default function ItemList() {
         }
     };
 
-    // 상세보기 페이지로 이동
+    // 상세보기 모달 열기
+    const openModal = (item) => {
+        setSelectedItem(item.id);
+        setIsModalOpen(true);
+    };
+
+    // 상세보기 모달 닫기
+    const closeModal = () => {
+        setIsModalOpen(false);
+    };
+
     const handleViewDetail = (itemId) => {
-        navigate(`/item/view/${itemId}`);
+        navigate(`/item/view/${itemId}`); // ItemView 페이지로 이동
     };
 
     return (
@@ -77,7 +91,7 @@ export default function ItemList() {
                     type="text"
                     placeholder="상품명 검색"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)} // 검색어 변경 시 상태 업데이트
+                    onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
 
@@ -87,32 +101,46 @@ export default function ItemList() {
                 <p className="error">{error}</p>
             ) : (
                 <>
-                    <div className="item-card-container">
-                        {currentData.length > 0 ? (
-                            currentData.map((item) => (
-                                <div className="item-card" key={item.id}>
-                                    {/* 대표 이미지 표시 */}
-                                    {item.itemImgDtoList && item.itemImgDtoList.length > 0 && (
-                                        <img
-                                            src={`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`}
-                                            alt={item.itemNm}
-                                            className="item-image"
-                                        />
-                                    )}
-
-                                    <div className="item-info">
-                                        <h3>{item.itemNm}</h3>
-                                        <p>가격: {item.price.toLocaleString()}원</p>
-                                        <p>재고: {item.stockNumber}</p>
-                                        <p>상태: {item.itemSellStatus === 'SELL' ? '판매중' : '품절'}</p>
-                                        <button onClick={() => handleViewDetail(item.id)}>상세보기</button>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <p>검색 결과가 없습니다.</p>
-                        )}
-                    </div>
+                    <table className="item-table">
+                        <thead>
+                            <tr>
+                                <th>상품 ID</th>
+                                <th>상품명</th>
+                                <th>가격</th>
+                                <th>재고</th>
+                                <th>판매 상태</th>
+                                <th>상세보기</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {currentData.length > 0 ? (
+                                currentData.map((item) => (
+                                    <tr key={item.id}>
+                                        <td>{item.id}</td>
+                                        <td>{item.itemNm}</td>
+                                        <td>{item.price.toLocaleString()}원</td>
+                                        <td>{item.stockNumber}</td>
+                                        <td>{item.itemSellStatus === 'SELL' ? '판매중' : '품절'}</td>
+                                        <td>
+                                            {/* <button onClick={() => openModal(item)}>상세보기</button> */}
+                                            <button onClick={() => handleViewDetail(item.id)}>상세보기</button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="6" style={{ textAlign: 'center' }}>
+                                        검색 결과가 없습니다.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+{/*
+                     */}{/* 상세보기 모달 */}{/*
+                    {isModalOpen && (
+                        <ItemView itemId={selectedItem} onClose={closeModal} />
+                    )} */}
 
                     {/* 페이징 */}
                     <div className="pagination">
