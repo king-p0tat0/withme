@@ -32,6 +32,7 @@ const PaidSurveyPage = () => {
     const fetchQuestions = async () => {
       setLoading(true);
       try {
+        // ✅ 쿼리 스트링 직접 추가
         const response = await fetchWithAuth(`${API_URL}questions/paid?topics=${selectedTopics.join(',')}`);
         if (!response.ok) throw new Error("질문을 불러오는데 실패했습니다.");
         const data = await response.json();
@@ -45,11 +46,13 @@ const PaidSurveyPage = () => {
         setCurrentQuestions(grouped[selectedTopics[0]] || []);
       } catch (error) {
         console.error("질문 로딩 오류:", error);
+        alert(`질문을 불러오는데 실패했습니다: ${error.message}`);
         setError(error.message);
       } finally {
         setLoading(false);
       }
     };
+
     fetchQuestions();
   }, [user, selectedTopics, navigate, location.state]);
 
@@ -161,7 +164,7 @@ const PaidSurveyPage = () => {
         display: "inline-block",
         marginBottom: "20px"
       }}>
-        📝 유료 문진 검사
+        유료 문진 검사
       </h2>
       <div style={{ marginBottom: "20px" }}>
         <div style={{ marginBottom: "15px", fontSize: "1.2rem", fontWeight: "bold" }}>
@@ -206,7 +209,7 @@ const PaidSurveyPage = () => {
             }}
           />
         ) : (
-          <div>이 주제에 대한 문제가 없습니다.</div>
+          <div>질문이 없습니다.</div>
         )}
       </div>
       <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
@@ -214,11 +217,12 @@ const PaidSurveyPage = () => {
           onClick={handlePrev}
           disabled={currentTopicIndex === 0}
           sx={{
-            backgroundColor: "#FFE0B2", // ✅ 연한 주황색
+            backgroundColor: "#FFE0B2",
             color: "#D67D00",
             fontSize: "1.1rem",
-            width: "48%",  // ✅ 반씩 자리 차지
-            "&:hover": { backgroundColor: "#FFB74D" }, // ✅ 호버 시 진한 주황색
+            width: "100%",
+            maxWidth: "48%",
+            "&:hover": { backgroundColor: "#FFB74D" },
             margin: "5px"
           }}
         >
@@ -228,11 +232,12 @@ const PaidSurveyPage = () => {
           <Button
             onClick={handleNext}
             sx={{
-              backgroundColor: "#FF8C00", // ✅ 진한 주황색
+              backgroundColor: "#FF8C00",
               color: "white",
               fontSize: "1.1rem",
-              width: "48%",  // ✅ 반씩 자리 차지
-              "&:hover": { backgroundColor: "#FF7043" }, // ✅ 호버 시 더 진하게
+              width: "100%",
+              maxWidth: "48%",
+              "&:hover": { backgroundColor: "#FF7043" },
               margin: "5px"
             }}
           >
@@ -245,7 +250,8 @@ const PaidSurveyPage = () => {
               backgroundColor: "#FF8C00",
               color: "white",
               fontSize: "1.1rem",
-              width: "48%",
+              width: "100%",
+              maxWidth: "48%",
               "&:hover": { backgroundColor: "#FF7043" },
               margin: "5px"
             }}

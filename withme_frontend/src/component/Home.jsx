@@ -18,12 +18,18 @@ function Home() {
       return;
     }
 
-    if (user.role === "PAID" || user.role === "VIP") {
-      navigate("/survey/paid");
+    const userRoles = user.roles.replace(/[\[\]]/g, '').split(',');  // ✅ 대괄호 제거 후 쉼표 기준으로 분할
+    console.log("🔍 확인된 사용자 roles:", userRoles);
+
+    if (userRoles.includes("ROLE_VIP") || userRoles.includes("ROLE_PAID")) {
+      navigate("/survey/paid/selection");  // ✅ 유료 회원용 페이지로 이동
     } else {
       navigate("/survey/free");
     }
   };
+
+
+
 
     useEffect(() => {
     document.body.style.backgroundColor = "#FEF9F6";

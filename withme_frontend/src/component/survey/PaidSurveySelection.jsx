@@ -78,6 +78,18 @@ const PaidSurveySelectionPage = () => {
     }
   };
 
+  /**
+   * ✅ 선택한 주제들을 PaidSurveyPage로 전달하여 이동
+   */
+ const startPaidSurvey = () => {
+   if (selectedTopics.length === 0) {
+     alert("🚨 최소 한 개 이상의 주제를 선택해주세요!");
+     return;
+   }
+   navigate("/survey/paid", { state: { selectedTopics } }); // ✅ App.jsx의 경로와 일치시킴
+ };
+
+
   return (
     <div className="p-6">
       <h2 className="text-xl font-bold mb-4">유료 문진 검사 주제 선택</h2>
@@ -127,6 +139,14 @@ const PaidSurveySelectionPage = () => {
           </ul>
         </div>
       )}
+
+      {/* ✅ 다음으로 문진 검사 시작 버튼 */}
+      <button
+        onClick={startPaidSurvey}
+        className="mt-6 px-6 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition"
+      >
+        다음으로 문진 검사 시작하기
+      </button>
     </div>
   );
 };

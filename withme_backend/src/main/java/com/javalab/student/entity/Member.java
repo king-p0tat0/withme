@@ -16,7 +16,7 @@ import java.util.Collections;
  * 회원 엔티티
  * - 회원 정보를 저장하는 엔티티 클래스
  * - 회원 정보를 저장하는 테이블과 매핑된다.
- * - 주로 서비스 레이어와 리포지토리 레이어에서 사용된다.
+ * - 주로 서비스 레이어와 리포지토리 레이어에서 사용된다.ffffffffffffffffffffffffffffffffffffffffffffffff
  * - 화면에서 데이터를 전달받는 용도로는 사용하지 않는게 관례이다.
  */
 @Entity

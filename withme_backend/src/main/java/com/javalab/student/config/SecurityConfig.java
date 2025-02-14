@@ -90,43 +90,42 @@ public class SecurityConfig {
          * favicon.ico : 파비콘 요청은 인증 없이 접근 가능, 이코드 누락시키면 계속 서버에 요청을 보내서 서버에 부하를 줄 수 있다.
          */
         http.authorizeHttpRequests(request -> request
-                // ✅ WebSocket 관련 요청 허용
-                .requestMatchers("/ws/**").permitAll()
-                .requestMatchers("/topic/**").permitAll()
+                // WebSocket 관련 요청 허용
+                .requestMatchers("/ws/**", "/topic/**").permitAll()
 
-                // ✅ 문진(Questionnaire) 관련 API 허용
-                .requestMatchers("/api/questionnaires/free").permitAll()
-                .requestMatchers("/api/questionnaires/{questionnaireId}").permitAll()
-                .requestMatchers("/api/questionnaires/user/{userId}").permitAll()
-                .requestMatchers("/api/questionnaires/free/latest/{userId}").permitAll()
-                .requestMatchers("/api/questionnaires/paid/latest/{userId}").permitAll()
+                // 인증 및 회원 관련 API
+                .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail", "/api/auth/userInfo").permitAll()
 
-                // ✅ 유료 문진 관련 API (ROLE_VIP만 접근 가능)
+                // 문진 관련 API - 더 구체적인 패턴을 먼저 배치
+                .requestMatchers("/api/questions/free/latest/{userId}").hasAuthority("ROLE_USER")
+                .requestMatchers("/api/questions/paid/latest/{userId}").hasAuthority("ROLE_VIP")
+                .requestMatchers("/api/questions/free/**").hasAuthority("ROLE_USER")
+                .requestMatchers("/api/questions/paid/**").hasAuthority("ROLE_VIP")
+                .requestMatchers("/api/questions").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
+
+                // 설문 주제 및 사용자 선택 주제 관련 API
                 .requestMatchers("/api/survey-topics/paid/**").hasAuthority("ROLE_VIP")
-                .requestMatchers("/api/user-selected-topics/**").hasAuthority("ROLE_VIP")
-                .requestMatchers("/survey/paid/**").hasAuthority("ROLE_VIP")
+                .requestMatchers("/api/survey-topics/**").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
+                .requestMatchers("/api/user-selected-topics/**").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
 
-                // ✅ 인증 및 회원 관련 API
-                .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail").permitAll()
-                .requestMatchers("/api/auth/userInfo").permitAll()
-                .requestMatchers("/api/members/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_VIP", "ROLE_DOCTOR")
-
-                // ✅ 관리자 관련 API
+                // 관리자 관련 API
                 .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
 
-                // ✅ 학생 관련 API
+                // 학생 관련 API
                 .requestMatchers(HttpMethod.GET, "/api/students/**").permitAll()
                 .requestMatchers("/api/students/**").hasAuthority("ROLE_ADMIN")
 
-                // ✅ 의사 관련 API
+                // 의사 관련 API
                 .requestMatchers("/api/doctors/**").permitAll()
 
-                // ✅ 메시지 및 커뮤니티 관련 API
+                // 메시지 및 커뮤니티 관련 API
                 .requestMatchers("/api/messages/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                .requestMatchers("/api/questions/**").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
                 .requestMatchers("/api/chat/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
-                // ✅ 정적 리소스 허용
+                // 회원 관련 API
+                .requestMatchers("/api/members/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_VIP", "ROLE_DOCTOR")
+
+                // 정적 리소스 허용
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(
                         "/images/**",
@@ -146,7 +145,7 @@ public class SecurityConfig {
                         "/ping.js"
                 ).permitAll()
 
-                // ✅ 중요: 모든 요청에 대해 인증 필요 (마지막에 배치)
+                // 중요: 모든 요청에 대해 인증 필요 (마지막에 배치)
                 .anyRequest().authenticated()
         );
 
