@@ -165,8 +165,24 @@ export default function SignupDoctor() {
         }
     };
 
+    // 회원가입 버튼 비활성화 조건
+    const isFormValid =
+        !nameError &&
+        !emailError &&
+        !passwordError &&
+        !confirmPasswordError &&
+        !phoneError &&
+        isEmailVerified &&
+        member.name.trim() !== "" &&
+        member.email.trim() !== "" &&
+        member.password.trim() !== "" &&
+        member.confirmPassword.trim() !== "" &&
+        member.address.trim() !== "" &&
+        member.phone.trim() !== "";
+
     return (
         <div className="container">
+          <h1 style={{ marginTop: "60px" }}>회원가입</h1>
             <div className="description-container">
                 <div className="description box">
                     <img src="/assets/images/icon/file-check.png" alt="file-check" className="icon" />
@@ -184,30 +200,33 @@ export default function SignupDoctor() {
                 </div>
             </div>
 
-            <div style={{ marginTop: "20px" }}>
+            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", marginTop: "20px", marginBottom: "30px" }}>
                 <Button
                     onClick={navigateToRegister}
                     style={{
-                        width: "400px",
+                        width: "200px",
                         height: "50px",
-                        backgroundColor: "#ff7c24",
-                        color: "white",
+                        backgroundColor: "#F8F8F8",
+                        color: "#ff7c24",
                         fontSize: "1.1em",
-                        marginBottom: "20px",
+                        marginRight: "20px",
+                        borderRadius: "8px"
                     }}
                 >
-                    일반 가입
+                    일반 회원
                 </Button>
                 <Button
                     style={{
-                        width: "400px",
+                        width: "200px",
                         height: "50px",
                         backgroundColor: "#ff7c24",
                         color: "white",
                         fontSize: "1.1em",
+                        marginRight: "20px",
+                        borderRadius: "8px"
                     }}
                 >
-                    수의사 가입
+                    수의사 회원
                 </Button>
             </div>
 
@@ -237,7 +256,7 @@ export default function SignupDoctor() {
                         style={{
                             width: "90px",
                             fontSize: "1em",
-                            backgroundColor: "#e67022",
+                            backgroundColor: "#FF7C24",
                             color: "white",
                             height: "56px",
                         }}
@@ -247,7 +266,7 @@ export default function SignupDoctor() {
                 </div>
 
                 {emailMessage && (
-                    <Typography style={{ color: emailMessage === "사용 가능한 이메일입니다." ? "green" : "red", marginBottom: "10px", fontSize: "0.9em" }}>
+                    <Typography style={{ color: emailMessage === "사용 가능한 이메일입니다." ? "green" : "red", margin: "2px auto 8px 0", fontSize: "0.9em" }}>
                         {emailMessage}
                     </Typography>
                 )}
@@ -296,10 +315,12 @@ export default function SignupDoctor() {
                     style={{
                         width: "400px",
                         height: "50px",
-                        backgroundColor: "#e67022",
+                        backgroundColor: isFormValid ? "#FF7C24" : "#D3D3D3",
+                        color: isFormValid ? "white" : "#8B8B8B",
                         color: "white",
                         fontSize: "1.1em",
                     }}
+                    disabled={!isFormValid}
                 >
                     회원가입
                 </Button>
