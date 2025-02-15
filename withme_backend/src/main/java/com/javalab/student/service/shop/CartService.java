@@ -15,6 +15,7 @@ import com.javalab.student.repository.shop.CartRepository;
 import com.javalab.student.repository.shop.ItemRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.util.StringUtils;
@@ -29,6 +30,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Log4j2
 public class CartService {
 
     private final ItemRepository itemRepository;
@@ -209,7 +211,9 @@ public class CartService {
             CartItem cartItem = cartItemRepository
                     .findById(cartOrderItemDto.getCartItemId())
                     .orElseThrow(EntityNotFoundException::new);
+            // 장바구니에서 해당 상품 삭제
             cartItemRepository.delete(cartItem);
+            log.info("삭제된 장바구니 상품 ID: " + cartOrderItemDto.getCartItemId());
         }
 
         // 5. 주문 ID 반환

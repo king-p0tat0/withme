@@ -48,6 +48,37 @@ export default function ItemView({ user }) {
         return <div>상품을 찾을 수 없습니다.</div>; // item이 없을 경우 표시할 UI
     }
 
+    // 장바구니 추가 함수
+    const handleAddToCart = async () => {
+        if (!user) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
+
+        try {
+            const cartItem = {
+                itemId: item.id,
+                count: 1 // 기본 수량 1개
+            };
+
+            const response = await fetchWithAuth(`${API_URL}cart/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cartItem)
+            });
+
+            if (response.ok) {
+                alert('장바구니에 추가되었습니다.');
+            } else {
+                const errorMsg = await response.text();
+                alert(`장바구니 추가 실패: ${errorMsg}`);
+            }
+        } catch (error) {
+            console.error('장바구니 추가 오류:', error);
+            alert('장바구니 추가 중 오류가 발생했습니다.');
+        }
+    };
+
     // 상세보기 페이지로 이동
     const handleEdit = (itemId) => {
         navigate(`/item/edit/${itemId}`);
@@ -92,7 +123,7 @@ export default function ItemView({ user }) {
                     <p><strong>상태:</strong> {item.itemSellStatus === 'SELL' ? '판매중' : '품절'}</p>
                     <p><strong>설명:</strong> {item.itemDetail}</p>
 
-                    <button className="add-to-cart-btn">장바구니 담기</button>
+                    <button className="add-to-cart-btn" onClick={handleAddToCart} >장바구니 담기</button>
 
                     {/* 관리자인 경우에만 수정 및 삭제 버튼을 표시 */}
                     {user && user.roles && user.roles.includes('ROLE_ADMIN') && (

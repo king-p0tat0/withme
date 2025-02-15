@@ -63,6 +63,7 @@ import ItemList from "./component/shop/Product/ItemList";
 import ItemView from "./component/shop/Product/ItemView";
 import ItemAdd from "./component/shop/Product/ItemAdd";
 import ItemEdit from "./component/shop/Product/ItemEdit";
+import CartList from "./component/shop/Cart/CartList";
 
 function App() {
   // 리덕스 스토어의 상태를 가져오기 위해 useSelector 훅 사용, auth 슬라이스에서 user, isLoggedIn 상태를 가져옴
@@ -139,6 +140,7 @@ function App() {
         <Route path="/item/view/:itemId" element={<ItemView user={user} />} />
         <Route path="/item/add" element={<ItemAdd user={user} />} />
         <Route path="/item/edit/:itemId" element={<ItemEdit />} />
+        <Route path="/cart/list" element={<CartList />} />
 
         {/* 수의사 */}
         <Route path="/signupDoctor" element={<SignupDoctor />} />

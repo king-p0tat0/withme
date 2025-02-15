@@ -24,7 +24,7 @@
                             <option name="models">
                               <list>
                                 <GrepModel>
-                                  <option name="expression" value="수정" />
+                                  <option name="expression" value="장바구니" />
                                 </GrepModel>
                               </list>
                             </option>

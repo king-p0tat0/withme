@@ -63,11 +63,17 @@ public class CartController {
     }
 
     @GetMapping("/list")
-    public String orderHist(Principal principal, Model model) {
+    public @ResponseBody ResponseEntity<?> getCartList(Principal principal) {
         log.info("장바구니 목록 조회 요청: 사용자 {}", principal.getName());
-        List<CartDetailDto> cartDetailList = cartService.getCartList(principal.getName());
-        model.addAttribute("cartItems", cartDetailList);
-        return "cart/cartList";
+
+        try {
+            List<CartDetailDto> cartDetailList = cartService.getCartList(principal.getName());
+            log.info("장바구니 목록 조회 완료: {}", cartDetailList.size());
+            return new ResponseEntity<>(cartDetailList, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("장바구니 목록 조회 중 오류 발생", e);
+            return new ResponseEntity<>("장바구니 목록을 불러오는 데 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
