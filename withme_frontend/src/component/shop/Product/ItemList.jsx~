@@ -67,7 +67,7 @@ export default function ItemList() {
         navigate(`/item/view/${itemId}`);
     };
 
-
+console.log(`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`);
 
     return (
         <div className="item-list-container">
