@@ -82,7 +82,7 @@ export default function DoctorApplicationStatus({user}) {
             <p><strong>전문분야:</strong> {doctor.subject}</p>
             <p><strong>신청 상태:</strong> {getStatusText(doctor.status)}</p>
             {/* 수정 페이지로 이동하는 버튼 */}
-            <button onClick={() => navigate(`/doctor/edit/`)}>수정하기</button>
+            <button onClick={() => navigate(`/doctors/edit/${user.id}`)}>수정하기</button>
         </div>
     );
 }

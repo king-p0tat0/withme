@@ -46,7 +46,7 @@ export default function DoctorApplicationForm({ user }) {
 
             if (response.ok) {
                 alert("전문가 신청이 완료되었습니다.");
-                navigate("/doctor/status"); // 신청 후 상태 페이지로 리다이렉트
+                navigate(`/doctors/status/${user.id}`); // 신청 후 상태 페이지로 리다이렉트
             } else {
                 const errorMessage = await response.text();
                 setError(errorMessage || "신청에 실패했습니다.");
@@ -63,7 +63,7 @@ export default function DoctorApplicationForm({ user }) {
     useEffect(() => {
         if (error) {
             alert("신청 정보가 있습니다.");
-            navigate("/doctor/status"); // 신청 정보 조회 페이지로 리다이렉트
+            navigate(`/doctors/status/${user.id}`); // 신청 정보 조회 페이지로 리다이렉트
         }
     }, [error, history]);
 
