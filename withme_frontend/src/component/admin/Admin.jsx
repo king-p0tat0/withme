@@ -2,11 +2,12 @@ import DoctorUpdate from './DoctorUpdate';
 import DoctorList from './DoctorList';
 import DoctorView from './DoctorView';
 import UserList from './UserList';
+import ItemAdd from '../shop/Product/ItemAdd';
 import React, { useState  } from 'react';
 import Dashboard from './Dashboard';
 import '../../assets/css/admin/Admin.css';
 
-export default function Admin() {
+export default function Admin({user}) {
     // 드롭다운 상태 관리
     const [showDoctorMenu, setShowDoctorMenu] = useState(false);
     const [showCustomerMenu, setShowCustomerMenu] = useState(false);
@@ -22,7 +23,7 @@ export default function Admin() {
                 <ul>
                     <div>
                         <p className="menu-header"
-                        onClick={() => setCurrentPage(<Dashboard />)}
+                        onClick={() => setCurrentPage(<Dashboard user={user}/>)}
                         > 관리자 홈</p>
                         <p
                             className="menu-header"
@@ -76,6 +77,9 @@ export default function Admin() {
                         </p>
                         {showShopMenu && (
                             <ul className="menu-items">
+                                <li className="menu-item"
+                                 onClick={() => setCurrentPage(<ItemAdd />)}
+                                 >상품 등록</li>
                                 <li className="menu-item">상품 목록</li>
                                 <li className="menu-item">주문 관리</li>
                             </ul>
