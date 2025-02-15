@@ -140,52 +140,54 @@ const PostForm = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">
-        {id ? "게시글 수정" : "게시글 등록"}
+    <div className="post_form_container">
+      <h1 className="post_form_title">
+        {id ? "커뮤니티 수정" : "커뮤니티 등록"}
       </h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-gray-700 mb-2">제목:</label>
+      <form onSubmit={handleSubmit} className="post_form">
+        <div className="form_group">
+          <label className="form_label">제목:</label>
           <input
             type="text"
             name="title"
             value={post.title}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:border-blue-500"
+            className="form_input"
+            placeholder="제목을 입력해주세요"
           />
         </div>
-        <div>
-          <label className="block text-gray-700 mb-2">내용:</label>
-          <Editor
-            style={{
-              height: "500px"
-            }}
-            editorState={editorState}
-            wrapperClassName="wrapper-class"
-            editorClassName="editor-class"
-            toolbarClassName="toolbar-class"
-            onEditorStateChange={handleEditorChange}
-            toolbar={{
-              image: {
-                uploadCallback: uploadImageCallBack,
-                alt: { present: true, mandatory: false },
-                previewImage: true,
-                inputAccept:
-                  "image/gif,image/jpeg,image/jpg,image/png,image/svg"
-              }
-            }}
-          />
+
+        <div className="form_group">
+          <label className="form_label">내용:</label>
+          <div className="editor_wrapper">
+            <Editor
+              editorState={editorState}
+              onEditorStateChange={handleEditorChange}
+              wrapperClassName="wrapper-class"
+              editorClassName="editor-class"
+              toolbarClassName="toolbar-class"
+              toolbar={{
+                image: {
+                  uploadCallback: uploadImageCallBack,
+                  alt: { present: true, mandatory: false },
+                  previewImage: true,
+                  inputAccept:
+                    "image/gif,image/jpeg,image/jpg,image/png,image/svg"
+                }
+              }}
+            />
+          </div>
         </div>
-        <div>
-          <label className="block text-gray-700 mb-2">카테고리:</label>
+
+        <div className="form_group">
+          <label className="form_label">카테고리:</label>
           <select
             name="postCategory"
             value={post.postCategory}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:border-blue-500">
+            className="form_select">
             <option value="">카테고리 선택</option>
             <option value="펫푸드">펫푸드</option>
             <option value="질문/꿀팁">질문/꿀팁</option>
@@ -194,16 +196,15 @@ const PostForm = () => {
             <option value="행사/정보">행사/정보</option>
           </select>
         </div>
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none">
+
+        <div className="form_button_group">
+          <button type="submit" className="form_button submit_button">
             저장
           </button>
           <button
             type="button"
             onClick={() => navigate("/posts")}
-            className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 focus:outline-none">
+            className="form_button cancel_button">
             취소
           </button>
         </div>

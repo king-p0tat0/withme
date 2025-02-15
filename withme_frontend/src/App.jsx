@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 //import { AppBar, Toolbar, Typography, Button } from "@mui/material";
 import { Routes, Route, Link, Navigate } from "react-router-dom";
+
 import Login from "./component/Login";
 import MyPage from "./component/member/MyPage.jsx";
 
@@ -12,7 +13,8 @@ import UiComponents from "./component/elements/UiComponents";
 //공지사항
 import NoticeList from "./component/notice/NoticeList";
 import NoticeForm from "./component/notice/NoticeForm";
-import NoticeView from "./component/notice/NoticeView";
+//import NoticeView from "./component/notice/NoticeView"; //아코디언으로 변경
+
 // 전문가 신청, 수정
 import RegisterDoctor from "./component/doctor/RegisterDoctor";
 import DoctorApplicationStatus from "./component/doctor/DoctorApplicationStatus";
@@ -108,7 +110,7 @@ function App() {
         {/* 공지사항 목록 */}
         <Route path="/notices" element={<NoticeList />} />
         <Route path="/notices/new" element={<NoticeForm />} />
-        <Route path="/notices/:id" element={<NoticeView />} />
+        <Route path="/notices/edit/:id" element={<NoticeForm />} />
 
         {/* 커뮤니티 목록 */}
         <Route path="/posts" element={<PostList />} />

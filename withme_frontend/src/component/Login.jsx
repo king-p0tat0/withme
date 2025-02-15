@@ -36,12 +36,15 @@ export default function Login() {
       }
       console.log("name : " + data.name);
 
+      const rolesString = data.roles; // "[ROLE_ADMIN]"
+      const rolesArray = rolesString.replace(/[\[\]"]/g, "").split(",");
+
       dispatch(
         setUser({
           id: data.id,
           name: data.name,
           email: credentials.email,
-          roles: data.roles
+          role: rolesArray[0].replace("ROLE_", "")
         })
       );
       navigate("/");

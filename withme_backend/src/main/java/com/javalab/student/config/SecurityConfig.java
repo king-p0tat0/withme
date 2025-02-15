@@ -100,7 +100,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/posts", "/api/comments","/api/posts/*/comments").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated()
                .requestMatchers(HttpMethod.DELETE, "/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated()
-                .requestMatchers("/api/notices/**").hasRole("ADMIN")   // 공지사항 등록, 수정, 삭제는 ADMIN만 접근 가능
+                // 공지사항 등록, 수정, 삭제는 ADMIN만 접근 가능
+                .requestMatchers(HttpMethod.POST, "/api/notices/**").hasRole("ADMIN") 
+                .requestMatchers(HttpMethod.PUT, "/api/notices/**").hasRole("ADMIN") 
+                .requestMatchers(HttpMethod.DELETE, "/api/notices/**").hasRole("ADMIN")
                 .requestMatchers("/api/auth/userInfo").permitAll() // 사용자 정보 조회 API는 모든 사용자에게 허용
                 .requestMatchers("/api/doctors/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -179,6 +182,7 @@ public class SecurityConfig {
                 .loginPage("/members/login")
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
         );
+        
 
         // 지금까지 설정한 내용을 빌드하여 반환, 반환 객체는 SecurityFilterChain 객체
         return http.build();

@@ -55,11 +55,13 @@ function Home() {
 
           <div className="item-wrap">
             <div className="notice">
-              <span className="red" style={{ color: "red" }}>
+              {/* MainNotice 컴포넌트로 대체 */}
+              <MainNotice />
+              {/* <span className="red" style={{ color: "red" }}>
                 공지사항
               </span>{" "}
               📢 <span className="line">|</span> " 폭설이 내릴 예정이에요 ⛄❄
-              눈길 조심! "
+              눈길 조심! " */}
             </div>
 
             {/* 상품 리스트 */}
