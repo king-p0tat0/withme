@@ -1,11 +1,12 @@
 package com.javalab.student.service;
 
-import com.javalab.student.entity.Member;
-import com.javalab.student.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import com.javalab.student.entity.Member;
+import com.javalab.student.repository.MemberRepository;
 
 import java.time.Duration;
 import java.util.List;

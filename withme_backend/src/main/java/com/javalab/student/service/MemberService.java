@@ -2,7 +2,6 @@ package com.javalab.student.service;
 
 import com.javalab.student.dto.*;
 import com.javalab.student.entity.Member;
-import com.javalab.student.entity.Student;
 import com.javalab.student.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,8 +10,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,6 +54,10 @@ public class MemberService {
         return memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 사용자를 찾을 수 없습니다."));
     }
+    @Transactional(readOnly = true)
+    public Member getMemberByEmail(String email) {
+        return memberRepository.findByEmail(email);
+    }
 
 
     // 사용자 정보 수정 메서드
@@ -58,7 +65,7 @@ public class MemberService {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        member.setUsername(memberFormDto.getUsername());
+        member.setName(memberFormDto.getName());
         member.setPhone(memberFormDto.getPhone());
         member.setAddress(memberFormDto.getAddress());
 
@@ -82,13 +89,20 @@ public class MemberService {
      * @return 로그인 성공 여부 (true: 성공, false: 실패)
      */
     public boolean login(LoginFormDto loginForm) {
-        // 이메일로 회원 검색
+        if (loginForm.getEmail() == null || loginForm.getEmail().isEmpty()) {
+            throw new IllegalArgumentException("이메일을 입력해주세요.");
+        }
+
         Member member = memberRepository.findByEmail(loginForm.getEmail());
+        if (member == null) {
+            return false; // 사용자 없음
+        }
 
-        // 회원이 존재하지 않거나 비밀번호가 일치하지 않으면 실패
-        return member != null && passwordEncoder.matches(loginForm.getPassword(), member.getPassword());
+        if (!passwordEncoder.matches(loginForm.getPassword(), member.getPassword())) {
+            return false; // 비밀번호 불일치
+        }
 
-        // 로그인 성공
+        return true; // 로그인 성공
     }
 
     public Member findById(Long memberId) {
@@ -99,4 +113,91 @@ public class MemberService {
     public Member findByEmail(String email) {
         return memberRepository.findByEmail(email);
     }
+
+    /*모든 사용자 조회(페이징)*/
+    public PageResponseDTO<MemberDto> getAllMembers(PageRequestDTO pageRequestDTO) {
+        // Pageable 생성
+        Pageable pageable = pageRequestDTO.getPageable("id");
+
+        // 데이터 조회 (Page 객체 사용)
+        Page<Member> result = memberRepository.findAll(pageable);
+
+        // Page -> PageResponseDTO 변환
+        List<MemberDto> dtoList = result.getContent().stream()
+                .map(this::convertEntityToDto)
+                .collect(Collectors.toList());
+
+        return PageResponseDTO.<MemberDto>builder()
+                .dtoList(dtoList)
+                .total((int) result.getTotalElements())
+                .pageRequestDTO(pageRequestDTO)
+                .build();
+    }
+
+    public List<Member> getMember() {
+        return memberRepository.findAll();
+    }
+
+
+    private MemberDto convertEntityToDto(Member member) {
+        return MemberDto.builder()
+                .id(member.getId())
+                .name(member.getName())
+                .email(member.getEmail())
+                .phone(member.getPhone())
+                .address(member.getAddress())
+                .role(member.getRole())
+                .social(member.isSocial())
+                .provider(member.getProvider())
+                .build();
+    }
+
+     /**
+     * 사용자 인증 메서드
+     * @param email 사용자 이메일
+     * @param password 사용자 비밀번호
+     * @return 인증된 Member 객체
+     * @throws IllegalArgumentException 이메일 또는 비밀번호가 잘못된 경우 예외 발생
+     */
+    public Member authenticate(String email, String password) {
+        if (email == null || email.isEmpty()) {
+            throw new IllegalArgumentException("이메일을 입력해주세요.");
+        }
+
+        // 이메일로 사용자 조회
+        Member member = memberRepository.findByEmail(email);
+        if (member == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+        }
+
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+
+        return member; // 인증 성공 시 Member 객체 반환
+    }
+
+    /**
+     * 일별 신규 가입자 수를 반환하는 메서드
+     */
+    public List<NewRegistrationDTO> getNewRegistrationsPerDay() {
+        List<Member> members = memberRepository.findAll();  // 모든 회원을 가져옴
+
+        // 날짜 포맷 정의 (yyyy-MM-dd)
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        // 가입일(reg_time)을 기준으로 날짜별 그룹화하여 신규 가입자 수 집계
+        Map<String, Long> newRegistrationsCount = members.stream()
+                .collect(Collectors.groupingBy(
+                        member -> member.getRegTime().format(formatter),  // LocalDateTime을 문자열로 변환
+                        Collectors.counting()  // 각 날짜별 가입자 수 계산
+                ));
+
+        // 결과를 NewRegistrationDTO 형태로 변환
+        return newRegistrationsCount.entrySet().stream()
+                .map(entry -> new NewRegistrationDTO(entry.getKey(), entry.getValue().intValue()))
+                .collect(Collectors.toList());
+    }
+
 }

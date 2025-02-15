@@ -1,96 +1,121 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { Typography, Button } from "@mui/material";
+import { Typography, Button, Box } from "@mui/material";
+import { Star as StarIcon } from "@mui/icons-material";
+import { useSelector } from "react-redux";
+import { API_URL } from "../../constant";
+import { fetchWithAuth } from "../../utils/fetchWithAuth";
+import { PrimaryButton, DeleteButton } from "../elements/CustomComponents";
 
 const NoticeView = () => {
-  const { id } = useParams(); // URL에서 공지사항 ID 가져오기
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [notice, setNotice] = useState(null); // 공지사항 데이터 상태
-  const [isAdmin, setIsAdmin] = useState(false); // 관리자 여부
+  const [notice, setNotice] = useState(null);
+  const { user, isLoggedIn } = useSelector((state) => state.auth);
+
+  // 날짜 포맷팅 함수
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(date);
+  };
 
   useEffect(() => {
+    const fetchNotice = async () => {
+      try {
+        const response = await fetch(`${API_URL}notices/${id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          credentials: "include"
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setNotice(data);
+      } catch (error) {
+        console.error("공지사항을 불러오는 중 오류가 발생했습니다.", error);
+        alert("공지사항을 불러오는데 실패했습니다.");
+        navigate("/notices");
+      }
+    };
+
     fetchNotice();
-    checkAdmin();
-  }, []);
+  }, [id, navigate]);
 
-  // 공지사항 데이터 가져오기
-  const fetchNotice = async () => {
-    try {
-      const response = await axios.get(`/api/notices/${id}`); // 단일 공지사항 API 호출
-      setNotice(response.data); // 공지사항 데이터 설정
-    } catch (error) {
-      console.error("공지사항을 불러오는 중 오류가 발생했습니다.", error);
-      alert("공지사항을 불러오는 데 실패했습니다.");
-      navigate("/notices"); // 실패 시 목록 페이지로 이동
-    }
-  };
-
-  // 관리자 여부 확인
-  const checkAdmin = async () => {
-    try {
-      const response = await axios.get("/api/auth/userInfo"); // 사용자 정보 API 호출
-      setIsAdmin(response.data.role === "ADMIN"); // role이 ADMIN인지 확인
-    } catch (error) {
-      console.error("사용자 정보를 불러오는 중 오류가 발생했습니다.", error);
-    }
-  };
-
-  // 공지사항 삭제
   const deleteNotice = async () => {
     if (window.confirm("정말로 삭제하시겠습니까?")) {
       try {
-        await axios.delete(`/api/notices/${id}`); // 삭제 API 호출
+        const response = await fetchWithAuth(`${API_URL}notices/${id}`, {
+          method: "DELETE"
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `HTTP error! Status: ${response.status}, Body: ${errorText}`
+          );
+        }
+
         alert("공지사항이 삭제되었습니다.");
-        navigate("/notices"); // 삭제 후 목록 페이지로 이동
+        navigate("/notices");
       } catch (error) {
-        console.error("공지사항 삭제 중 오류가 발생했습니다.", error);
-        alert("공지사항 삭제에 실패했습니다.");
+        console.error("공지사항 삭제 중 오류가 발생했습니다:", error);
+        alert(error.message || "공지사항 삭제에 실패했습니다.");
       }
     }
   };
 
-  if (!notice) return <p>공지사항을 불러오는 중입니다...</p>; // 로딩 상태 표시
+  if (!notice) return <p>공지사항을 불러오는 중입니다...</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <Box sx={{ padding: "20px" }}>
       <Typography variant="h4" gutterBottom>
+        {notice.important && (
+          <StarIcon color="primary" sx={{ mr: 1, verticalAlign: "middle" }} />
+        )}
         {notice.title}
       </Typography>
-      <Typography variant="body1" gutterBottom>
+      <Typography variant="body1" sx={{ mt: 2, mb: 2 }}>
         {notice.content}
       </Typography>
-      <Typography variant="subtitle1" color="textSecondary">
-        카테고리: {notice.category}
-      </Typography>
-      <Typography variant="subtitle2" color="textSecondary">
-        작성일: {new Date(notice.createdAt).toLocaleDateString()}
-      </Typography>
+      <Box sx={{ mt: 2, color: "text.secondary" }}>
+        <Typography variant="subtitle1">카테고리: {notice.category}</Typography>
+        <Typography variant="subtitle2">
+          {notice.updatedAt !== notice.createdAt
+            ? `수정일: ${formatDate(notice.updatedAt)}`
+            : `작성일: ${formatDate(notice.createdAt)}`}
+        </Typography>
+      </Box>
 
-      {/* 관리자만 수정/삭제 버튼 표시 */}
-      {isAdmin && (
-        <div style={{ marginTop: "20px" }}>
-          <Button
-            variant="outlined"
-            color="primary"
+      {isLoggedIn && user?.role === "ADMIN" && (
+        <Box sx={{ mt: 3 }}>
+          <PrimaryButton
             onClick={() => navigate(`/notices/edit/${id}`)}
-            sx={{ marginRight: "10px" }}>
+            sx={{ mr: 1 }}>
             수정
-          </Button>
-          <Button variant="contained" color="secondary" onClick={deleteNotice}>
-            삭제
-          </Button>
-        </div>
+          </PrimaryButton>
+          <DeleteButton onClick={deleteNotice}>삭제</DeleteButton>
+        </Box>
       )}
 
-      {/* 목록으로 돌아가기 버튼 */}
       <Button
-        variant="text"
+        variant="outlined"
         onClick={() => navigate("/notices")}
-        sx={{ marginTop: "20px" }}>
-        목록으로 돌아가기
+        sx={{ mt: 3 }}>
+        목록으로
       </Button>
-    </div>
+    </Box>
   );
 };
 

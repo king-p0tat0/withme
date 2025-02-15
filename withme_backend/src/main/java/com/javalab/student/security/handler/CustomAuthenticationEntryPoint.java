@@ -61,25 +61,24 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 //        }
 //    }
 
-    @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException authException)
-            throws IOException, ServletException {
+@Override
+public void commence(HttpServletRequest request, HttpServletResponse response,
+                     AuthenticationException authException)
+        throws IOException, ServletException {
 
-        log.info("CustomAuthenticationEntryPoint commence() 호출, 권한 없는 요청");
+    log.info("CustomAuthenticationEntryPoint - 인증 실패 처리");
 
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json;charset=UTF-8");
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    response.setContentType("application/json;charset=UTF-8");
 
-        Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("status", HttpServletResponse.SC_UNAUTHORIZED);    // 401 Unauthorized 오류로 응답
-        errorDetails.put("error", "Unauthorized");
-        errorDetails.put("message", "접근 권한이 없습니다. 관리자에게 문의하세요.");
-        errorDetails.put("path", request.getRequestURI());
-        errorDetails.put("timestamp", System.currentTimeMillis());
+    Map<String, Object> errorDetails = new HashMap<>();
+    errorDetails.put("status", HttpServletResponse.SC_UNAUTHORIZED);
+    errorDetails.put("error", "Unauthorized");
+    errorDetails.put("message", authException.getMessage()); // 인증 실패 메시지
+    errorDetails.put("path", request.getRequestURI());
+    errorDetails.put("timestamp", System.currentTimeMillis());
 
-        // 프론트엔드에서는 401 Unauthorized 상태 코드와 함께 JSON 형식의 응답 본문을 받습니다.
-        response.getWriter().write(objectMapper.writeValueAsString(errorDetails));
-    }
+    response.getWriter().write(objectMapper.writeValueAsString(errorDetails));
+}
 
 }

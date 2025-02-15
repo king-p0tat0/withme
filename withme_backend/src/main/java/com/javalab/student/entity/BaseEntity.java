@@ -6,23 +6,26 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
+
 /**
- * 생성자, 수정자를 자동으로 관리하는 엔티티
- * BaseTimeEntity를 상속받아 생성자, 수정자를 자동으로 관리하는 엔티티를 만듦
- * 거기에 추가적으로 생성자, 수정자를 나타내는 필드를 추가함.
+ * 생성일, 수정일 자동 관리 엔티티
  */
-@EntityListeners({AuditingEntityListener.class})
+@EntityListeners(AuditingEntityListener.class)
 @MappedSuperclass
-@Getter@Setter
+@Getter
+@Setter
 public abstract class BaseEntity extends BaseTimeEntity {
 
     @CreatedBy
     @Column(updatable = false)
-    private String createdAt;
+    private String createdBy;   // 생성자
 
     @LastModifiedBy
-    private String updatedAt;
+    private String modifiedBy;  // 수정자
 }

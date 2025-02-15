@@ -1,6 +1,7 @@
 package com.javalab.student.entity;
 
 import com.javalab.student.constant.Status;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,7 +19,6 @@ public class Doctor {
     @Column(name = "doctor_id", nullable = false)
     private Long doctorId;
 
-
     @ManyToOne
     @JoinColumn(name = "user_id",referencedColumnName = "user_id", nullable = false)  // 외래키 설정
     private Member member;
@@ -32,8 +32,5 @@ public class Doctor {
     @Column(name = "doctor_number" , length = 50, nullable = false, unique = true)
     private String doctorNumber;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private Status status = Status.PENDING;  // 기본값 PENDING
 
 }

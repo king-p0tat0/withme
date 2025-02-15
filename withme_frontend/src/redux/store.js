@@ -20,9 +20,9 @@ import authReducer from "./authSlice";
  * @type {{storage, whitelist: string[], version: number, key: string}}
  */
 const persistConfig = {
-    key: "root",
-    storage, // 로컬스토리지를 사용하여 Redux 상태 저장
-    whitelist: ["auth"], // auth 상태만 저장하도록 지정
+  key: "root",
+  storage, // 로컬스토리지를 사용하여 Redux 상태 저장
+  whitelist: ["auth"] // auth 상태만 저장하도록 지정
 };
 
 /**
@@ -31,7 +31,7 @@ const persistConfig = {
  * - authReducer: authSlice에서 가져온 리듀서를 Redux persist 대상으로 포함
  */
 const rootReducer = combineReducers({
-    auth: authReducer, // auth 리듀서를 Redux persist 대상에 포함, 이렇게 포함시키면 auth 상태가 localStorage에 저장됨. 즉, authSlice에서 내보낸 authReducer를 rootReducer에 포함시켜서 Redux Persist에 저장하도록 설정
+  auth: authReducer // auth 리듀서를 Redux persist 대상에 포함, 이렇게 포함시키면 auth 상태가 localStorage에 저장됨. 즉, authSlice에서 내보낸 authReducer를 rootReducer에 포함시켜서 Redux Persist에 저장하도록 설정
 });
 
 /**
@@ -46,13 +46,13 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
  * - Middleware 설정에서 Redux Persist 관련 액션을 무시하도록 serializableCheck 조정
  */
 export const store = configureStore({
-    reducer: persistedReducer,
-    middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({
-            serializableCheck: {
-                ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
-            },
-        }),
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"]
+      }
+    })
 });
 
 /**

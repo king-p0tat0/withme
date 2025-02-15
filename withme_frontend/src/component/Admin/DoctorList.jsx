@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import '../../css/DoctorList.css';
-import DoctorView from './Modal/DoctorView';
+import DoctorView from './DoctorView';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from "axios";
-import { fetchWithAuth } from '../../common/fetchWithAuth';
+import { fetchWithAuth } from '../../common/fetchWithAuth'; // fetchWithAuth import
 import { API_URL } from '../../constant';
-
-
-
 
 /**
  * 전문가 리스트 페이지
@@ -16,7 +12,6 @@ import { API_URL } from '../../constant';
  * - 전문가 검색
  *
  */
-
 
 export default function DoctorList() {
     const [doctors, setDoctors] = useState([]); // 전문가 리스트 상태
@@ -40,16 +35,12 @@ export default function DoctorList() {
         setLoading(true);
         setError(null);
         try {
-            // JWT 토큰을 localStorage에서 가져와서 Authorization 헤더에 포함
-            const token = localStorage.getItem("token");
-
-            const response = await axios.get(`${API_URL}admin/doctor/list`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,  // Authorization 헤더에 토큰 추가
-                    'Content-Type': 'application/json'
-                }
-            });
-            setDoctors(response.data); // 서버에서 받은 데이터로 상태 업데이트
+            // 데이터 가져오기
+            console.log("전문가 리스트 가져오기");
+            const response = await fetchWithAuth(`${API_URL}admin/doctor/list`);
+            console.log("전문가 response 확인 : ", response);
+            const data = await response.json();
+            setDoctors(data); // 서버에서 받은 데이터로 상태 업데이트
         } catch (err) {
             setError('전문가 데이터를 가져오는 데 실패했습니다.'); // 오류 발생 시 오류 메시지 업데이트
         } finally {
@@ -67,8 +58,8 @@ export default function DoctorList() {
             setDebouncedQuery(searchQuery);
         }, 500);
 
-    return () => clearTimeout(timer); // 기존 타이머 제거 (연속 입력 시 딜레이 유지)
-}, [searchQuery]);
+        return () => clearTimeout(timer); // 기존 타이머 제거 (연속 입력 시 딜레이 유지)
+    }, [searchQuery]);
 
     // 검색기능
     const filteredData = doctors.filter((doctor) => {
@@ -79,13 +70,6 @@ export default function DoctorList() {
             (debouncedQuery.status === '' || doctor.status === debouncedQuery.status)
         );
     });
-
-    // debouncedQuery 값이 변경될 때만 API 호출
-    useEffect(() => {
-        if (debouncedQuery.keyword) {
-            fetchData(debouncedQuery);
-        }
-    }, [debouncedQuery]);
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
@@ -105,7 +89,7 @@ export default function DoctorList() {
         setSearchQuery((prev) => ({ ...prev, [name]: value }));
     };
 
-//     상태값 한글 변환
+    // 상태값 한글 변환
     const getStatusText = (status) => {
         switch (status) {
             case 'APPROVED':

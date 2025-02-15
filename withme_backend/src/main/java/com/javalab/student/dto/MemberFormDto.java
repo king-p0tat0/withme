@@ -25,7 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class MemberFormDto {
 
     @NotBlank(message = "이름을 입력해주세요.")
-    private String username;
+    private String name;
 
     @NotBlank(message = "이메일을 입력해주세요.")
     @Email(regexp = "^[\\w.%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$", message = "유효한 이메일 형식으로 입력해주세요.")
@@ -47,7 +47,6 @@ public class MemberFormDto {
 
     private Role role;
 
-    private String age;
 
     /**
      * 회원가입 전용 DTO에서 MemberFormDto로 변환
@@ -60,7 +59,7 @@ public class MemberFormDto {
      */
     public static Member toEntity(MemberFormDto memberFormDto, PasswordEncoder passwordEncoder) {
         return Member.builder()
-                .username(memberFormDto.getUsername())
+                .name(memberFormDto.getName())
                 .email(memberFormDto.getEmail())
                 .password(passwordEncoder.encode(memberFormDto.getPassword())) // 비밀번호 암호화
                 .address(memberFormDto.getAddress())
@@ -75,7 +74,7 @@ public class MemberFormDto {
      */
     public static MemberFormDto forUpdate(MemberFormDto formDto) {
         MemberFormDto updateDto = new MemberFormDto();
-        updateDto.setUsername(formDto.getUsername());
+        updateDto.setName(formDto.getName());
         updateDto.setAddress(formDto.getAddress());
         updateDto.setPhone(formDto.getPhone());
         return updateDto;

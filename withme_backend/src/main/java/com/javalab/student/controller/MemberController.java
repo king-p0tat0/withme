@@ -1,8 +1,7 @@
 package com.javalab.student.controller;
 
 import com.javalab.student.config.jwt.TokenProvider;
-import com.javalab.student.dto.LoginFormDto;
-import com.javalab.student.dto.MemberFormDto;
+import com.javalab.student.dto.*;
 import com.javalab.student.entity.Member;
 import com.javalab.student.repository.MemberRepository;
 import com.javalab.student.service.MemberService;
@@ -16,6 +15,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.javalab.student.config.jwt.TokenProvider;
+import com.javalab.student.dto.*;
+import com.javalab.student.entity.Member;
+import com.javalab.student.service.MemberService;
+import com.javalab.student.service.RefreshTokenService;
+
+import jakarta.servlet.http.Cookie;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -149,7 +155,7 @@ public class MemberController {
             responseBody.put("message", "사용자 정보가 수정되고 JWT가 갱신되었습니다.");
             responseBody.put("id", updatedMember.getId());
             responseBody.put("email", updatedMember.getEmail());
-            responseBody.put("name", updatedMember.getUsername());
+            responseBody.put("name", updatedMember.getName());
             responseBody.put("roles", updatedMember.getAuthorities());
             return ResponseEntity.ok(responseBody);
         } catch (IllegalArgumentException e) {
@@ -201,23 +207,49 @@ public class MemberController {
      * @return 성공 메시지 또는 에러 메시지
      */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> loginMember(@RequestBody LoginFormDto loginForm) {
-        Map<String, String> response = new HashMap<>();
+public ResponseEntity<?> login(@RequestBody LoginFormDto loginFormDto) {
+    try {
+        // Authenticate user
+        Member member = memberService.authenticate(loginFormDto.getEmail(), loginFormDto.getPassword());
 
-        // 로그인 성공 여부 확인
-        boolean isLoginSuccessful = memberService.login(loginForm);
+        // Generate JWT token
+        String token = tokenProvider.generateToken(member.getEmail(), Duration.ofHours(2));
 
-        if (isLoginSuccessful) {
-            response.put("message", "로그인 성공");
-            response.put("status", "success");
-            return ResponseEntity.ok(response); // HTTP 200 OK
-        }
+        // Build response
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", member.getId());
+        response.put("name", member.getName());
+        response.put("email", member.getEmail());
+        response.put("roles", member.getRole().name()); // Include role information
+        response.put("token", token);
 
-        // 로그인 실패 처리
-        response.put("message", "로그인 실패");
-        response.put("status", "failed");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response); // HTTP 401 Unauthorized
+        return ResponseEntity.ok(response);
+    } catch (IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", e.getMessage()));
     }
+}
 
+   /* // 페이징 처리된 유저 목록 조회
+    @GetMapping("/list")
+    //@PreAuthorize("hasRole('USER')")
+    public ResponseEntity<PageResponseDTO<MemberDto>> getAllmembers(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        PageRequestDTO pageRequestDTO = PageRequestDTO.builder()
+                .page(page)
+                .size(size)
+                .build();
+        log.info("페이지 : " + pageRequestDTO.getPage() + " " + pageRequestDTO.getSize());
+
+        PageResponseDTO<MemberDto> responseDTO = memberService.getAllMembers(pageRequestDTO);
+        return ResponseEntity.ok(responseDTO);
+    }*/
+
+    @GetMapping("/list")
+    public ResponseEntity<List<Member>> getAllMembers() {
+        return ResponseEntity.ok(memberService.getMember());
+    }
 
 }

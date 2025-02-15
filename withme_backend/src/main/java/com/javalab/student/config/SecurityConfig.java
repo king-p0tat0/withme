@@ -11,6 +11,7 @@ import com.javalab.student.security.handler.CustomLogoutSuccessHandler;
 import com.javalab.student.security.oauth.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -41,6 +42,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@Log4j2
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService; // 사용자 정보를 가져오는 역할
@@ -90,13 +92,30 @@ public class SecurityConfig {
             * favicon.ico : 파비콘 요청은 인증 없이 접근 가능, 이코드 누락시키면 계속 서버에 요청을 보내서 서버에 부하를 줄 수 있다.
          */
         http.authorizeHttpRequests(request -> request
-                .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail").permitAll() // 로그인 API 허용 [수정]
-                .requestMatchers(HttpMethod.GET, "/api/students/**").permitAll()    // GET 요청은 모든 사용자에게 허용
+                // ✅ WebSocket 관련 요청은 인증 검사 제외
+                //    WebSocket 접속이 정상인지 체크하는 핸드쉐이크 요청인 /ws/info와 WebSocket 연결, /ws/**는 인증 없이 접근할 수 있도록 설정합니다.
+                .requestMatchers("/ws/**").permitAll()  //
+                .requestMatchers("/api/questionnaires/free").permitAll()
+                .requestMatchers("/topic/**").permitAll()  // ✅ STOMP 메시지 브로커 경로 허용
+                .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail","/api/auth/login/kakao").permitAll() // 로그인 API 허용 [수정]
+                .requestMatchers(HttpMethod.GET, "/api/notices/**","/api/posts/**","/api/comment/**","/api/posts/*/comments").permitAll() // GET 요청은 모든 사용자에게 허용
+                //.requestMatchers("/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated() //인증 필요
+                .requestMatchers(HttpMethod.POST, "/api/posts", "/api/comments","/api/posts/*/comments").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated()
+               .requestMatchers(HttpMethod.DELETE, "/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated()
+                // 공지사항 등록, 수정, 삭제는 ADMIN만 접근 가능
+                .requestMatchers(HttpMethod.POST, "/api/notices/**").hasRole("ADMIN") 
+                .requestMatchers(HttpMethod.PUT, "/api/notices/**").hasRole("ADMIN") 
+                .requestMatchers(HttpMethod.DELETE, "/api/notices/**").hasRole("ADMIN")
                 .requestMatchers("/api/students/**").hasRole("ADMIN")   // 학생 등록, 수정, 삭제는 ADMIN만 접근 가능
                 .requestMatchers("/api/auth/userInfo").permitAll() // 사용자 정보 조회 API는 모든 사용자에게 허용
-                .requestMatchers("/admin/**").hasRole("ADMIN")  // 미사용
-                .requestMatchers("/api/members/**").hasAnyRole("USER", "ADMIN") // 사용자 정보 수정 API는 USER, ADMIN만 접근 가능
+                .requestMatchers("/api/doctors/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/members/**").hasAnyRole("USER", "ADMIN","VIP") // 사용자 정보 수정 API는 USER, ADMIN만 접근 가능
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()  // 스웨거 Swagger UI는 인증을 거치지 않고 접근 가능
+                .requestMatchers("/api/messages/**").hasAnyRole("USER", "ADMIN") // 사용자의 읽지 않은 메시지 개수 조회 API는 USER, ADMIN만 접근 가능
+                .requestMatchers("/api/questions/**").hasAnyRole("USER","VIP")
+                .requestMatchers("/api/chat/**").hasAnyRole("USER", "ADMIN")// 채팅방 생성, 채팅방 목록 조회 API는 USER, ADMIN만 접근 가능
                 .requestMatchers(
                         "/images/**",
                         "/static-images/**",
@@ -114,8 +133,7 @@ public class SecurityConfig {
                         "/**/*.html",
                         "/ping.js"
                 ).permitAll() // 정적 리소스는 모두 허용
-                //.anyRequest().authenticated()
-                .anyRequest().permitAll() // 임시로 모든 요청에 대해 접근을 허용 나중에 제거
+                .anyRequest().authenticated()
         );
 
         /*
@@ -166,7 +184,7 @@ public class SecurityConfig {
          * - customOAuth2UserService : OAuth2 공급자로부터 사용자 정보를 가져오는 엔드포인트를 구성하는 실제 서비스 클래스
          */
         http.oauth2Login(oauth2 -> oauth2
-                .loginPage("/members/login")
+                .loginPage("/api/auth/login/kakao")
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
         );
 

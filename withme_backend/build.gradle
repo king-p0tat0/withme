@@ -25,12 +25,16 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'// JPA 사용
+    implementation 'org.springframework.boot:spring-boot-starter-web'//웹 어플리 케이션 기본
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+
 
     // SQL 로그 의존성
     implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
@@ -61,6 +65,21 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
     // xml json 변환
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
+    // 보안
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    //유효성 검증
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    //JWT 인증
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    // JWT 구현
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    // JWT JSON 파싱
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // MariaDB  드라이버
+    implementation 'org.mariadb.jdbc:mariadb-java-client'
+
+
 
     // Swagger 의존성
     // [스웨거]Springdoc OpenAPI Starter for Spring Boot 3.x
@@ -68,6 +87,16 @@ dependencies {
 
     // redis 의존성, redis는 메모리 기반의 key-value 저장소로서, 데이터를 빠르게 저장하고 조회할 수 있는 오픈소스 데이터베이스입니다.
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Swagger 의존성
+    // [스웨거]Springdoc OpenAPI Starter for Spring Boot 3.x
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+
+    // redis 의존성, redis는 메모리 기반의 key-value 저장소로서, 데이터를 빠르게 저장하고 조회할 수 있는 오픈소스 데이터베이스입니다.
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+// Thumbnailator 라이브러리 추가
+     implementation 'net.coobird:thumbnailator:0.4.20'
 
 
 }

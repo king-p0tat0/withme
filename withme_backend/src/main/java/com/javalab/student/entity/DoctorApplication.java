@@ -1,9 +1,10 @@
 package com.javalab.student.entity;
 
-import com.javalab.student.constant.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.javalab.student.constant.Status;
 
 import java.time.LocalDateTime;
 
@@ -40,8 +41,9 @@ public class DoctorApplication extends BaseEntity {
     private String hospital; // 병원정보
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private Status status = Status.PENDING;  // 기본값 PENDING
+    @Column(name = "status")
+    @Builder.Default
+    private Status status = Status.PENDING; // 기본값 PENDING
 
     @Column
     private String reason; // 거절 사유

@@ -1,15 +1,21 @@
 package com.javalab.student.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class NoticeDto {
-    private Long id; // ID
-    private String title; // 제목
-    private String content; // 내용
-    private String category; // 카테고리
-    private LocalDateTime createdAt; // 생성 시간
-    private LocalDateTime updatedAt; // 수정 시간
+    
+    private Long id;
+    private String title;
+    private String content;
+    private String category;
+    private Boolean important = Boolean.FALSE;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

@@ -1,3 +1,4 @@
+package com.javalab.student.controller;
 /*
 package com.javalab.student.controller;
 

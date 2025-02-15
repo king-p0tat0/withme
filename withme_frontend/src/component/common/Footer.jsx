@@ -1,12 +1,16 @@
 import React from "react";
-import "./Footer.css";
+import "../../assets/css/common/Footer.css";
 
 const Footer = () => {
   return (
     <footer className="footer">
       <div className="footer-container">
         <div className="footer-top">
-          <img src="/assets/images/logo.png" alt="로고" className="footer-logo" />
+          <img
+            src="/assets/images/logo.png"
+            alt="로고"
+            className="footer-logo"
+          />
           <p>
             (주)위드미 : 경기도 안산시 상록구 광덕1로 375, 5층
             <br /> 대표 : 홍길동 사업자등록번호 : 123-45-67890
@@ -29,7 +33,8 @@ const Footer = () => {
 
         <div className="footer-bottom">
           <p>
-            COPYRIGHT &copy; <span className="footer-bold">WITHME</span> CO., LTD. ALL RIGHTS RESERVED.
+            COPYRIGHT &copy; <span className="footer-bold">WITHME</span> CO.,
+            LTD. ALL RIGHTS RESERVED.
           </p>
         </div>
       </div>
