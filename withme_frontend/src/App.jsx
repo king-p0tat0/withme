@@ -1,23 +1,18 @@
 import React, { useEffect } from "react";
-import { AppBar, Toolbar, Typography, Button } from "@mui/material";
-import { Routes, Route, Link, Navigate } from "react-router-dom";
-
-import MemberForm from "./component/member/MemberForm";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom"; // 중복 import 정리
 import { useSelector, useDispatch } from "react-redux";
-import { fetchUserInfo, clearUser } from "./redux/authSlice";
 import { PersistGate } from "redux-persist/integration/react";
 import { persistor } from "./redux/store";
+import { fetchUserInfo, clearUser } from "./redux/authSlice";
 import { API_URL } from "./constant";
 import { fetchWithAuth } from "./common/fetchWithAuth.js";
 
-//ui
+// ui
 import UiComponents from "./component/elements/UiComponents";
 
-//공지사항
+// 공지사항
 import NoticeList from "./component/notice/NoticeList";
 import NoticeForm from "./component/notice/NoticeForm";
-//import NoticeView from "./component/notice/NoticeView"; //아코디언으로 변경
 
 // 전문가 신청, 수정
 import NoticeView from "./component/notice/NoticeView";
@@ -29,8 +24,6 @@ import DoctorApplicationStatus from "./component/doctor/DoctorApplicationStatus"
 import DoctorApplicationEdit from "./component/doctor/DoctorApplicationEdit";
 
 // 커뮤니티
-
-//커뮤니티
 import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
 import PostView from "./component/posts/PostView";
@@ -48,7 +41,6 @@ import RegisterMember from "./component/member/RegisterMember"; // 일반 회원
 import SignupSuccess from "./component/member/SignupSuccess"; // 가입 완료
 
 // ✅ 의사 관련
-//import RegisterDoctor from "./component/doctor/RegisterDoctor";
 import DoctorSignupSuccess from "./component/member/DoctorSignupSuccess"; // 가입 완료
 
 // ✅ 기타 페이지
@@ -56,7 +48,7 @@ import Home from "./component/Home";
 import UnauthorizedPage from "./component/UnAuthorizedPage.jsx";
 import Header from "./component/common/Header";
 import Footer from "./component/common/Footer";
-import NavBar from "./component/common/NavBar"
+import NavBar from "./component/common/NavBar";
 
 // ✅ 추가: 문진(survey) 관련 컴포넌트 import
 import FreeSurvey from "./component/survey/FreeSurvey";
@@ -71,7 +63,6 @@ import ItemList from "./component/shop/Product/ItemList";
 import ItemView from "./component/shop/Product/ItemView";
 import ItemAdd from "./component/shop/Product/ItemAdd";
 import ItemEdit from "./component/shop/Product/ItemEdit";
-
 
 function App() {
   // 리덕스 스토어의 상태를 가져오기 위해 useSelector 훅 사용, auth 슬라이스에서 user, isLoggedIn 상태를 가져옴
@@ -125,8 +116,8 @@ function App() {
         <Route path="/posts/:id/edit" element={<PostForm />} />
 
         {/* ✅ 관리자 페이지 */}
-        <Route path="/admin" element={<Admin user={user}/>} />
-        <Route path="/admin/dashboard" element={<Dashboard user={user}/>} />
+        <Route path="/admin" element={<Admin user={user} />} />
+        <Route path="/admin/dashboard" element={<Dashboard user={user} />} />
         <Route path="/doctor/status" element={<DoctorUpdate />} />
         <Route path="/survey-main" element={<SurveyMain />} />
 
@@ -141,23 +132,20 @@ function App() {
         <Route path="/survey/free" element={<FreeSurvey />} />
         <Route path="/survey/free/result" element={<FreeSurveyResult />} />
         <Route path="/survey/paid" element={<PaidSurvey />} />
-        <Route
-          path="/survey/paid/selection"
-          element={<PaidSurveySelection />}
-        />
+        <Route path="/survey/paid/selection" element={<PaidSurveySelection />} />
         <Route path="/survey/paid/result" element={<PaidSurveyResult />} />
         {/* 쇼핑몰 */}
         <Route path="/item/list" element={<ItemList />} />
-        <Route path="/item/view/:itemId" element={<ItemView user={user}/>} />
-        <Route path="/item/add" element={<ItemAdd user={user}/>} />
+        <Route path="/item/view/:itemId" element={<ItemView user={user} />} />
+        <Route path="/item/add" element={<ItemAdd user={user} />} />
         <Route path="/item/edit/:itemId" element={<ItemEdit />} />
-
 
         {/* 수의사 */}
         <Route path="/signupDoctor" element={<SignupDoctor />} />
 
         {/* ✅ 기타 페이지 */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route path="/ui" element={<UiComponents />} />
       </Routes>
       <Footer />
     </div>
