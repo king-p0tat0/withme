@@ -106,7 +106,11 @@ const PostView = () => {
 
       <div className="view_content">
         <div className="view_inner">
-          <p className="content">{post.content || "내용 없음"}</p>
+          <p
+            className="content"
+            dangerouslySetInnerHTML={{
+              __html: post.content || "내용 없음"
+            }}></p>
         </div>
       </div>
 

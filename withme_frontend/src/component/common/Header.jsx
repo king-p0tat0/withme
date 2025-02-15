@@ -17,7 +17,7 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await fetchWithAuth(`${API_URL}auth/logout`, {
-        method: "POST",
+        method: "POST"
       });
       dispatch(clearUser());
       window.location.href = "/"; // 홈으로 이동
@@ -47,10 +47,17 @@ const Header = () => {
       <header>
         <div className="gnb-container">
           <ul className="gnb">
-              <Link to="/"><img src="/assets/images/text_logo.png" alt="텍스트 로고" className="textLogo" /></Link>
+            <Link to="/">
+              <img
+                src="/assets/images/text_logo.png"
+                alt="텍스트 로고"
+                className="textLogo"
+              />
+            </Link>
             {isLoggedIn ? (
               <>
                 <li>{user.name}님</li>
+                <li>{user.roles}</li>
                 {user?.roles?.includes("ROLE_ADMIN") && (
                   <li>
                     <Link to="/admin">관리자 페이지</Link>
@@ -63,6 +70,15 @@ const Header = () => {
                 </li>
                 <li>
                   <Link to={`/mypage/${user.id}`}>마이페이지</Link>
+                </li>
+                <li>
+                  <Link to={`/doctor/register`}>전문가 신청</Link>
+                </li>
+                <li>
+                  <Link to={`/doctor/status`}>전문가 신청상태</Link>
+                </li>
+                <li>
+                  <Link to={`/doctor/edit`}>전문가 수정페이지</Link>
                 </li>
               </>
             ) : (

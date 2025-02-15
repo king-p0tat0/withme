@@ -1,9 +1,8 @@
 package com.javalab.student.controller;
 
-import com.javalab.student.entity.Questionnaire;
+import com.javalab.student.dto.QuestionnaireDTO;
 import com.javalab.student.service.QuestionnaireService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,8 +11,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 문진(Questionnaire) 컨트롤러
- * 문진 결과 조회 및 저장을 처리하는 REST API 컨트롤러
+ * 📌 문진(Questionnaire) 컨트롤러
+ * - 문진 결과 조회 및 저장을 처리하는 REST API 컨트롤러
  */
 @RestController
 @RequestMapping("/api/questionnaires")
@@ -27,44 +26,73 @@ public class QuestionnaireController {
     }
 
     /**
-     * 모든 문진 조회 (디버깅용)
+     * ✅ 모든 문진 조회
      */
     @GetMapping
-    public ResponseEntity<List<Questionnaire>> getAllQuestionnaires() {
+    public ResponseEntity<List<QuestionnaireDTO>> getAllQuestionnaires() {
         return ResponseEntity.ok(questionnaireService.getAllQuestionnaires());
     }
 
     /**
-     * 특정 questionnaireId 기반으로 문진 조회
+     * ✅ 특정 문진 ID 조회
      */
     @GetMapping("/{questionnaireId}")
-    public ResponseEntity<Questionnaire> getQuestionnaireById(@PathVariable @NotNull Long questionnaireId) {
-        Optional<Questionnaire> questionnaire = questionnaireService.getQuestionnaireById(questionnaireId);
+    public ResponseEntity<QuestionnaireDTO> getQuestionnaireById(@PathVariable Long questionnaireId) {
+        Optional<QuestionnaireDTO> questionnaire = questionnaireService.getQuestionnaireById(questionnaireId);
         return questionnaire.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
-     * 특정 userId 기반으로 문진 조회
+     * ✅ 특정 유저의 모든 문진 조회
      */
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Questionnaire>> getQuestionnairesByUserId(@PathVariable Long userId) {
+    public ResponseEntity<List<QuestionnaireDTO>> getQuestionnairesByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(questionnaireService.getQuestionnairesByUserId(userId));
     }
 
     /**
-     * 새로운 문진 생성 (무료 & 유료 공통)
+     * ✅ 특정 유저의 최신 무료 문진 조회
      */
-    @PostMapping
-    public ResponseEntity<Questionnaire> createQuestionnaire(@Valid @RequestBody Questionnaire questionnaire,
-                                                             @RequestParam Long userId,
-                                                             @RequestParam Long petId) {  // ✅ petId 추가
-        Questionnaire savedQuestionnaire = questionnaireService.createQuestionnaire(questionnaire, userId, petId);
-        return ResponseEntity.ok(savedQuestionnaire);
+    @GetMapping("/free/latest/{userId}")
+    public ResponseEntity<QuestionnaireDTO> getLatestFreeSurvey(@PathVariable Long userId) {
+        return questionnaireService.getLatestFreeSurvey(userId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
-     * 문진 삭제 (관리자 기능)
+     * ✅ 특정 유저의 최신 유료 문진 조회
+     */
+    @GetMapping("/paid/latest/{userId}")
+    public ResponseEntity<QuestionnaireDTO> getLatestPaidSurvey(@PathVariable Long userId) {
+        return questionnaireService.getLatestPaidSurvey(userId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * ✅ 새로운 무료 문진 생성 (FREE Survey)
+     */
+    // @PostMapping("/free")
+    // public ResponseEntity<QuestionnaireDTO> createFreeQuestionnaire(
+    //         @RequestBody QuestionnaireDTO questionnaireDTO) {  // ✅ @RequestParam → @RequestBody 변경
+    //     QuestionnaireDTO savedQuestionnaire = questionnaireService.createFreeQuestionnaire(questionnaireDTO);
+    //     return ResponseEntity.ok(savedQuestionnaire);
+    // }
+
+    /**
+     * ✅ 새로운 유료 문진 생성 (PAID Survey)
+     */
+    // @PostMapping("/paid")
+    // public ResponseEntity<QuestionnaireDTO> createPaidQuestionnaire(
+    //         @RequestBody QuestionnaireDTO questionnaireDTO) {  // ✅ @RequestParam → @RequestBody 변경
+    //     QuestionnaireDTO savedQuestionnaire = questionnaireService.createPaidQuestionnaire(questionnaireDTO);
+    //     return ResponseEntity.ok(savedQuestionnaire);
+    // }
+
+    /**
+     * ✅ 문진 삭제
      */
     @DeleteMapping("/{questionnaireId}")
     public ResponseEntity<Void> deleteQuestionnaire(@PathVariable Long questionnaireId) {

@@ -41,7 +41,7 @@ public class DoctorController {
      */
     @GetMapping("/application/{id}")
     public ResponseEntity<DoctorApplication> getApplication(
-            @PathVariable Long id) {  // 이메일을 쿼리 파라미터로 받음
+            @PathVariable Long id) {
 
         DoctorApplication doctor = doctorService.getDoctorApplication(id);
         return ResponseEntity.ok(doctor);
@@ -50,23 +50,25 @@ public class DoctorController {
     /**
      * 기존 의사 신청 정보를 수정하는 API
      */
-    /*@PutMapping("/application")
-    public ResponseEntity<Doctor> updateApplication(
-            @Valid @RequestBody DoctorFormDto doctorFormDto) {
+    @PutMapping("/application/{id}")
+    public ResponseEntity<DoctorApplication> updateApplication(
+            @Valid @RequestBody DoctorFormDto doctorFormDto,
+            @PathVariable Long id) {
 
 
-        Doctor doctor = doctorService.updateDoctorApplication(userEmail, doctorFormDto);
+        DoctorApplication doctor = doctorService.updateDoctorApplication(id, doctorFormDto);
         return ResponseEntity.ok(doctor);
-    }*/
+    }
 
     /**
      * 기존 의사 신청 정보를 삭제하는 API
      */
-   /* @DeleteMapping("/application")
+    @DeleteMapping("/application/{id}")
     public ResponseEntity<Void> deleteApplication(
-            @RequestParam String email) {
+            @PathVariable Long id) {
+        log.info("전문가 삭제 컨트롤러 요청");
 
-        doctorService.deleteDoctorApplication(email);
+        doctorService.deleteDoctorApplication(id);
         return ResponseEntity.noContent().build();
-    }*/
+    }
 }

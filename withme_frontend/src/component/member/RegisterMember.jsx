@@ -1,195 +1,138 @@
-import React, { useState } from "react";
+import { Button, TextField, Typography } from "@mui/material";
+import { useState } from "react";
+import { API_URL } from "../../constant";
 import { useNavigate } from "react-router-dom";
-import { TextField, Button, Checkbox, FormControlLabel, Typography } from "@mui/material";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
-import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { fetchWithoutAuth } from "../../common/fetchWithAuth";
+import axios from "axios";
 
 /**
  * 회원가입 컴포넌트
  */
 export default function RegisterMember() {
-    const navigate = useNavigate();
-
+    // 입력된 회원 정보를 저장할 상태 변수
     const [member, setMember] = useState({
-        username: "",
+        name: "",
         email: "",
         password: "",
-        passwordre: "",
         phone: "",
         address: "",
     });
-    const [passwordVisible, setPasswordVisible] = useState(false); // 비밀번호 보이기 상태
-    const [emailError, setEmailError] = useState(""); // 이메일 중복 메시지
-    const [ageConfirmed, setAgeConfirmed] = useState(false); // 만 18세 이상 확인
 
-    // 입력 필드 변경 처리
+    // 이메일 중복 체크 오류 메시지 상태
+    const [emailError, setEmailError] = useState(""); // 이메일 중복 체크 메시지 상태
+
+    const navigate = useNavigate();
+
+    // 회원 정보 입력 시 상태 변경
     const onMemberChange = (event) => {
         const { name, value } = event.target;
         setMember({ ...member, [name]: value });
+
+        if (name === "email") {
+            checkEmailDuplicate(value); // 이메일 입력 시 중복 체크 실행
+        }
     };
 
-    const togglePassword = () => {
-        setPasswordVisible(!passwordVisible);
+    // 이메일 중복 체크 함수(fetch 대신 axios 사용)
+    const checkEmailDuplicate = async (email) => {
+        if (!email.includes("@")) return;
+
+        try {
+            // 🔹 `await`를 사용하여 서버 응답을 기다림
+            const response = await axios.get(`${API_URL}members/checkEmail`, { params: { email } });
+
+            // 🔹 응답에서 JSON 데이터 추출 (가독성 향상)
+            const result = await response.data;
+
+            // 🔹 상태 값 확인 후 처리
+            if (result.status === "available") {
+                setEmailError(""); // 사용 가능한 이메일이면 오류 메시지 초기화
+            } else if (result.status === "duplicate") {
+                setEmailError(result.message); // "이미 존재하는 이메일입니다."
+            }
+        } catch (error) {
+            console.error("이메일 중복 체크 실패:", error.message);
+        }
     };
 
-    const handleOnSubmit = (event) => {
-        event.preventDefault();
-
-        if (member.password !== member.passwordre) {
-            alert("비밀번호가 다릅니다");
+    // 회원가입 처리
+    const handleOnSubmit = async () => {
+        if (emailError) {
+            alert("이메일을 확인해 주세요.");
             return;
         }
 
-        // 회원가입 완료 페이지로 이동
-        navigate("/signupSuccess");
+        try {
+            console.log("회원가입 시작");
+
+            const requestOptions = {
+                method: "POST",
+                body: JSON.stringify(member),
+            };
+
+            const response = await fetchWithoutAuth(`${API_URL}members/register`, requestOptions);
+
+            if (response.ok) {
+                alert("회원가입이 완료되었습니다.");
+
+                navigate("/signupSuccess", { state: { name: member.name } });
+            } else {
+                const errorData = await response.json();
+                alert(`회원가입 실패: ${errorData.message || "오류 발생"}`);
+            }
+        } catch (error) {
+            console.error("회원가입 중 오류 발생:", error.message);
+            alert("회원가입 실패: 네트워크 또는 서버 오류");
+        }
     };
 
+
     return (
-        <div className="container">
-            {/* 상단 단계 표시 */}
-            <div className="description-container">
-                <div className="description box">
-                    <img src="assets/images/icon/file-check.png" alt="file-check" className="icon" />
-                    <p>약관동의</p>
-                </div>
-                <FontAwesomeIcon icon={faChevronRight} className="box" />
-                <div className="description box">
-                    <img src="assets/images/icon/user-pen-color.png" alt="user-pen" className="icon" />
-                    <p style={{ color: "#ff7c24" }}>회원정보 입력</p>
-                </div>
-                <FontAwesomeIcon icon={faChevronRight} className="box" />
-                <div className="description">
-                    <img src="assets/images/icon/thumbs-up.png" alt="thumbs-up" className="icon" />
-                    <p>가입완료</p>
-                </div>
-            </div>
-
-            {/* 회원가입 폼 */}
-            <div className="form-wrap">
-                <Typography variant="h4" style={{ marginBottom: "20px", fontWeight: "bold" }}>
-                    회원가입
-                </Typography>
-                <form onSubmit={handleOnSubmit} className="register-form">
-                    {/* 이름 입력 */}
-                    <div className="input-group">
-                        <TextField
-                            label="이름"
-                            name="username"
-                            value={member.username}
-                            onChange={onMemberChange}
-                            fullWidth
-                            required
-                            placeholder="한글 2~8자 이내"
-                        />
-                    </div>
-
-                    {/* 아이디 입력 */}
-                    <div className="input-group">
-                        <TextField
-                            label="아이디"
-                            name="id"
-                            value={member.id}
-                            onChange={onMemberChange}
-                            fullWidth
-                            required
-                            placeholder="영문, 숫자 조합 6~12자 이내"
-                        />
-                    </div>
-
-                    {/* 비밀번호 입력 */}
-                    <div className="input-group">
-                        <TextField
-                            label="비밀번호"
-                            name="password"
-                            type={passwordVisible ? "text" : "password"}
-                            value={member.password}
-                            onChange={onMemberChange}
-                            fullWidth
-                            required
-                            placeholder="영문, 숫자, 특수문자 조합 8~16자 이내"
-                        />
-                        <FontAwesomeIcon
-                            icon={passwordVisible ? faEye : faEyeSlash}
-                            onClick={togglePassword}
-                            className="password-toggle-icon"
-                        />
-                    </div>
-
-                    {/* 비밀번호 확인 */}
-                    <div className="input-group">
-                        <TextField
-                            label="비밀번호 확인"
-                            name="passwordre"
-                            type="password"
-                            value={member.passwordre}
-                            onChange={onMemberChange}
-                            fullWidth
-                            required
-                        />
-                    </div>
-
-                    {/* 이메일 입력 */}
-                    <div className="input-group">
-                        <TextField
-                            label="이메일"
-                            name="email"
-                            type="email"
-                            value={member.email}
-                            onChange={onMemberChange}
-                            fullWidth
-                            required
-                            placeholder="ex) withme@naver.com"
-                            error={!!emailError}
-                            helperText={emailError}
-                        />
-                    </div>
-
-                    {/* 주소 입력 */}
-                    <div className="input-group">
-                        <TextField
-                            label="주소"
-                            name="address"
-                            value={member.address}
-                            onChange={onMemberChange}
-                            fullWidth
-                            required
-                        />
-                    </div>
-
-                    {/* 전화번호 입력 */}
-                    <div className="input-group">
-                        <TextField
-                            label="전화번호"
-                            name="phone"
-                            value={member.phone}
-                            onChange={onMemberChange}
-                            fullWidth
-                            required
-                            placeholder="ex) 010-1234-1234"
-                        />
-                    </div>
-
-                    {/* 만 18세 이상 동의 체크박스 */}
-                    <div className="input-group">
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    checked={ageConfirmed}
-                                    onChange={(e) => setAgeConfirmed(e.target.checked)}
-                                    required
-                                />
-                            }
-                            label="만 18세 이상입니다. (필수)"
-                        />
-                    </div>
-
-                    {/* 회원가입 버튼 */}
-                    <Button type="submit" variant="contained" fullWidth disabled={emailError || !ageConfirmed}>
-                        회원가입
-                    </Button>
-                </form>
-            </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "20px" }}>
+            <Typography variant="h4" style={{ marginBottom: "20px", fontWeight: "bold" }}>
+                회원가입
+            </Typography>
+            <TextField
+                label="Name"
+                name="name"
+                value={member.name}
+                onChange={onMemberChange}
+                style={{ width: "400px", marginBottom: "10px" }}
+            />
+            <TextField
+                label="Email"
+                name="email"
+                value={member.email}
+                onChange={onMemberChange}
+                style={{ width: "400px", marginBottom: "10px" }}
+                error={!!emailError} // 에러 여부 표시
+                helperText={emailError} // 오류 메시지 표시
+            />
+            <TextField
+                label="Password"
+                name="password"
+                type="password"
+                value={member.password}
+                onChange={onMemberChange}
+                style={{ width: "400px", marginBottom: "10px" }}
+            />
+            <TextField
+                label="Phone"
+                name="phone"
+                value={member.phone}
+                onChange={onMemberChange}
+                style={{ width: "400px", marginBottom: "10px" }}
+            />
+            <TextField
+                label="Address"
+                name="address"
+                value={member.address}
+                onChange={onMemberChange}
+                style={{ width: "400px", marginBottom: "10px" }}
+            />
+            <Button variant="contained" onClick={handleOnSubmit} disabled={!!emailError}>
+                회원가입
+            </Button>
         </div>
     );
 }

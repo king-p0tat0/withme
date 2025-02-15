@@ -167,7 +167,10 @@ const PostList = () => {
                   />
                 )}
                 <span className="list_title_box">
-                  <p>{post.content || "내용 없음"}</p>
+                  <p
+                    dangerouslySetInnerHTML={{
+                      __html: post.content || "내용 없음"
+                    }}></p>
                 </span>
                 <div className="list_area">
                   <span>{post.views}</span>

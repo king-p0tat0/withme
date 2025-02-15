@@ -24,28 +24,30 @@ public class Questionnaire {
     @Column(name = "questionnaire_id")
     private Long questionnaireId; // 문진 ID
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)  // ✅ 유저 정보 (Member 엔티티와 연결)
     @JoinColumn(name = "user_id", nullable = false)
-    private Member user; // ✅ 유저 정보 (Member 엔티티와 연결)
+    private Member user;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "pet_id", nullable = false)
-//    private Pet pet; // ✅ 반려견 정보 (Pet 엔티티와 연결)
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)  // ✅ 설문 정보 (Survey 엔티티와 연결)
     @JoinColumn(name = "survey_id", nullable = false)
-    private Survey survey; // ✅ 설문 정보 (Survey 엔티티와 연결)
+    private Survey survey;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING) // ✅ ENUM → 문자열 저장
     @Column(name = "response_status", nullable = false)
-    private ResponseStatus responseStatus = ResponseStatus.PENDING; // ✅ 기본값 PENDING 설정
+    private ResponseStatus responseStatus = ResponseStatus.PENDING;
+
+    @Column(name = "survey_type", nullable = false, length = 10) // ✅ FREE / PAID 구분
+    private String surveyType;
+
+    @Column(name = "score", nullable = false, columnDefinition = "INT DEFAULT 0") // ✅ 기본값 0 설정
+    private Integer score = 0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt; // 문진 시작일
+    private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now(); // ✅ 기본값 설정
+        this.createdAt = LocalDateTime.now(); // ✅ 생성 시간 자동 설정
     }
 
     public enum ResponseStatus {

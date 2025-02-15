@@ -71,10 +71,10 @@ const NoticeForm = () => {
     // 더 자세한 권한 및 토큰 확인
     console.log("제출 시 인증 정보:", {
       isLoggedIn,
-      userRole: user?.role
+      userRoles: user?.roles
     });
 
-    if (!isLoggedIn || user?.role !== "ADMIN") {
+    if (!isLoggedIn || !isAdmin(user)) {
       alert("공지사항은 관리자만 작성/수정할 수 있습니다.");
       return;
     }
@@ -114,8 +114,16 @@ const NoticeForm = () => {
     }));
   };
 
+  const isAdmin = (user) => {
+    if (!user || !user.roles) return false;
+    if (typeof user.roles === "string") {
+      return user.roles.includes("ROLE_ADMIN");
+    }
+    return false;
+  };
+
   // 관리자가 아니거나 로그인하지 않은 경우 접근 제한
-  if (!isLoggedIn || user?.role !== "ADMIN") {
+  if (!isLoggedIn || !isAdmin(user)) {
     return (
       <Box sx={{ padding: "20px", textAlign: "center" }}>
         <Typography variant="h6" color="error">

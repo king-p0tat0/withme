@@ -70,6 +70,9 @@ const NoticeList = () => {
         ...data.content.filter((notice) => !notice.important)
       ];
 
+      console.log("Current user:", user); // user 객체 내용 확인
+      console.log("User role:", user?.role); // role 값 확인
+
       setNotices(sortedNotices);
       setFilteredNotices(sortedNotices);
       setTotalRows(data.totalElements);
@@ -159,12 +162,21 @@ const NoticeList = () => {
     }
   }));
 
+  const isAdmin = (user) => {
+    if (!user || !user.roles) return false;
+    // roles가 문자열인 경우 '[ROLE_ADMIN]' 형태로 되어있으므로
+    if (typeof user.roles === "string") {
+      return user.roles.includes("ROLE_ADMIN");
+    }
+    return false;
+  };
+
   return (
     <div className="notice_warp">
       <h4>공지사항</h4>
 
       <div className="register_btn">
-        {isLoggedIn && user?.role === "ADMIN" && (
+        {isLoggedIn && isAdmin(user) && (
           <Link to="/notices/new">
             <PrimaryButton
               variant="contained"
@@ -222,7 +234,7 @@ const NoticeList = () => {
                 style={{ wordBreak: "break-word" }}
               />
 
-              {isLoggedIn && user?.role === "ADMIN" && (
+              {isLoggedIn && isAdmin(user) && (
                 <Box sx={{ mt: 3 }}>
                   <PrimaryButton
                     onClick={() => handleEditNotice(notice.id)}
