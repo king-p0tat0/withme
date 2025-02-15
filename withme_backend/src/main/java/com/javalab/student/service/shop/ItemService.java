@@ -99,11 +99,12 @@ public class ItemService {
     }
 
     /**
-     * 상품 수정
+     * 상품 수정(기존)
+     * 상품 이미지가 여러 개 일경우
      * @param itemFormDto
      * @param itemImgFileList
      */
-    public long updateItem(ItemFormDto itemFormDto,
+    /*public long updateItem(ItemFormDto itemFormDto,
                            List<MultipartFile> itemImgFileList) throws Exception {
         // 1. 수정할 상품 조회, 영속화 - 상품 정보를 수정하기 위해 조회
         Item item = itemRepository.findById(itemFormDto.getId()).orElseThrow(EntityNotFoundException::new);
@@ -119,6 +120,53 @@ public class ItemService {
             // 4.1. 상품 이미지 파일을 업데이트한다.(상품 이미지 id, 상품 이미지 파일)
             itemImgService.updateItemImg(itemImgIds.get(i), itemImgFileList.get(i));
         }
+        return item.getId();
+    }*/
+
+   /* public long updateItem(ItemFormDto itemFormDto,
+                           List<MultipartFile> itemImgFileList) throws Exception {
+        // 1. 수정할 상품 조회, 영속화 - 상품 정보를 수정하기 위해 조회
+        Item item = itemRepository.findById(itemFormDto.getId()).orElseThrow(EntityNotFoundException::new);
+
+        // 2. 영속화 되어 있는 상품의 정보를 수정한다. - 변경 감지(dirty checking) - 자동감지후 자동 저장됨.
+        item.updateItem(itemFormDto);
+
+        // 3. 화면에서 전달된 상품 이미지의 키(기본키)를  arrayList로 받아온다.
+        List<Long> itemImgIds = itemFormDto.getItemImgIds();
+
+        // 4. 화면에서 전달된 상품 이미지 파일을 업데이트한다.
+        for(int i = 0; i < itemImgFileList.size(); i++){
+            // 4.1. 상품 이미지 파일을 업데이트한다.(상품 이미지 id, 상품 이미지 파일)
+            itemImgService.updateItemImg(itemImgIds.get(i), itemImgFileList.get(i));
+        }
+        return item.getId();
+    }*/
+    public long updateItem(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileList) throws Exception {
+        // 1. 수정할 상품 조회 (영속화)
+        Item item = itemRepository.findById(itemFormDto.getId()).orElseThrow(EntityNotFoundException::new);
+
+        // 2. 영속화된 상품 정보 수정 (변경 감지)
+        item.updateItem(itemFormDto);
+
+        // 3. 기존 상품 이미지 리스트 조회 (DB에서 가져옴)
+        List<ItemImg> itemImgList = itemImgRepository.findByItemId(item.getId());
+
+        // 4. 새로운 이미지 리스트를 기존 이미지와 매칭하여 업데이트
+        for (int i = 0; i < itemImgFileList.size(); i++) {
+            MultipartFile newFile = itemImgFileList.get(i);
+
+            // 기존 이미지가 존재하면 업데이트
+            if (i < itemImgList.size()) {
+                ItemImg existingItemImg = itemImgList.get(i);
+                itemImgService.updateItemImg(existingItemImg.getId(), newFile);
+            } else {
+                // 기존 이미지 개수를 초과하는 경우 새 이미지 추가 가능 (필요하면 추가)
+                ItemImg newItemImg = new ItemImg();
+                newItemImg.setItem(item);
+                itemImgService.saveItemImg(newItemImg, newFile);
+            }
+        }
+
         return item.getId();
     }
 

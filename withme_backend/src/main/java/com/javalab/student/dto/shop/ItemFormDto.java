@@ -20,6 +20,7 @@ import java.util.List;
  * - Validation 어노테이션을 사용하여 입력값의 유효성을 검증합니다.
  */
 @Getter@Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -71,6 +72,7 @@ public class ItemFormDto {
      */
      @Builder.Default
     private List<Long> itemImgIds = new ArrayList<>();
+
 
     private static ModelMapper modelMapper = new ModelMapper();
 

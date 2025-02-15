@@ -91,6 +91,10 @@ public class ItemController {
                                         @Valid @RequestPart ItemFormDto itemFormDto,
                                         BindingResult bindingResult,
                                         @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList) {
+        log.info("상품 수정: {}, {}", itemFormDto, itemImgFileList);
+        // 파라미터 내용 자세히 로그에 출력
+        log.info("상품 수정: {}, {}", itemFormDto, itemImgFileList.stream().map(MultipartFile::getOriginalFilename).collect(Collectors.toList()));
+
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body("입력값이 유효하지 않습니다.");
         }

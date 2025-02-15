@@ -78,7 +78,7 @@ export default function ItemView({ user }) {
                 {item.itemImgDtoList && item.itemImgDtoList.length > 0 && (
                     <div className="item-image-container">
                         <img
-                            src={`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`}
+                            src={`${item.itemImgDtoList[0].imgUrl}`}
                             alt={item.itemNm}
                             className="item-image"
                         />

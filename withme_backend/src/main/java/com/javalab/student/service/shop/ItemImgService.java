@@ -75,7 +75,7 @@ public class ItemImgService {
             // 4.1. 파일 업로드
             imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes());
             // 4.2. 이미지 URL, 이미지 URL은 상대경로로 저장, 이렇게 저장한 값이 DB에 저장됨
-            imgUrl = "/image/item" + imgName;
+            imgUrl = "/images/item" + imgName;
         }
 
         // 5. 상품 이미지 정보 수정, 이렇게 수정하면 JPA가 변경감지하여 수정된 내용을 DB에 반영

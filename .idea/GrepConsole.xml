@@ -24,7 +24,7 @@
                             <option name="models">
                               <list>
                                 <GrepModel>
-                                  <option name="expression" value="컨트롤러" />
+                                  <option name="expression" value="수정" />
                                 </GrepModel>
                               </list>
                             </option>
