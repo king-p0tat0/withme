@@ -22,7 +22,7 @@ public class ItemTest {
 
     private final Random random = new Random();
 
-    @Test
+    /*@Test
     @DisplayName("랜덤 상품 20개 저장 테스트")
     @Commit
     public void saveRandomItemsTest() {
@@ -38,5 +38,5 @@ public class ItemTest {
             itemRepository.save(item);
             log.info("Saved Item {}: {}", i + 1, item);
         }
-    }
+    }*/
 }

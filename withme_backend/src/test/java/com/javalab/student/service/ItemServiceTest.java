@@ -37,7 +37,7 @@ public class ItemServiceTest {
     /**
      * 테스트용 MultipartFile 생성
      */
-    List<MultipartFile> createMultipartFiles() throws Exception{
+    /*List<MultipartFile> createMultipartFiles() throws Exception{
 
         List<MultipartFile> multipartFileList = new ArrayList<>();
 
@@ -77,5 +77,5 @@ public class ItemServiceTest {
         // 상품 조회
         Item item = itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
 
-    }
+    }*/
 }

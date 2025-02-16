@@ -1,10 +1,7 @@
 package com.javalab.student.service.shop;
 
 
-import com.javalab.student.dto.shop.CartDetailDto;
-import com.javalab.student.dto.shop.CartItemDto;
-import com.javalab.student.dto.shop.CartOrderItemDto;
-import com.javalab.student.dto.shop.OrderDto;
+import com.javalab.student.dto.shop.*;
 import com.javalab.student.entity.Member;
 import com.javalab.student.entity.shop.Cart;
 import com.javalab.student.entity.shop.CartItem;
@@ -185,8 +182,9 @@ public class CartService {
 //    }
 
     public Long orderCartItem(List<CartOrderItemDto> cartOrderItems, String email) {
+        log.info("orderCartItem 서비스 시작",cartOrderItems, email );
         // 1. 주문할 상품 리스트를 담을 리스트 생성
-        List<OrderDto> orderDtoList = new ArrayList<>();
+        List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
         // 2. CartOrderRequestDto 내부의 cartOrderItems를 순회하며 OrderDto 리스트 생성
         for (CartOrderItemDto cartOrderItemDto : cartOrderItems) {
@@ -195,16 +193,17 @@ public class CartService {
                     .findById(cartOrderItemDto.getCartItemId())
                     .orElseThrow(EntityNotFoundException::new);
 
-            // 2.2. OrderDto 객체 생성 및 값 설정
-            OrderDto orderDto = new OrderDto();
-            orderDto.setItemId(cartItem.getItem().getId());
-            orderDto.setCount(cartOrderItemDto.getCount()); // 요청받은 수량 사용
+            // 2.2. OrderItemDto 객체 생성 및 값 설정
+            OrderItemDto orderItemDto = new OrderItemDto();
+            orderItemDto.setItemId(cartItem.getItem().getId());
+            orderItemDto.setItemNm(cartItem.getItem().getItemNm());
+            orderItemDto.setCount(cartOrderItemDto.getCount()); // 요청받은 수량 사용
 
-            orderDtoList.add(orderDto);
+            orderItemDtoList.add(orderItemDto);
         }
 
         // 3. 주문 서비스 호출하여 주문 생성
-        Long orderId = orderService.orders(orderDtoList, email);
+        Long orderId = orderService.orders(orderItemDtoList, email);
 
         // 4. 주문 완료 후 장바구니 항목 삭제
         for (CartOrderItemDto cartOrderItemDto : cartOrderItems) {
