@@ -13,6 +13,10 @@ import { fetchWithAuth } from "./common/fetchWithAuth.js";
 //ui
 import UiComponents from "./component/elements/UiComponents";
 
+//pet
+import PetDetailsView from "./component/pet/PetDetailsView";
+import PetRegister from "./component/pet/PetRegister";
+
 //공지사항
 import NoticeList from "./component/notice/NoticeList";
 import NoticeForm from "./component/notice/NoticeForm";
@@ -35,6 +39,8 @@ import Dashboard from "./component/admin/Dashboard";
 // ✅ 회원 관련
 import Login from "./component/Login";
 import MyPage from "./component/member/MyPage.jsx";
+import MyPageProfileEdit from "./component/member/MyPageProfileEdit";
+import MyPagePasswordEdit from "./component/member/MyPagePasswordEdit";
 import Policy from "./component/member/Policy"; // 약관정책
 import RegisterMember from "./component/member/RegisterMember"; // 회원정보 입력
 import SignupSuccess from "./component/member/SignupSuccess"; // 가입 완료
@@ -92,6 +98,9 @@ function App() {
         <Route path="/registerDoctor" element={<RegisterDoctor />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
+        <Route path="/mypage/profile-edit" element={<MyPageProfileEdit />} />
+        <Route path="/mypage/password-edit" element={<MyPagePasswordEdit />} />
+
         {/* 공지사항 목록 */}
         <Route path="/notices" element={<NoticeList />} />
         <Route path="/notices/new" element={<NoticeForm />} />
@@ -110,6 +119,10 @@ function App() {
         <Route path="/policy" element={<Policy />} />
         <Route path="/registerMember" element={<RegisterMember />} />
         <Route path="/signupSuccess" element={<SignupSuccess />} />
+
+        {/* 펫 페이지 */}
+        <Route path="/mypage/pet/:petId" element={<PetDetailsView />} />
+        <Route path="/mypage/pet/register" element={<PetRegister />} />
 
         {/* ✅ 추가: 문진(survey) 관련 페이지 */}
         <Route path="/survey" element={<SurveyMain />} />

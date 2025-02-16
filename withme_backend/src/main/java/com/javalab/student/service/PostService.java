@@ -20,4 +20,7 @@ public interface PostService {
     Long getUserIdByEmail(String email);
 
     PostDto increaseViewsAndGet(Long id);
+
+    //사용자별 게시글 조회
+    Page<PostDto> getPostsByUserId(Long userId, Pageable pageable);
 }

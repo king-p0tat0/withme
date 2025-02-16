@@ -1,161 +1,276 @@
-import { useDispatch } from "react-redux";
-import { fetchUserInfo, setUser } from "../../redux/authSlice";
-import { API_URL } from "../../constant";
-import { fetchWithAuth } from "../../common/fetchWithAuth.js";
-import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Button, TextField, Typography } from "@mui/material";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import {
+  Button,
+  Typography,
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
+} from "@mui/material";
+import { fetchWithAuth } from "../../common/fetchWithAuth";
+import { API_URL } from "../../constant";
+import { getImageUrl } from "../../utils/imageUtils";
+import "../../assets/css/member/mypage.css";
 
-export default function MyPage() {
-  const dispatch = useDispatch(); // Redux 디스패치 가져오기
-  // URL 파라미터에서 id 가져오기, App 컴포넌트에서 Route의 path에 설정한 URL 파라미터를 가져옴,
-  // 여기서는 미사용 왜냐하면 리덕스 스토어에 보관한 값을 사용, 하지만 다른 형태로 구현시 필요해서 코드 유지함.
-  // 여기서 미사용시 App 컴포넌트에서 Route의 path에 설정한 URL 파라미터를 가져오는 코드를 삭제해도 무방함.
-  const { id } = useParams(); //
-  // 리덕스 스토어에서 사용자 정보 가져오기
-  const { user } = useSelector((state) => state.auth);
-  // 사용자 정보를 저장할 상태 변수
-  const [member, setMember] = useState({
-    id: "",
+const MyPage = () => {
+  const navigate = useNavigate();
+  const { user, isLoggedIn } = useSelector((state) => state.auth);
+  const [pets, setPets] = useState([]);
+  const [userPosts, setUserPosts] = useState([]);
+  const [userComments, setUserComments] = useState([]);
+  const [userInfo, setUserInfo] = useState({
     name: "",
     email: "",
     phone: "",
     address: ""
   });
+  const [openLoginDialog, setOpenLoginDialog] = useState(false);
 
-  /**
-   * 컴포넌트가 처음 렌더링될 때 사용자 정보를 불러옴
-   * - user가 변경될 때마다 사용자 정보를 다시 불러옴
-   */
   useEffect(() => {
-    if (user) {
-      fetchMemberData(user.id); // url 파라미터로 받은 id를 사용하여 사용자 정보를 불러옴
+    // 로그인하지 않았거나 관리자 계정일 경우 마이페이지 접근 제한
+    if (!isLoggedIn) {
+      setOpenLoginDialog(true);
+      return;
     }
-  }, [user]);
 
-  /**
-   * 사용자 정보 불러오기
-   */
-  const fetchMemberData = async (memberId) => {
+    if (user && !user.roles.includes("ROLE_ADMIN")) {
+      fetchUserData(user.id);
+      fetchPetData(user.id);
+      fetchUserCommunityData(user.id);
+    }
+  }, [user, isLoggedIn]);
+
+  const fetchUserData = async (userId) => {
     try {
-      const response = await fetchWithAuth(`${API_URL}members/${memberId}`, {
-        method: "GET"
-      });
-      console.log("fetchMemberData response : ", response);
-
+      const response = await fetchWithAuth(`${API_URL}members/${userId}`);
       if (response.ok) {
         const result = await response.json();
-        console.log("fetchMemberData result : ", result);
-
-        const userData = result.data;
-        setMember({
-          id: userData.id,
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone,
-          address: userData.address
-        });
-      } else {
-        console.error("사용자 정보 로드 실패:", response.status);
-        alert("사용자 정보를 불러올 수 없습니다.");
+        setUserInfo(result.data);
       }
     } catch (error) {
-      console.error("사용자 정보 로드 중 오류 발생:", error.message);
-      alert("사용자 정보 로드 실패: 네트워크 또는 서버 오류");
+      console.error("사용자 정보 로드 중 오류:", error);
     }
   };
 
-  /**
-   * 사용자 정보 수정 요청 처리
-   * @returns {Promise<void>}
-   */
-  const handleUpdate = async () => {
+  const fetchPetData = async (userId) => {
     try {
-      // 사용자 정보 수정 요청
-      const response = await fetchWithAuth(`${API_URL}members/${user.id}`, {
-        method: "PUT",
-        body: JSON.stringify(member)
-      });
-      console.log(`${API_URL}`);
-      if (response.ok) {
-        const result = await response.json();
-
-        // 컨트롤러 응답에서 사용자 데이터 추출
-        const updatedData = {
-          id: result.id,
-          email: result.email,
-          name: result.name,
-          roles: result.roles
-        };
-
-        console.log("사용자 정보 수정 성공:", updatedData);
-
-        // Redux 상태 업데이트
-        dispatch(setUser(updatedData));
-
-        alert("사용자 정보가 수정되었습니다.");
-      } else {
-        console.error("사용자 정보 수정 실패:", response.status);
-        alert("사용자 정보 수정 실패");
+      const response = await fetchWithAuth(`${API_URL}pets/user/${userId}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("펫 정보 로드 실패:", errorText);
+        return;
       }
+      const result = await response.json();
+      setPets(result.content || []);
     } catch (error) {
-      console.error("사용자 정보 수정 중 오류 발생:", error.message);
-      alert("사용자 정보 수정 실패: 네트워크 또는 서버 오류");
+      console.error("펫 정보 로드 중 오류:", error);
     }
   };
 
-  const handleInputChange = (event) => {
-    setMember({ ...member, [event.target.name]: event.target.value });
+  const fetchUserCommunityData = async (userId) => {
+    try {
+      const [postsResponse, commentsResponse] = await Promise.all([
+        fetchWithAuth(`${API_URL}posts/user/${userId}?page=0&size=3`),
+        fetchWithAuth(`${API_URL}members/${userId}/comments?page=0&size=3`)
+      ]);
+
+      if (!postsResponse.ok || !commentsResponse.ok) {
+        console.error("커뮤니티 데이터 로드 실패");
+        return;
+      }
+
+      const postsResult = await postsResponse.json();
+      const commentsResult = await commentsResponse.json();
+
+      setUserPosts(postsResult.content || []);
+      setUserComments(commentsResult.content || []);
+    } catch (error) {
+      console.error("커뮤니티 데이터 로드 중 오류:", error);
+    }
   };
+
+  const renderPetItem = (pet) => (
+    <Box
+      key={pet.petId}
+      onClick={() => navigate(`/mypage/pet/${pet.petId}`)}
+      className="pet_item">
+      <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+        <Box className="pet_image_container">
+          <img
+            src={getImageUrl(pet.imageUrl)}
+            alt={pet.name}
+            onError={(e) => {
+              e.target.src = "/assets/images/default-pet-image.png";
+            }}
+            className="pet_image"
+          />
+        </Box>
+
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="subtitle1" className="pet_name">
+            {pet.name}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            {pet.breed || "품종 미상"}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            {pet.gender === "M" ? "수컷" : "암컷"}, {pet.age}세
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+
+  // 로그인 필요 다이얼로그 닫기
+  const handleCloseLoginDialog = () => {
+    setOpenLoginDialog(false);
+    navigate("/login");
+  };
+
+  // 관리자 계정이거나 로그인하지 않은 경우 렌더링 방지
+  if (!isLoggedIn || (user && user.roles.includes("ROLE_ADMIN"))) {
+    return (
+      <Dialog open={openLoginDialog} onClose={handleCloseLoginDialog}>
+        <DialogTitle>로그인 필요</DialogTitle>
+        <DialogContent>
+          <Typography>로그인 후 이용 가능합니다.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseLoginDialog} color="primary">
+            로그인 하러 가기
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        marginTop: "20px"
-      }}>
-      <Typography
-        variant="h4"
-        style={{ marginBottom: "20px", fontWeight: "bold" }}>
-        마이페이지
-      </Typography>
-      <TextField
-        label="Name"
-        name="name"
-        value={member.name}
-        onChange={handleInputChange}
-        style={{ width: "400px", marginBottom: "10px" }}
-      />
-      <TextField
-        label="Email"
-        name="email"
-        value={member.email}
-        disabled
-        style={{ width: "400px", marginBottom: "10px" }}
-      />
-      <TextField
-        label="Phone"
-        name="phone"
-        value={member.phone}
-        onChange={handleInputChange}
-        style={{ width: "400px", marginBottom: "10px" }}
-      />
-      <TextField
-        label="Address"
-        name="address"
-        value={member.address}
-        onChange={handleInputChange}
-        style={{ width: "400px", marginBottom: "10px" }}
-      />
-      <Button
-        variant="contained"
-        onClick={handleUpdate}
-        style={{ marginTop: "20px" }}>
-        저장
-      </Button>
+    <div className="page_container">
+      <h2 className="page_title">마이 페이지</h2>
+
+      <div className="my_wrap">
+        <div className="grid_box">
+          <div className="left_section">
+            <div className="section community_section">
+              <Box className="section_header">
+                <Typography variant="h5" component="h2">
+                  커뮤니티 활동
+                </Typography>
+              </Box>
+
+              <div className="post_card">
+                <div className="post_section">
+                  <div className="subtitle" onClick={() => navigate("/posts")}>
+                    <p>작성 게시글</p>
+                    <span>{userPosts.length}개</span>
+                  </div>
+                  {userPosts.length === 0 ? (
+                    <div className="empty_message">
+                      <Typography variant="body2" color="textSecondary">
+                        작성한 게시글이 없습니다.
+                      </Typography>
+                    </div>
+                  ) : (
+                    <ul className="item_list">
+                      {userPosts.map((post) => (
+                        <li key={post.id}>{post.title}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div className="comment_section">
+                  <div className="subtitle" onClick={() => navigate("/posts")}>
+                    <p>작성 댓글</p>
+                    <span>{userComments.length}개</span>
+                  </div>
+                  {userComments.length === 0 ? (
+                    <div className="empty_message">
+                      <Typography variant="body2" color="textSecondary">
+                        작성한 댓글이 없습니다.
+                      </Typography>
+                    </div>
+                  ) : (
+                    <ul className="item_list">
+                      {userComments.map((comment) => (
+                        <li key={comment.id}>{comment.content}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="section pet_section">
+              <Box className="section_header">
+                <Typography variant="h5" component="h2">
+                  펫 정보
+                </Typography>
+              </Box>
+
+              <div className="pet_list">
+                {pets.length === 0 ? (
+                  <Typography
+                    variant="body1"
+                    color="textSecondary"
+                    align="center">
+                    등록된 반려동물이 없습니다.
+                  </Typography>
+                ) : (
+                  pets.map(renderPetItem)
+                )}
+              </div>
+
+              <Button
+                variant="contained"
+                fullWidth
+                className="register_button"
+                onClick={() => navigate("/mypage/pet/register")}>
+                펫 등록하기
+              </Button>
+            </div>
+          </div>
+
+          <div className="info_section">
+            <Box className="section_header">
+              <Typography variant="h5" component="h2">
+                내 정보
+              </Typography>
+              <Box className="edit_buttons">
+                <span
+                  onClick={() => navigate("/mypage/profile-edit")}
+                  className="edit_info">
+                  내정보 수정
+                </span>
+                <span
+                  onClick={() => navigate("/mypage/password-edit")}
+                  className="edit_password">
+                  비밀번호 수정
+                </span>
+              </Box>
+            </Box>
+
+            <Box className="info_container">
+              <Box className="info_user">
+                <Typography variant="h6">
+                  {userInfo.name || user.name}
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  {userInfo.email || user.email}
+                </Typography>
+              </Box>
+              <Typography variant="subtitle1" className="points">
+                보유포인트 10,000원
+              </Typography>
+            </Box>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default MyPage;

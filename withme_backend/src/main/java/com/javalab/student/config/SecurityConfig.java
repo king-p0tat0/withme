@@ -98,15 +98,35 @@ public class SecurityConfig {
                 .requestMatchers("/api/questionnaires/free").permitAll()
                 .requestMatchers("/topic/**").permitAll()  // ✅ STOMP 메시지 브로커 경로 허용
                 .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail","/api/auth/login/kakao").permitAll() // 로그인 API 허용 [수정]
-                .requestMatchers(HttpMethod.GET, "/api/notices/**","/api/posts/**","/api/comment/**","/api/posts/*/comments").permitAll() // GET 요청은 모든 사용자에게 허용
-                //.requestMatchers("/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated() //인증 필요
-                .requestMatchers(HttpMethod.POST, "/api/posts", "/api/comments","/api/posts/*/comments").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated()
-               .requestMatchers(HttpMethod.DELETE, "/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated()
-                // 공지사항 등록, 수정, 삭제는 ADMIN만 접근 가능
-                .requestMatchers(HttpMethod.POST, "/api/notices/**").hasRole("ADMIN") 
-                .requestMatchers(HttpMethod.PUT, "/api/notices/**").hasRole("ADMIN") 
+                // 공지사항, 게시글, 댓글 목록 및 상세 조회는 모두 허용
+                .requestMatchers(HttpMethod.GET,
+                        "/api/notices/**",
+                        "/api/posts/**",
+                        "/api/posts/*/comments",
+                        "/api/comments/**",
+                        "/api/members/{userId}/comments",
+                        "/api/pets/user/{userId}",
+                        "/api/posts/user/{userId}",
+                        "/api/posts/comments/user/{userId}",
+                        "/api/pets/image/**"
+                ).permitAll()
+
+                // 반려동물 관련 경로 (등록, 수정, 삭제는 인증 필요)
+                .requestMatchers(HttpMethod.POST, "/api/pets/register").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/pets/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/pets/**").authenticated()
+                .requestMatchers("/api/pets/{petId}").authenticated()
+
+                // 공지사항 작성/수정/삭제는 ADMIN만 가능
+                .requestMatchers(HttpMethod.POST, "/api/notices/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/notices/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/notices/**").hasRole("ADMIN")
+
+                // 게시글/댓글 작성, 수정, 삭제는 인증된 사용자만 가능
+                .requestMatchers(HttpMethod.POST, "/api/posts", "/api/posts/*/comments").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/posts/**", "/api/posts/*/comments/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/posts/**", "/api/posts/*/comments/**").authenticated()
+
                 .requestMatchers("/api/students/**").hasRole("ADMIN")   // 학생 등록, 수정, 삭제는 ADMIN만 접근 가능
                 .requestMatchers("/api/auth/userInfo").permitAll() // 사용자 정보 조회 API는 모든 사용자에게 허용
                 .requestMatchers("/api/doctors/**").permitAll()

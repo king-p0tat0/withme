@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingBasket } from "@fortawesome/free-solid-svg-icons";
 import { API_URL } from "../../constant";
 import { fetchWithAuth } from "../../common/fetchWithAuth";
-import { Helmet } from "react-helmet"; // 폰트
+import { Helmet } from "react-helmet";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -24,6 +24,17 @@ const Header = () => {
     } catch (error) {
       console.error("로그아웃 실패:", error.message);
       alert("로그아웃 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleMypageClick = () => {
+    if (!isLoggedIn) {
+      alert("로그인 후 이용 가능합니다.");
+      navigate("/login");
+    } else if (user.roles.includes("ROLE_ADMIN")) {
+      alert("일반 회원만 마이페이지를 이용할 수 있습니다.");
+    } else {
+      navigate(`/mypage/${user.id}`);
     }
   };
 
@@ -57,28 +68,34 @@ const Header = () => {
             {isLoggedIn ? (
               <>
                 <li>{user.name}님</li>
-                <li>{user.roles}</li>
-                {user?.roles?.includes("ROLE_ADMIN") && (
+                {user?.roles?.includes("ROLE_ADMIN") ? (
                   <li>
                     <Link to="/admin">관리자 페이지</Link>
                   </li>
+                ) : (
+                  <>
+                    <li>
+                      <span
+                        onClick={handleMypageClick}
+                        style={{ cursor: "pointer" }}>
+                        마이페이지
+                      </span>
+                    </li>
+                    <li>
+                      <Link to={`/doctor/register`}>전문가 신청</Link>
+                    </li>
+                    <li>
+                      <Link to={`/doctor/status`}>전문가 신청상태</Link>
+                    </li>
+                    <li>
+                      <Link to={`/doctor/edit`}>전문가 수정페이지</Link>
+                    </li>
+                  </>
                 )}
                 <li>
                   <Link to="/" onClick={handleLogout} className="logout-btn">
                     로그아웃
                   </Link>
-                </li>
-                <li>
-                  <Link to={`/mypage/${user.id}`}>마이페이지</Link>
-                </li>
-                <li>
-                  <Link to={`/doctor/register`}>전문가 신청</Link>
-                </li>
-                <li>
-                  <Link to={`/doctor/status`}>전문가 신청상태</Link>
-                </li>
-                <li>
-                  <Link to={`/doctor/edit`}>전문가 수정페이지</Link>
                 </li>
               </>
             ) : (

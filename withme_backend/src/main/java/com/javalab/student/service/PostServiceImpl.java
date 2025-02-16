@@ -123,6 +123,13 @@ public class PostServiceImpl implements PostService {
         return member.getId();
     }
 
+    @Override
+@Transactional(readOnly = true)
+public Page<PostDto> getPostsByUserId(Long userId, Pageable pageable) {
+    Page<Post> posts = postRepository.findByUserId(userId, pageable);
+    return posts.map(this::entityToDto);
+}
+
     // Entity를 DTO로 변환하는 유틸리티 메서드
     private PostDto entityToDto(Post post) {
         return PostDto.builder()

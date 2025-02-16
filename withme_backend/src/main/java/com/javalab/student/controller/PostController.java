@@ -208,4 +208,17 @@ public ResponseEntity<Map<String, String>> uploadImage(
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 }
+
+// 사용자별 게시글 조회
+@GetMapping("/user/{userId}")
+public ResponseEntity<?> getPostsByUserId(
+    @PathVariable("userId") Long userId,
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "10") int size
+) {
+    PageRequest pageRequest = PageRequest.of(page, size, Sort.by("regTime").descending());
+    Page<PostDto> posts = postService.getPostsByUserId(userId, pageRequest);
+    return ResponseEntity.ok(Map.of("total", posts.getTotalElements(), "content", posts.getContent()));
+}
+
 }

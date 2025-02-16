@@ -14,6 +14,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${uploadPath}")
     String uploadPath;  // file:///c:/shop/
 
+//     @Value("${petUploadPath}")
+//     String petUploadPath;  // /Users/judykim/Documents/uploads/pet
+
+
+
     /**
      * Cross Origin Resource Sharing (CORS) 설정
      * - addMapping : CORS를 적용할 URL 패턴, 모든 URL에 대해 적용하려면 /**로 설정
@@ -37,6 +42,10 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/images/**")   // /images/** 요청이 오면 uploadPath로 매핑
                 .addResourceLocations(uploadPath);  // 로컬 컴퓨터에 저장된 파일을 읽어올 root 경로를 설정합니다.
+
+        // /api/pets/image/** 요청을 처리
+        // registry.addResourceHandler("/api/pets/image/**")
+        // .addResourceLocations("file:" + petUploadPath + "/");
 
         // aws
         //registry.addResourceHandler("/images/**")
