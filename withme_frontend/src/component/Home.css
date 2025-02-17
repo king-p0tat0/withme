@@ -295,6 +295,9 @@ hr {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     width: 150px;
     text-align: center;
+    cursor: pointer;
+    z-index: 1000;
+
 }
 
 .admin-dropdown li {
