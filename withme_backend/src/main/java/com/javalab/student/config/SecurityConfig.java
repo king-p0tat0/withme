@@ -111,16 +111,16 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/userInfo").permitAll() // 사용자 정보 조회 API는 모든 사용자에게 허용
                 .requestMatchers("/api/doctors/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/members/**").hasAnyRole("USER", "ADMIN","VIP") // 사용자 정보 수정 API는 USER, ADMIN만 접근 가능
+                .requestMatchers("/api/members/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 사용자 정보 수정 API는 USER, ADMIN만 접근 가능
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()  // 스웨거 Swagger UI는 인증을 거치지 않고 접근 가능
-                .requestMatchers("/api/messages/**").hasAnyRole("USER", "ADMIN") // 사용자의 읽지 않은 메시지 개수 조회 API는 USER, ADMIN만 접근 가능
-                .requestMatchers("/api/questions/**").hasAnyRole("USER","VIP")
-                .requestMatchers("/api/chat/**").hasAnyRole("USER", "ADMIN") // 채팅방 생성, 채팅방 목록 조회 API는 USER, ADMIN만 접근 가능
+                .requestMatchers("/api/messages/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 사용자의 읽지 않은 메시지 개수 조회 API는 USER, ADMIN만 접근 가능
+                .requestMatchers("/api/questions/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR")
+                .requestMatchers("/api/chat/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 채팅방 생성, 채팅방 목록 조회 API는 USER, ADMIN만 접근 가능
                 // 쇼핑몰
                 .requestMatchers("/api/item/list", "/api/item/view/**").permitAll()
                 .requestMatchers("/api/item/new", "/api/item/edit/**","/api/item/delete/**").hasRole("ADMIN")
-                .requestMatchers("/api/cart/**","/api/orders/**").hasAnyRole("ADMIN","USER","VIP","DOCTOR")
-                .requestMatchers("/api/payments/**").hasAnyRole("ADMIN","USER","VIP","DOCTOR") // 결제
+                .requestMatchers("/api/cart/**","/api/orders/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR")
+                .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 결제
 
 
                 .requestMatchers(
