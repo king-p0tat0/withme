@@ -4,6 +4,7 @@ import com.javalab.student.constant.OrderStatus;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 결제 요청 DTO
@@ -29,4 +30,5 @@ public class PaymentRequestDto {
     private String buyerAddr;    // 배송지 주소
     private String buyerPostcode; // 우편번호
     private Long paidAt;          // 💡 Unix Timestamp 유지
+    private List<Long> cartItemId;      // 장바구니 상품 ID
 }

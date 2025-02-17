@@ -3,13 +3,9 @@ package com.javalab.student.service.shop;
 
 import com.javalab.student.dto.shop.*;
 import com.javalab.student.entity.Member;
-import com.javalab.student.entity.shop.Cart;
-import com.javalab.student.entity.shop.CartItem;
-import com.javalab.student.entity.shop.Item;
+import com.javalab.student.entity.shop.*;
 import com.javalab.student.repository.MemberRepository;
-import com.javalab.student.repository.shop.CartItemRepository;
-import com.javalab.student.repository.shop.CartRepository;
-import com.javalab.student.repository.shop.ItemRepository;
+import com.javalab.student.repository.shop.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -34,6 +30,8 @@ public class CartService {
     private final MemberRepository memberRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final OrderRepository orderRepository;
     private final OrderService orderService;
 
     /**
@@ -206,16 +204,30 @@ public class CartService {
         Long orderId = orderService.orders(orderItemDtoList, email);
 
         // 4. 주문 완료 후 장바구니 항목 삭제
-        for (CartOrderItemDto cartOrderItemDto : cartOrderItems) {
+        /*for (CartOrderItemDto cartOrderItemDto : cartOrderItems) {
             CartItem cartItem = cartItemRepository
                     .findById(cartOrderItemDto.getCartItemId())
                     .orElseThrow(EntityNotFoundException::new);
             // 장바구니에서 해당 상품 삭제
             cartItemRepository.delete(cartItem);
             log.info("삭제된 장바구니 상품 ID: " + cartOrderItemDto.getCartItemId());
-        }
+        }*/
 
         // 5. 주문 ID 반환
         return orderId;
     }
+
+    /**
+     * 주문 완료 후 장바구니 아이템 삭제
+     */
+    public void removeCartItem(List<Long> cartItemIds) {
+        if (cartItemIds != null && !cartItemIds.isEmpty()) {
+            cartItemRepository.deleteAllById(cartItemIds);
+            log.info("장바구니에서 아이템 삭제 완료 : {}", cartItemIds);
+        } else {
+            log.info("삭제할 아이템이 없습니다.");
+        }
+
+    }
+
 }

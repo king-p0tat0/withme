@@ -19,13 +19,18 @@ import { useNavigate } from "react-router-dom";
  * @returns {JSX.Element}
  * @constructor
  */
-const Payment = ({ merchantId,orderItems , zipCode, address1, address2, orderId }) => {
+const Payment = ({ merchantId,orderItems , zipCode, address1, address2, orderId, orderData }) => {
   const navigate = useNavigate();
   console.log("받은 orderItems : ", orderItems);
-  const item = orderItems[0];
+  const items = orderItems || [];
   console.log("받은 orderId : ", orderId);
 
-  const quantity = item ? item.count : 1; // 기본값 1
+  // 전체 수량 및 총 가격 계산
+    const totalQuantity = items.reduce((acc, item) => acc + (item.count || 1), 0);
+    const totalAmount = items.reduce((acc, item) => acc + (item.orderPrice * (item.count || 1)), 0);
+
+    // 모든 상품명을 하나의 문자열로 합침 (예: "상품1, 상품2, 상품3")
+    const itemNames = items.map(item => item.itemNm).join(", ");
 
   // 결제 요청 핸들러
   const handlePayment = async () => {
@@ -39,8 +44,8 @@ const Payment = ({ merchantId,orderItems , zipCode, address1, address2, orderId 
       pg: "kakaopay",
       pay_method: "card",
       merchant_uid: `${new Date().getTime()}`,  // 결제 고유번호, 거래 번호는 고유해야 함
-      name: item.itemNm,
-      amount: item.orderPrice * quantity,
+      name: itemNames,
+      amount: totalAmount,
       buyer_email: "test@portone.io",
       buyer_name: "홍길동",
       buyer_tel: "010-1234-5678",
@@ -62,17 +67,21 @@ const Payment = ({ merchantId,orderItems , zipCode, address1, address2, orderId 
         if (response.ok) {
           const data = await response.json();
           console.log("data: ", data);
-          navigate("/payResult", { state: { paymentInfo: data } }); // 결제 결과 페이지로 이동
+          navigate(`/payResult/${orderId}`, { state: { paymentInfo: data } }); // 결제 결과 페이지로 이동
         }
       } else {
         alert(`결제 실패: ${rsp.error_msg}`);
       }
     });
   };
-  console.log("주문 백엔드 전송전 주문번호 확인 : ", orderId);
+  // 장바구니 아이템 삭제를 위해 cartItemId 추출해서 보내기
+  const cartItemIds = orderData.cartOrderItems.map(item => item.cartItemId);
+
 
   // 백엔드에 결제 데이터 전송
   const processPayment = async (rsp) => {
+
+
     const paymentRequest = {
       impUid: rsp.imp_uid,
       merchantUid: orderId, // 실제 주문 테이블에 있는 주문번호로 변경 필요
@@ -86,9 +95,10 @@ const Payment = ({ merchantId,orderItems , zipCode, address1, address2, orderId 
       buyerPostcode: rsp.buyer_postcode,
       paidAt: rsp.paid_at,
       status: "PAYMENT_COMPLETED",
+      cartItemId : cartItemIds,
     };
 
-    return fetchWithAuth(`${API_URL}payments/request`, {
+    return fetchWithAuth(`${API_URL}payments/request/${orderId}`, {
       method: "POST",
       body: JSON.stringify(paymentRequest),
     });

@@ -95,9 +95,11 @@ export default function CartPage() {
             // 서버에서 응답받은 데이터(주문 ID)를 콘솔에 출력
             const orderId = await response.json();
             console.log("반환받은 주문ID : ", orderId);  // 서버에서 반환된 주문ID
-            alert('주문이 완료되었습니다.');
 
-            navigate(`/orders/${orderId}`);
+            navigate(`/orders/${orderId}`,{
+                state: {orderData}
+                });
+
         } catch (error) {
             alert(error.message);
         }

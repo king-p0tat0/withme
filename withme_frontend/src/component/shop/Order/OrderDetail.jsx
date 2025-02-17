@@ -3,7 +3,7 @@ import { Button, TextField, Box, Typography, Paper } from "@mui/material";
 import { API_URL, SERVER_URL2 } from '../../../constant';
 import { fetchWithAuth } from '../../../common/fetchWithAuth';
 import Payment from "./Payment"; // 결제 컴포넌트 추가
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 
 /**
  * 주문 상세 페이지
@@ -11,17 +11,20 @@ import { useParams } from "react-router-dom";
  */
 const OrderDetail = () => {
   const { orderId } = useParams();
+  const location = useLocation();
+
   const [orderItems, setOrderItems] = useState([]);
   const [merchantId, setMerchantId] = useState("");
   const [zipCode, setZipCode] = useState("");
     const [address1, setAddress1] = useState("");
 const [address2, setAddress2] = useState("");
+const [orderData, setOrderData] = useState(location.state?.orderData || {});
 
   useEffect(() => {
-    fetchOrderItems(orderId);
-    const id = fetchMerchantId();
-    setMerchantId(id);
-  }, [orderId]);
+      fetchOrderItems(orderId);
+      const id = fetchMerchantId();
+      setMerchantId(id);
+    }, [orderId]);
 
   // 주문 아이템 목록 조회
   const fetchOrderItems = async (orderId) => {
@@ -85,7 +88,8 @@ const [address2, setAddress2] = useState("");
                 zipCode={zipCode}
                  address1={address1}
                  address2={address2}
-                  orderId={orderId} />
+                  orderId={orderId}
+                   orderData={orderData}/>
             )}
           </Box>
         </Paper>

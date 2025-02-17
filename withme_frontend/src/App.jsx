@@ -144,8 +144,7 @@ function App() {
         <Route path="/item/edit/:itemId" element={<ItemEdit />} />
         <Route path="/cart/list" element={<CartList />} />
         <Route path="/orders/:orderId" element={<Order />} />
-        <Route path="/orders/:orderId" element={<Order />} />
-        <Route path="/payResult" element={<PayResult />} />  {/* ✅ 결제 결과 페이지 라우트 추가 */}
+        <Route path="/payResult/:orderId" element={<PayResult />} />  {/* ✅ 결제 결과 페이지 라우트 추가 */}
 
         {/* 수의사 */}
         <Route path="/signupDoctor" element={<SignupDoctor />} />

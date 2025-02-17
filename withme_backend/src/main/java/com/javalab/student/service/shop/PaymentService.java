@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -31,9 +32,10 @@ public class PaymentService {
     private final IamportClient iamportClient;
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
+    private final CartService cartService;
 
     @Transactional
-    public Map<String, Object> processPayment(PaymentRequestDto requestDto) {
+    public Map<String, Object> processPayment(PaymentRequestDto requestDto, Long orderId) {
         log.info("🔹 결제 검증 시작: {}", requestDto);
 
         // 1. 주문 정보 조회
@@ -83,7 +85,16 @@ public class PaymentService {
         order.setOrderStatus(OrderStatus.PAYMENT_COMPLETED);
         orderRepository.save(order);
 
-        // 7. 응답 데이터 구성
+        // 7. ✅ 결제 완료 후 장바구니 아이템 삭제
+        List<Long> cartItemIds = requestDto.getCartItemId();
+        if (cartItemIds != null && !cartItemIds.isEmpty()) {
+            // cartItemIds에 포함된 상품을 장바구니에서 삭제
+            log.info("결제 완료 후 삭제할 장바구니 상품 IDs: {}", cartItemIds);
+            cartService.removeCartItem(cartItemIds);  // 장바구니 아이템 삭제
+        }
+
+
+        // 8. 응답 데이터 구성
         Map<String, Object> response = new HashMap<>();
         response.put("paymentId", payment.getId());
         response.put("impUid", payment.getImpUid());

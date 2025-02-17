@@ -2,6 +2,7 @@ package com.javalab.student.controller.shop;
 
 import com.javalab.student.config.portone.PortOneProperties;
 import com.javalab.student.dto.shop.PaymentRequestDto;
+import com.javalab.student.service.shop.CartService;
 import com.javalab.student.service.shop.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,12 +43,15 @@ public class PaymentController {
      * @param requestDto 결제 요청 정보 (상품명, 금액, 사용자 정보 포함)
      * @return 결제 요청 결과
      */
-    @PostMapping("/request")
-    public ResponseEntity<Map<String, Object>> processPayment(@RequestBody PaymentRequestDto requestDto) {
+    @PostMapping("/request/{orderId}")
+    public ResponseEntity<Map<String, Object>> processPayment(@RequestBody PaymentRequestDto requestDto,
+    @PathVariable Long orderId) {
         log.info("결제 요청 시작 - 주문 정보: {}", requestDto);
 
-        Map<String, Object> response = paymentService.processPayment(requestDto);
+        Map<String, Object> response = paymentService.processPayment(requestDto, orderId);
         log.info("결제 처리 완료: {}", response);
+
+
 
         return ResponseEntity.ok(response);
     }

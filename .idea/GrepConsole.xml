@@ -55,7 +55,7 @@
                             <option name="models">
                               <list>
                                 <GrepModel>
-                                  <option name="expression" value="상품" />
+                                  <option name="expression" value="주문" />
                                 </GrepModel>
                               </list>
                             </option>
