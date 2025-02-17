@@ -152,7 +152,7 @@ public class MemberService {
                 .build();
     }
 
-     /**
+    /**
      * 사용자 인증 메서드
      * @param email 사용자 이메일
      * @param password 사용자 비밀번호

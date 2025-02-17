@@ -14,6 +14,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${uploadPath}")
     String uploadPath;  // file:///c:/shop/
 
+//     @Value("${petUploadPath}")
+//     String petUploadPath;  // /Users/judykim/Documents/uploads/pet
+
+
+@Value("${postImgLocation}")
+    private String postUploadPath;
+
     /**
      * Cross Origin Resource Sharing (CORS) 설정
      * - addMapping : CORS를 적용할 URL 패턴, 모든 URL에 대해 적용하려면 /**로 설정
@@ -27,7 +34,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins("http://localhost:3000")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH")
                 .allowedHeaders("*")    // 모든 헤더를 허용
                 .allowCredentials(true);    // 쿠키를 주고 받을 수 있게 설정, 세션을 사용할 때는 true로 설정, 왜? 세션은 쿠키를 사용하기 때문, 쿠키에는 사용자의 정보가 담겨있음
     }
@@ -37,6 +44,14 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/images/**")   // /images/** 요청이 오면 uploadPath로 매핑
                 .addResourceLocations(uploadPath);  // 로컬 컴퓨터에 저장된 파일을 읽어올 root 경로를 설정합니다.
+
+         // 게시글 이미지
+        registry.addResourceHandler("/api/posts/image/**")
+        .addResourceLocations("file:" + postUploadPath + "/");
+
+        // /api/pets/image/** 요청을 처리
+        // registry.addResourceHandler("/api/pets/image/**")
+        // .addResourceLocations("file:" + petUploadPath + "/");
 
         // aws
         //registry.addResourceHandler("/images/**")

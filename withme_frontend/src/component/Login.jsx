@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { API_URL } from "../constant";
 import { useDispatch } from "react-redux";
 import { setUser } from "../redux/authSlice";
@@ -8,11 +8,11 @@ import { Link } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // 오류 메시지 상태 추가!
 
   useEffect(() => {
     // 카카오 SDK 초기화 확인
@@ -79,38 +79,60 @@ export default function Login() {
   };
 
   // 일반 로그인 함수
-  // Login.js handleLogin 함수 수정
   const handleLogin = async () => {
     try {
+      // 입력값 검증 추가
+      if (!email || !password) {
+        alert("이메일과 비밀번호를 모두 입력해주세요.");
+        return;
+      }
+
       const formData = new URLSearchParams();
-      formData.append("username", email);
+      formData.append("username", email.trim()); // 공백 제거
       formData.append("password", password);
 
       const response = await fetch(API_URL + "auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json" // 응답 타입 명시
+        },
         body: formData,
         credentials: "include"
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "로그인에 실패했습니다.");
+      }
+
       const data = await response.json();
-      if (data.status !== "success") {
-        setErrorMessage(data.message || "로그인 실패");
-        return;
+
+      // 응답 데이터 검증
+      if (!data.id || !data.roles) {
+        throw new Error("서버 응답 데이터가 올바르지 않습니다.");
       }
 
       dispatch(
         setUser({
           id: data.id,
-          name: data.name,
+          name: data.name || email,
           email: email,
-          roles: data.roles // 백엔드에서 오는 그대로의 roles 값을 저장
+          roles: data.roles
         })
       );
-      navigate("/");
+
+      // 로그인 성공 후 이동
+      navigate(location.state?.from || "/");
     } catch (error) {
       console.error("로그인 요청 실패:", error);
-      setErrorMessage("서버 오류가 발생했습니다.");
+      alert(error.message || "서버 오류가 발생했습니다.");
+    }
+  };
+  // 엔터 키를 눌렀을 때 로그인 실행
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleLogin();
     }
   };
 
@@ -128,6 +150,7 @@ export default function Login() {
               placeholder="이메일을 입력하세요."
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={handleKeyDown} // 엔터 키 이벤트 처리
             />
           </div>
           <div className="password">
@@ -139,9 +162,9 @@ export default function Login() {
               placeholder="비밀번호를 입력하세요."
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={handleKeyDown} // 엔터 키 이벤트 처리
             />
           </div>
-          {errorMessage && <p className="error-message">{errorMessage}</p>}
           <button className="loginBtn" onClick={handleLogin}>
             로그인
           </button>

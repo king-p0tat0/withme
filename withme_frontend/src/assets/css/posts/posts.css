@@ -21,31 +21,54 @@
       margin-top: 0;
     }
     .post_list_item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      justify-items: center;
+      display: grid;
+      grid-template-columns: 1fr 20%;
+
       margin: 24px 0;
       padding-bottom: 24px;
       border-bottom: 1px solid #e2e2e2;
       cursor: pointer;
-      .list_title_box {
-        display: block;
-        width: 75%;
-        p {
-          font-size: 1.2rem;
-          font-weight: bold;
+      .list_area {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        justify-items: center;
+        gap: 10px;
+        .list_thumbnail_box {
+          width: 45px;
+          height: 45px;
           overflow: hidden;
-          text-overflow: ellipsis;
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          -webkit-box-orient: vertical;
+          border-radius: 4px;
+          box-sizing: border-box;
+          .thumbnail_img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+            box-sizing: border-box;
+          }
+        }
+        .list_title_box {
+          display: block;
+          p {
+            font-size: 1.2rem;
+            font-weight: bold;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+          }
         }
       }
-      .list_area {
-        text-align: right;
+
+      .list_date {
       }
     }
+  }
+
+  .post_btn {
+    text-align: right;
   }
 
   /* 탭 스타일 */
@@ -118,6 +141,7 @@
     .content {
       padding: 2%;
       font-size: 1.1rem;
+      text-align: center;
     }
   }
 
@@ -146,12 +170,12 @@
 /* Comment css */
 .comment_section {
   .comment_write_area {
-    margin: 20px 0;
+    margin: 50px 0 20px;
 
     .write_button {
       width: 100%;
       padding: 12px;
-      background-color: #f8f9fa;
+      background: #f8f9fa;
       border: 1px solid #e1e1e1;
       border-radius: 4px;
       cursor: pointer;
@@ -169,6 +193,9 @@
     }
 
     .comment_form {
+      background: #f8f9fa;
+      padding: 14px;
+      border-radius: 4px;
       textarea {
         width: 100%;
         padding: 12px;
@@ -231,7 +258,7 @@
   }
 
   .section_s_t {
-    margin-top: 50px;
+    margin-top: 20px;
     padding-bottom: 12px;
     border-bottom: 2px solid #333;
     display: flex;
@@ -521,5 +548,25 @@
         }
       }
     }
+  }
+}
+
+.rdw-link-modal-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+.rdw-link-modal,
+.rdw-embedded-modal,
+.rdw-image-modal,
+.rdw-embedded-modal {
+  height: auto !important;
+  .rdw-link-modal-btn,
+  .rdw-link-modal-btn,
+  .rdw-embedded-modal-btn,
+  .rdw-embedded-modal-btn,
+  .rdw-image-modal-btn,
+  .rdw-image-modal-btn {
+    color: #333;
+    padding: 0;
   }
 }

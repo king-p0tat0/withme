@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import '../../css/DoctorList.css';
 import DoctorView from './DoctorView';
 import { useNavigate, Link } from 'react-router-dom';
 import { fetchWithAuth } from '../../common/fetchWithAuth'; // fetchWithAuth import
 import { API_URL } from '../../constant';
-import '../../assets/css/admin/DoctorList.css';
 
 /**
  * 전문가 리스트 페이지
