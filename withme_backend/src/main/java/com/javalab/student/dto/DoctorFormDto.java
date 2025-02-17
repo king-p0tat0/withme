@@ -28,7 +28,7 @@ public class DoctorFormDto {
     @Size(max = 255)
     private String reason;
 
-    private Member member;
+    private Long userId;
 
 
 

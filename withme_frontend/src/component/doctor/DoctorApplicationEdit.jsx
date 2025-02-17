@@ -45,6 +45,8 @@ export default function DoctorApplicationEdit({ user }) {
         }));
     };
 
+console.log("doctorData : ", doctorData);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -60,6 +62,7 @@ export default function DoctorApplicationEdit({ user }) {
 
             if (response.ok) {
                 alert("신청 정보가 수정되었습니다.");
+                navigate("/doctors/status/" + user.id);
             } else {
                 setError("수정에 실패했습니다.");
             }

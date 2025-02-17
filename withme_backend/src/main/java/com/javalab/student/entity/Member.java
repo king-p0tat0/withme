@@ -1,5 +1,6 @@
 package com.javalab.student.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.javalab.student.constant.Role;
 import com.javalab.student.dto.MemberFormDto;
 import jakarta.persistence.*;
@@ -10,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * 회원 엔티티
@@ -58,6 +60,8 @@ public class Member extends BaseEntity{
 
     private String provider; // 소셜 로그인 제공자 이름 (예: kakao)
 
+
+
     /*
         * 회원 엔티티 생성 정적 메서드
      */
@@ -87,6 +91,8 @@ public class Member extends BaseEntity{
         member.setPoints(0);
         return member;
     }
+
+
 
     // 권한 정보 반환 메서드
     public Collection<? extends GrantedAuthority> getAuthorities() {
