@@ -148,6 +148,12 @@ function App() {
 
         {/* 수의사 */}
         <Route path="/signupDoctor" element={<SignupDoctor />} />
+        <Route path="/doctor/register" element={<RegisterDoctor user={user} />} />
+        <Route path="/doctors/status/:id" element={<DoctorApplicationStatus user={user}/>} />
+        <Route path="/doctors/edit/:id" element={<DoctorApplicationEdit user={user}/>} />
+
+
+
 
         {/* ✅ 기타 페이지 */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
