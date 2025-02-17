@@ -98,7 +98,15 @@ public class SecurityConfig {
                 .requestMatchers("/api/questionnaires/free").permitAll()
                 .requestMatchers("/topic/**").permitAll()  // ✅ STOMP 메시지 브로커 경로 허용
                 .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail","/api/auth/login/kakao").permitAll() // 로그인 API 허용 [수정]
-                .requestMatchers(HttpMethod.GET, "/api/students/**").permitAll()    // GET 요청은 모든 사용자에게 허용
+                .requestMatchers(HttpMethod.GET, "/api/notices/**","/api/posts/**","/api/comment/**","/api/posts/*/comments").permitAll() // GET 요청은 모든 사용자에게 허용
+                //.requestMatchers("/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated() //인증 필요
+                .requestMatchers(HttpMethod.POST, "/api/posts", "/api/comments","/api/posts/*/comments").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated()
+               .requestMatchers(HttpMethod.DELETE, "/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated()
+                // 공지사항 등록, 수정, 삭제는 ADMIN만 접근 가능
+                .requestMatchers(HttpMethod.POST, "/api/notices/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/notices/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/notices/**").hasRole("ADMIN")
                 .requestMatchers("/api/students/**").hasRole("ADMIN")   // 학생 등록, 수정, 삭제는 ADMIN만 접근 가능
                 .requestMatchers("/api/auth/userInfo").permitAll() // 사용자 정보 조회 API는 모든 사용자에게 허용
                 .requestMatchers("/api/doctors/**").permitAll()
@@ -107,9 +115,16 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()  // 스웨거 Swagger UI는 인증을 거치지 않고 접근 가능
                 .requestMatchers("/api/messages/**").hasAnyRole("USER", "ADMIN") // 사용자의 읽지 않은 메시지 개수 조회 API는 USER, ADMIN만 접근 가능
                 .requestMatchers("/api/questions/**").hasAnyRole("USER","VIP")
-                .requestMatchers("/api/chat/**").hasAnyRole("USER", "ADMIN")// 채팅방 생성, 채팅방 목록 조회 API는 USER, ADMIN만 접근 가능
+                .requestMatchers("/api/chat/**").hasAnyRole("USER", "ADMIN") // 채팅방 생성, 채팅방 목록 조회 API는 USER, ADMIN만 접근 가능
+                // 쇼핑몰
+                .requestMatchers("/api/item/list", "/api/item/view/**").permitAll()
+                .requestMatchers("/api/item/new", "/api/item/edit/**","/api/item/delete/**").hasRole("ADMIN")
+                .requestMatchers("/api/cart/**","/api/orders/**").hasAnyRole("ADMIN","USER","VIP","DOCTOR")
+
+
                 .requestMatchers(
                         "/images/**",
+                        "/image/**",
                         "/static-images/**",
                         "/css/**",
                         "/img/**",

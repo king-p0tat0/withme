@@ -34,7 +34,15 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-
+    // querydsl 라이브러리 추가
+    // QueryDSL의 핵심 기능을 제공합니다.
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    // QueryDSL의 어노테이션 프로세서를 사용하여 Q-Type 클래스를 생성합니다.
+    annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
+    // Jakarta EE 어노테이션을 사용하기 위해 필요합니다.
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    // JPA 관련 어노테이션과 인터페이스를 제공합니다.
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     // SQL 로그 의존성
     implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
@@ -85,15 +93,14 @@ dependencies {
     // [스웨거]Springdoc OpenAPI Starter for Spring Boot 3.x
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 
-    // redis 의존성, redis는 메모리 기반의 key-value 저장소로서, 데이터를 빠르게 저장하고 조회할 수 있는 오픈소스 데이터베이스입니다.
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
-    // Swagger 의존성
-    // [스웨거]Springdoc OpenAPI Starter for Spring Boot 3.x
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+    // Thymeleaf 의존성 추가
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
     // redis 의존성, redis는 메모리 기반의 key-value 저장소로서, 데이터를 빠르게 저장하고 조회할 수 있는 오픈소스 데이터베이스입니다.
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+// Thumbnailator 라이브러리 추가
+     implementation 'net.coobird:thumbnailator:0.4.20'
 
 
 // Thumbnailator 라이브러리 추가

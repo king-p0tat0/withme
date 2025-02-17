@@ -79,7 +79,7 @@ class MemberRepositoryTest {
         for (int i = 1; i <= 50; i++) {
             // 기본 가짜 데이터를 생성
             String name = names[i % names.length] + i;
-            String email = name.toLowerCase() + "@test.com";
+            String email = "test"+ i + "@test.com";
             String password = "1234";  // 가짜 비밀번호
             String address = addresses[i % addresses.length];
             String phone = phoneNumbers[i % phoneNumbers.length];

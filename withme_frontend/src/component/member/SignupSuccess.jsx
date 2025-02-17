@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import "../../assets/css/member/SignupSuccess.css";
 
+
 function SignupSuccess() {
   // location 상태에서 사용자명 가져오기
   const location = useLocation();

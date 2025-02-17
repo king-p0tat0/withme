@@ -28,38 +28,38 @@ public class AdminController {
     /**
      * 전문가 리스트 전체 조회
      */
-    @GetMapping("/doctor/list")
-    public ResponseEntity<List<Doctor>> getDoctorList() {
-        return ResponseEntity.ok(doctorService.getDoctorList());
-    }
+    // @GetMapping("/doctor/list")
+    // public ResponseEntity<List<Doctor>> getDoctorList() {
+    //     return ResponseEntity.ok(doctorService.getDoctorList());
+    // }
 
     /**
      * 승인 대기중인 전문가 리스트 조회
      * - 전문가 상태가 대기, 보류, 거절인 전문가 리스트 조회
      */
-    @GetMapping("/doctor/pending")
-    public ResponseEntity<List<DoctorApplication>> getPendingDoctorList() {
-        // 승인 대기중인 신청 리스트를 조회
-        return ResponseEntity.ok(doctorService.getPendingDoctorApplicationList());
-    }
+    // @GetMapping("/doctor/pending")
+    // public ResponseEntity<List<DoctorApplication>> getPendingDoctorList() {
+    //     // 승인 대기중인 신청 리스트를 조회
+    //     return ResponseEntity.ok(doctorService.getPendingDoctorApplicationList());
+    // }
 
     /**
      * 전문가 상태변경
      */
-    @PutMapping("/doctor/approve/{email}")
-    public ResponseEntity<String> approveDoctor(
-            @PathVariable String email,
-            @RequestBody Map<String, String> requestBody) {
+    // @PutMapping("/doctor/approve/{email}")
+    // public ResponseEntity<String> approveDoctor(
+    //         @PathVariable String email,
+    //         @RequestBody Map<String, String> requestBody) {
 
-        // 요청 본문에서 상태(status)와 사유(reason)를 가져옴
-        String status = requestBody.get("status");
-        String reason = requestBody.get("reason"); // reason 추가
+    //     // 요청 본문에서 상태(status)와 사유(reason)를 가져옴
+    //     String status = requestBody.get("status");
+    //     String reason = requestBody.get("reason"); // reason 추가
 
-        // 상태 변경 처리
-        doctorService.approveDoctorApplication(email, status, reason);
+    //     // 상태 변경 처리
+    //     doctorService.approveDoctorApplication(email, status, reason);
 
-        return ResponseEntity.ok("Doctor application processed successfully");
-    }
+    //     return ResponseEntity.ok("Doctor application processed successfully");
+    // }
 
 
     /**

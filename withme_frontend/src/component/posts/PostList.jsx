@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { API_URL } from "../../constant";
-import { useNavigate } from "react-router-dom";
-import { Tabs, Tab, Button, Pagination } from "@mui/material";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Tabs, Tab, Button, Pagination, PaginationItem } from "@mui/material";
+import { PrimaryButton } from "../elements/CustomComponents";
+import { styled } from "@mui/material/styles";
 import TabPanel from "../elements/TabPanel";
+import "../../assets/css/posts/posts.css";
 
 const categories = [
   "전체",
@@ -22,7 +25,7 @@ const PostList = () => {
   const [totalRows, setTotalRows] = useState(0);
   const [paginationModel, setPaginationModel] = useState({
     page: 1,
-    pageSize: 10
+    pageSize: 10 //페이지당 게시물 수
   });
 
   const navigate = useNavigate();
@@ -104,19 +107,45 @@ const PostList = () => {
     navigate(`/posts/${postId}`); // Navigate to the post view page with the post ID
   };
 
-  return (
-    <div style={{ padding: "20px" }}>
-      <h1>커뮤니티</h1>
+  // AntTab 스타일 컴포넌트
+  const AntTab = styled((props) => <Tab disableRipple {...props} />)(
+    ({ theme }) => ({
+      textTransform: "none",
+      minWidth: 0,
+      fontWeight: theme.typography.fontWeightRegular,
+      marginRight: theme.spacing(1),
+      color: theme.palette.text.secondary,
+      "&:hover": {
+        color: theme.palette.primary.main,
+        opacity: 1
+      },
+      "&.Mui-selected": {
+        color: theme.palette.primary.main,
+        fontWeight: theme.typography.fontWeightMedium
+      }
+    })
+  );
 
-      {/* MUI Tabs */}
-      <Tabs
+  // AntTabs 스타일 컴포넌트
+  const AntTabs = styled(Tabs)(({ theme }) => ({
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    "& .MuiTabs-indicator": {
+      backgroundColor: theme.palette.primary.main
+    }
+  }));
+
+  return (
+    <div className="post_warp">
+      <h4>커뮤니티</h4>
+
+      <AntTabs
         value={activeCategoryIndex}
-        onChange={handleCategoryChange}
-        aria-label="posts_category_tabs">
+        variant="fullWidth"
+        onChange={handleCategoryChange}>
         {categories.map((postCategory) => (
-          <Tab key={postCategory} label={postCategory} />
+          <AntTab key={postCategory} label={postCategory} />
         ))}
-      </Tabs>
+      </AntTabs>
 
       {/* TabPanels */}
       {categories.map((category) => (
@@ -124,11 +153,11 @@ const PostList = () => {
           key={category}
           value={activeCategoryIndex}
           index={categories.indexOf(category)}>
-          <ul>
+          <ul className="post_list_box">
             {filteredPosts.map((post) => (
               <li
+                className="post_list_item"
                 key={post.id}
-                style={{ marginBottom: "20px", cursor: "pointer" }}
                 onClick={() => handlePostClick(post.id)}>
                 {post.thumbnailUrl && (
                   <img
@@ -137,13 +166,17 @@ const PostList = () => {
                     className="w-full h-48 object-cover"
                   />
                 )}
-                <h2>{post.content || "내용 없음"}</h2>
-                <div>
-                  <span>조회수: {post.views}</span>
-                  <div className="text-sm text-gray-600">
+                <span className="list_title_box">
+                  <p
+                    dangerouslySetInnerHTML={{
+                      __html: post.content || "내용 없음"
+                    }}></p>
+                </span>
+                <div className="list_area">
+                  <span>{post.views}</span>
+                  <div>
                     {post.updateTime && post.updateTime !== post.regTime ? (
                       <div>
-                        수정일:{" "}
                         {new Date(post.updateTime).toLocaleString("ko-KR", {
                           year: "numeric",
                           month: "2-digit",
@@ -154,7 +187,6 @@ const PostList = () => {
                       </div>
                     ) : (
                       <div>
-                        작성일:{" "}
                         {post.regTime &&
                           new Date(post.regTime).toLocaleString("ko-KR", {
                             year: "numeric",
@@ -177,23 +209,34 @@ const PostList = () => {
       ))}
 
       {/* 글 작성 버튼 */}
-      <Button
+      <PrimaryButton
         onClick={handleWritePostClick}
         variant="contained"
-        color="primary"
-        style={{ marginTop: "20px" }}>
-        글 작성하기
-      </Button>
-
-      {/* 페이지네이션 */}
-      <Pagination
-        count={Math.ceil(totalRows / paginationModel.pageSize)}
-        page={paginationModel.page}
-        onChange={handlePageChange}
-        color="primary"
         size="small"
-        style={{ marginTop: "20px" }}
-      />
+        sx={{
+          mb: 1,
+          minWidth: "auto",
+          height: "40px"
+        }}>
+        글 작성하기
+      </PrimaryButton>
+
+      {/* 페이지네이션 - Router Integration */}
+      <div className="pagination-container">
+        <Pagination
+          page={paginationModel.page}
+          count={Math.ceil(totalRows / paginationModel.pageSize)}
+          siblingCount={1}
+          boundaryCount={1}
+          renderItem={(item) => (
+            <PaginationItem
+              component={Link}
+              to={`/posts?page=${item.page}&category=${categories[activeCategoryIndex]}`}
+              {...item}
+            />
+          )}
+        />
+      </div>
     </div>
   );
 };
