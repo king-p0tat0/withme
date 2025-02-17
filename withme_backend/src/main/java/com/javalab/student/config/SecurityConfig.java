@@ -108,9 +108,9 @@ public class SecurityConfig {
                 // GET 요청 허용
                 .requestMatchers(HttpMethod.GET,
                         "/api/notices/**",
-                        "/api/posts/**",
+                         "/api/posts/**",
                         "/api/posts/*/comments",
-                        "/api/comments/**",
+                         "/api/comments/**",
                         "/api/members/{userId}/comments",
                         "/api/pets/user/{userId}",
                         "/api/posts/user/{userId}",
@@ -144,8 +144,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/cart/**","/api/orders/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR")
                 .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 결제
 
+                //커뮤니티
+                //커뮤니티 이미지 업로드
                 .requestMatchers(HttpMethod.POST, "/api/posts/upload").permitAll()
-                // 인증된 사용자 전용
+                //커뮤니티 인증된 사용자 전용
                 .requestMatchers(HttpMethod.POST, "/api/posts", "/api/posts/*/comments").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/posts/**", "/api/posts/*/comments/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/posts/**", "/api/posts/*/comments/**").authenticated()
