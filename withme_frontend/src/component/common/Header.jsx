@@ -109,7 +109,7 @@ const Header = () => {
 
 
             <li>
-              <Link to="/cart" className="cart-btn" onClick={handleCartClick}>
+              <Link to="/cart/list" className="cart-btn" onClick={handleCartClick}>
                 <FontAwesomeIcon icon={faShoppingBasket} />
               </Link>
             </li>

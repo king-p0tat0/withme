@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 주문 CRUD Repository
@@ -34,4 +35,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "where o.member.email = :email"
     )
     Long countOrder(@Param("email") String email);
+
+
 }

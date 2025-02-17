@@ -1,11 +1,9 @@
 package com.javalab.student.entity.shop;
 
+import com.javalab.student.dto.shop.OrderItemDto;
 import com.javalab.student.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * 주문 상품 엔티티
@@ -14,61 +12,64 @@ import lombok.Setter;
  * - 주문 엔티티와 상품 엔티티를 연관관계로 맺는다.
  */
 @Entity
-@Table(name = "order_item")
-@Getter
-@Setter
+@Getter @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderItem extends BaseEntity {
 
-    // 주문 아이템 엔티티의 기본키 id
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_item_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 기본키 자동 생성방식을 데이터베이스에 위임 Auto Increment
     private Long id;
 
-    // 상품 엔티티(Item)와 OrderItem 다대일(N:1) 매핑
+    //주문(연관관계매핑 - Order)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
     private Item item;
 
-    // 주문 엔티티(Order)와 OrderItem 다대일(N:1) 매핑
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
 
-    private int orderPrice; // 주문 가격
-    private int count; // 주문 수량
-
-    //private LocalDateTime regTime; // 등록 시간
-    //private LocalDateTime updateTime; // 수정 시간
+    private Long orderPrice; //주문가격
+    private Integer count; //수량
 
     /**
-     * 주문 상품 생성 메서드
-     * - Item, 수량을 받아서 OrderItem 생성
+     * OrderItem 생성
+     *  - 파라미터로 전달된 Item을 자신의 item 속성에 세팅함.
+     *    이렇게 되면 상위 객체와 연결되는 통로가 만들어짐.
      */
     public static OrderItem createOrderItem(Item item, int count){
-        OrderItem orderItem = new OrderItem();  // 주문 상품 생성
-        orderItem.setItem(item);    // 주문 상품 설정
-        orderItem.setCount(count);  // 주문 수량
-        orderItem.setOrderPrice(item.getPrice());   // 주문 가격은 상품의 가격
-        item.removeStock(count);    // 주문 수량만큼 재고 감소
+        OrderItem orderItem = OrderItem.builder()
+                .item(item)    // 자신의 item 변수에 상위객체(Item) 주소 할당. 상위객체와 매핑
+                .count(count)
+                .orderPrice(item.getPrice())
+                .build();
+        item.removeStock(count);
         return orderItem;
     }
 
-    /**
-     * 총 주문 가격 계산
-     * @return
-     */
-    public int getTotalPrice(){
+    // 주문금액(수량 * 가격)
+    public Long getTotalPrice(){
         return orderPrice * count;
     }
 
-    /**
-     * 주문 취소
-     * - 주문 수량만큼 재고 증가
-     */
-    public void cancel(){
+    // 주문취소(재고 증가)
+    public void cancel() {
         this.getItem().addStock(count);
     }
+
+    // Entity -> Dto
+    public OrderItemDto entityToDto(){
+        OrderItemDto orderItemDto = OrderItemDto.builder()
+                .orderItemId(this.getId())
+                .itemId(this.getItem().getId())
+                .itemNm(this.getItem().getItemNm())
+                .count(this.getCount())
+                .orderPrice(this.getOrderPrice())
+                .build();
+        return orderItemDto;
+    }
+
 }

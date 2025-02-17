@@ -14,7 +14,7 @@ public class CartDetailDto {
 
     private String itemNm; //상품명
 
-    private int price; //상품 금액
+    private Long price; //상품 금액
 
     private int count; //수량
 
@@ -26,7 +26,7 @@ public class CartDetailDto {
      * - JPA는 기본적으로 엔티티를 반환하지만, DTO로 반환하려면 new 키워드와 함께 생성자를 호출해야 합니다.
      * - 생성자의 매개변수 순서와 타입이 JPQL 쿼리에서 반환되는 필드 순서 및 타입과 정확히 일치해야 합니다.
      */
-    public CartDetailDto(Long cartItemId, String itemNm, int price, int count, String imgUrl){
+    public CartDetailDto(Long cartItemId, String itemNm, Long price, int count, String imgUrl){
         this.cartItemId = cartItemId;
         this.itemNm = itemNm;
         this.price = price;

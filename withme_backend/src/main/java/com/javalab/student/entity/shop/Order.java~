@@ -1,7 +1,6 @@
 package com.javalab.student.entity.shop;
 
 import com.javalab.student.constant.OrderStatus;
-import com.javalab.student.dto.shop.OrderDto;
 import com.javalab.student.entity.BaseEntity;
 import com.javalab.student.entity.Member;
 import jakarta.persistence.*;
