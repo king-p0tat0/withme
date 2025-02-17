@@ -70,8 +70,8 @@ const NoticeList = () => {
         ...data.content.filter((notice) => !notice.important)
       ];
 
-      console.log("Current user:", user); // user 객체 내용 확인
-      console.log("User role:", user?.role); // role 값 확인
+      //console.log("Current user:", user); // user 객체 내용 확인
+      //console.log("User role:", user?.role); // role 값 확인
 
       setNotices(sortedNotices);
       setFilteredNotices(sortedNotices);
@@ -113,6 +113,7 @@ const NoticeList = () => {
 
   // 공지사항 수정 핸들러 추가
   const handleEditNotice = (noticeId) => {
+    //console.log(`Navigating to edit notice: ${noticeId}`);
     navigate(`/notices/${noticeId}/edit`);
   };
 
@@ -164,11 +165,10 @@ const NoticeList = () => {
 
   const isAdmin = (user) => {
     if (!user || !user.roles) return false;
-    // roles가 문자열인 경우 '[ROLE_ADMIN]' 형태로 되어있으므로
-    if (typeof user.roles === "string") {
-      return user.roles.includes("ROLE_ADMIN");
-    }
-    return false;
+
+    // roles가 문자열 '[ROLE_ADMIN]' 형태인 경우
+    const rolesValue = user.roles.replace(/^\[|\]$/g, "");
+    return rolesValue === "ROLE_ADMIN";
   };
 
   return (

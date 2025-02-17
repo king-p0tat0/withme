@@ -1,6 +1,7 @@
 package com.javalab.student.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,28 +12,28 @@ import com.javalab.student.constant.Role;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity  // JPA가 관리하는 엔티티임을 명시
-@Table(name = "pet")  // 실제 DB 테이블 이름 지정
+@Entity
+@Table(name = "pet")
 @Getter
-@Setter  // Lombok: 모든 필드의 getter/setter 자동 생성
-@NoArgsConstructor  // Lombok: 기본 생성자 자동 생성
+@Setter
+@NoArgsConstructor
 public class Pet {
     @Id
-    @Column(name = "pet_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "pet_id", nullable = false, updatable = false)
     private Long petId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private Member member;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-    @Column(name = "name", length = 50, nullable = false)
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
 
-    @Column(name = "birth_date", nullable = false)
-    private LocalDate birthDate;
+    @Column(name = "age", nullable = false)
+    private Integer age;
 
     @Column(name = "neutered")
-    private Boolean neutered;
+    private Boolean neutered = false;
 
     @Column(name = "health_conditions")
     private String healthConditions;
@@ -40,6 +41,32 @@ public class Pet {
     @Column(name = "breed", length = 50)
     private String breed;
 
+    @Column(name = "weight", nullable = false)
+    private Integer weight;
 
+    @Column(name = "gender", nullable = false, length = 1)
+    private String gender;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "image_name")
+    private String imageName;
+
+    // Builder 패턴 추가
+    @Builder
+    public Pet(Long userId, String name, Integer age, Boolean neutered, 
+               String healthConditions, String breed, Integer weight, 
+               String gender, String imageUrl, String imageName) {
+        this.userId = userId;
+        this.name = name;
+        this.age = age;
+        this.neutered = neutered;
+        this.healthConditions = healthConditions;
+        this.breed = breed;
+        this.weight = weight;
+        this.gender = gender;
+        this.imageUrl = imageUrl;
+        this.imageName = imageName;
+    }
 }
