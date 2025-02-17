@@ -82,3 +82,75 @@
     font-weight: bold;
     margin-bottom: 20px;
 }
+
+
+
+/* 매출 통계 css */
+.stat-box {
+    background: #f0f0f0;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-box h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.day-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.day-navigation button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin: 0 10px;
+    border-radius: 5px;
+}
+
+.day-navigation button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.month-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.month-navigation button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin: 0 10px;
+    border-radius: 5px;
+}
+
+.month-navigation button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.month-navigation span {
+    font-size: 1.5rem;
+    font-weight: bold;
+}

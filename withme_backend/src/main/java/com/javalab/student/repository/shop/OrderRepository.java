@@ -1,5 +1,6 @@
 package com.javalab.student.repository.shop;
 
+import com.javalab.student.constant.OrderStatus;
 import com.javalab.student.entity.shop.Order;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -36,5 +37,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     )
     Long countOrder(@Param("email") String email);
 
-
+    // 주문 완료 상태인 주문 ID 조회 (ORDER_COMPLETED 상태의 주문만 가져오기)
+    @Query("SELECT o.id FROM Order o WHERE o.orderStatus = :status")
+    List<Long> findCompletedOrderIds(@Param("status") OrderStatus status);
 }
