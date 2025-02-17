@@ -1,13 +1,12 @@
 package com.javalab.student.entity.shop;
 
 import com.javalab.student.constant.OrderStatus;
+import com.javalab.student.dto.shop.OrderDto;
 import com.javalab.student.entity.BaseEntity;
 import com.javalab.student.entity.Member;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,90 +17,133 @@ import java.util.List;
  */
 @Entity
 @Table(name = "orders")
-@Getter
-@Setter
-@AllArgsConstructor
+@Getter @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = "orderItems")
 public class Order extends BaseEntity {
-    // 주문 엔티티의 기본키 id
+
+    // Order key
     @Id
     @Column(name = "order_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 기본키 자동 생성방식을 데이터베이스에 위임 Auto Increment
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 주문 엔티티와 회원 엔티티의 다대일 관계
+    // 주문회원
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id") // 외래키 지정, member_id 컬럼이 외래키로 나에 설정된다.
+    @JoinColumn(name = "user_id")
     private Member member;
 
-    // 주문 엔티티의 주문일
-    private LocalDateTime orderDate;    // 주문일
+    //주문일
+    @Column(nullable = false, columnDefinition = "DATE DEFAULT CURRENT_DATE")
+    private LocalDateTime orderDate;
 
-    // 주문 엔티티의 주문상태
+    //주문상태
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus;   // 주문상태
+    private OrderStatus orderStatus;
 
-    /*
-     * @OneToMany: 일대다 관계 설정
-     * mappedBy: 연관관계의 주인을 설정, 연관관계의 주인이 자신이 아니라 OrderItem 엔티티의 order 필드임을 명시
-     * JPA는 이 필드가 단순히 읽기 전용임을 알고, 외래 키 관리에 사용하지 않습니다.
-     * CascadeType.ALL : Order 엔티티를 저장하거나 삭제할 때, 연관된 OrderItem 엔티티도 함께 저장하거나 삭제
-     * orphanRemoval = true : Order 엔티티와 연관된 OrderItem 엔티티가 더 이상 참조되지 않으면 삭제
+    //주문금액
+    @Column(name = "order_amount")
+    private Long amount;
+
+    // 운송장번호
+    @Column(name = "waybill_num")
+    private String waybillNum;
+
+    // 택배사 code
+    @Column(name = "parcel_cd")
+    private String parcelCd;
+
+    /**
+     * 주문Items(연관관계매핑 - OrderItem)
+     *  Order 엔티티를 영속화할 때 OrderItem 엔티티도 자동으로
+     * 영속화되도록 하려면, Order의 @OneToMany 관계에
+     * cascade = CascadeType.ALL을 적용해야.
      */
-    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY,
-                cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL
+            , orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    @BatchSize(size = 10) // CartItem을 즉시 로딩할 때, 지정된 크기만큼 미리 로딩합니다.
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    //private LocalDateTime regTime;      // 등록일
-    //private LocalDateTime updateTime;   // 수정일
+    /**
+     * 배송 주소 엔티티 연관관계 매핑
+     *  - 하나의 주문은 단 하나의 배송 주소와 연관된다.
+     *  - 연관관계의 주인이 아니므로 mappedBy 속성 사용 즉, Order는 Address를 참조만 한다.
+     *  - 주문주소 테이블의 키가 Order 테이블에 외래키로 들어오지 않는다.
+     *  - 주문 데이터가 변경되면 배송 주소 테이블에 그대로 반영된다. 즉 주문생성 -> 배송주소생성, 주문삭제 -> 배송주소 삭제됨.
+     */
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Address address;
 
-    // 주문 엔티티에 주문상품을 추가하는 메서드
+    /**
+     * Payment 엔티티와 연관관계 매핑
+     *  - 하나의 주문은 하나의 결제정보와 연관된다.
+     *  - 연관관계의 주인이 아니므로 mappedBy 속성 사용 즉, Order는 Payment를 참조만 한다.
+     *  - Payment 테이블의 키가 Order 테이블에 외래키로 들어오지 않는다.
+     *  - 주문 데이터가 변경되면 Payment 테이블에 그대로 반영된다. 즉 주문삭제 -> Payment 삭제됨.
+     */
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Payment payment;
+
+
     public void addOrderItem(OrderItem orderItem) {
         orderItems.add(orderItem);
-        orderItem.setOrder(this);   // 양방향 연관관계 설정, OrderItem 엔티티의 order 필드에 자신(주문)을 설정
+        orderItem.setOrder(this);
     }
 
     /**
-     * 주문 엔티티 생성 메서드
-     * - 장바구니에서 여러개의 상품을 주문할 때 사용
+     * 주문등록 과정에서 주문Item으로 주문Entity 생성.
      * @param member
      * @param orderItemList
-     * @return
      */
     public static Order createOrder(Member member, List<OrderItem> orderItemList) {
-        // 1. 주문 엔티티 생성
         Order order = new Order();
-        // 2. 주문 엔티티의 회원 필드에 회원 엔티티 설정
-        order.setMember(member);
-        // 3. 주문 엔티티의 주문상품 필드에 주문상품 리스트 설정
+        order.setMember(member);    // 주문자 정보 세팅
+
+        long totalAmount = 0L;
+
+        // 주문Item 갯수만큼 주문Item에 추가
         for(OrderItem orderItem : orderItemList) {
             order.addOrderItem(orderItem);
+            totalAmount += orderItem.getOrderPrice() * orderItem.getCount();
         }
-        // 4. 주문 엔티티의 주문상태 필드에 주문상태 설정
-        order.setOrderStatus(OrderStatus.ORDER);
-        // 5. 주문 엔티티의 주문일 필드에 현재 시간 설정
+        // 총 주문금액 세팅
+        order.setAmount(totalAmount);
+        // 주문상태 세팅(ORDR01 : 주문)
+        order.setOrderStatus(OrderStatus.ORDERED);
+
+        // 주문일자를 오늘날짜로 세팅
         order.setOrderDate(LocalDateTime.now());
-        // 6. 주문 엔티티 반환
+
         return order;
     }
 
-    // 총 주문 가격을 계산하는 메서드
     public int getTotalPrice() {
         int totalPrice = 0;
         for(OrderItem orderItem : orderItems){
-            totalPrice += orderItem.getTotalPrice(); // 상품 가격 * 주문 수량
+            totalPrice += orderItem.getTotalPrice();
         }
         return totalPrice;
     }
 
-    /**
-     * 주문 취소
-     * 주문 취소 시, 주문 상태를 취소로 변경하고, 주문 상품 리스트의 상품 수량을 순회 하면서 취소 처리
-     */
     public void cancelOrder() {
-        this.orderStatus = OrderStatus.CANCEL;
+        this.orderStatus = OrderStatus.CANCELED;
         for (OrderItem orderItem : orderItems) {
             orderItem.cancel();
         }
+    }
+
+    public OrderDto entityToDto(){
+        return OrderDto.builder()
+                .id(this.id)
+                .user_id(this.member.getId())
+                .orderDate(this.orderDate)
+                .orderStatus(this.orderStatus)
+                .amount(this.amount)
+                .waybillNum(this.waybillNum)
+                .parcelCd(this.parcelCd)
+                .build();
     }
 }

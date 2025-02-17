@@ -63,11 +63,17 @@ public class CartController {
     }
 
     @GetMapping("/list")
-    public String orderHist(Principal principal, Model model) {
+    public @ResponseBody ResponseEntity<?> getCartList(Principal principal) {
         log.info("장바구니 목록 조회 요청: 사용자 {}", principal.getName());
-        List<CartDetailDto> cartDetailList = cartService.getCartList(principal.getName());
-        model.addAttribute("cartItems", cartDetailList);
-        return "cart/cartList";
+
+        try {
+            List<CartDetailDto> cartDetailList = cartService.getCartList(principal.getName());
+            log.info("장바구니 목록 조회 완료: {}", cartDetailList.size());
+            return new ResponseEntity<>(cartDetailList, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("장바구니 목록 조회 중 오류 발생", e);
+            return new ResponseEntity<>("장바구니 목록을 불러오는 데 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -118,16 +124,19 @@ public class CartController {
                                                          Principal principal) {
         log.info("장바구니 주문 요청: {}, 사용자 {}", cartOrderRequestDto, principal.getName());
 
+        // 주문할 상품 리스트화
         List<CartOrderItemDto> cartOrderItems = cartOrderRequestDto.getCartOrderItems();
         if (cartOrderItems == null || cartOrderItems.isEmpty()) {
             return new ResponseEntity<>("주문할 상품을 선택해주세요", HttpStatus.FORBIDDEN);
         }
 
+        // 로그인한 회원과 장바구니 소유자가 일치하는지 확인
         for (CartOrderItemDto cartOrderItem : cartOrderItems) {
             if (!cartService.validateCartItem(cartOrderItem.getCartItemId(), principal.getName())) {
                 return new ResponseEntity<>("주문 권한이 없습니다.", HttpStatus.FORBIDDEN);
             }
         }
+        log.info("장바구니 아이템이 유효합니다. 주문 처리 시작.");
 
         Long orderId = cartService.orderCartItem(cartOrderItems, principal.getName());
         log.info("장바구니 주문 완료: 주문ID {}", orderId);

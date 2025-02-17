@@ -34,7 +34,7 @@ public class ItemFormDto {
 
     @NotNull(message = "가격은 필수 입력값입니다.")
     @Min(value = 1, message = "가격은 1원 이상이어야 합니다.")
-    private Integer price;
+    private Long price;
 
     @NotBlank(message = "상품 상세 설명은 필수 입력값입니다.")  // tinytext에 길이 제한이 없으므로 Size 제거
     private String itemDetail;

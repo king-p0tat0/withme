@@ -29,4 +29,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("SELECT m FROM Member m WHERE m.regTime >= :threeMonthsAgo")
     List<Member> findRecentMembers(@Param("threeMonthsAgo") LocalDateTime threeMonthsAgo);
 
+
 }

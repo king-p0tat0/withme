@@ -67,6 +67,8 @@ export default function ItemList() {
         navigate(`/item/view/${itemId}`);
     };
 
+
+
     return (
         <div className="item-list-container">
             <h1 className="title">상품 목록</h1>

@@ -12,9 +12,11 @@ import com.javalab.student.entity.shop.OrderItem;
 import com.javalab.student.repository.MemberRepository;
 import com.javalab.student.repository.shop.ItemImgRepository;
 import com.javalab.student.repository.shop.ItemRepository;
+import com.javalab.student.repository.shop.OrderItemRepository;
 import com.javalab.student.repository.shop.OrderRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,21 +26,24 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Log4j2
 public class OrderService {
 
-    // 의존성 주입
+   // 의존성 주입
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final ItemRepository itemRepository;
     private final MemberRepository memberRepository;
     private final ItemImgRepository itemImgRepository;
 
 
     // 주문 엔티티 생성 및 영속화
-    public Long order(OrderDto orderDto, String email) {
+    /*public Long order(OrderDto orderDto, String email) {
         // 1. 주문할 상품 조회(영속화)
         Item item = itemRepository.findById(orderDto.getItemId())
                                     .orElseThrow(EntityNotFoundException::new);
@@ -57,7 +62,7 @@ public class OrderService {
         orderRepository.save(order);
 
         return order.getId();   // 주문 번호 반환
-    }
+    }*/
 
 
     /**
@@ -149,21 +154,21 @@ public class OrderService {
      * - 주문할 상품 리스트와 회원 이메일을 인자로 받는다.
      * - 주문할 회원을 조회한다.
      * - 전달받은 주문 상품 리스트를 순회하면서 장바구니에서 전달받은 dto를 이용해서 주문 상품 엔티티를 생성한다.
-     * @param orderDtoList
+     * @param orderItemDtoList
      * @param email
      * @return
      */
-    public Long orders(List<OrderDto> orderDtoList, String email){
+    public Long orders(List<OrderItemDto> orderItemDtoList, String email){
         // 1. 주문자 조회
         Member member = memberRepository.findByEmail(email);
         // 2. 주문 상품 리스트 저장을 위한 ArrayList 생성
         List<OrderItem> orderItemList = new ArrayList<>();
         // 3. 장바구니에서 전달받은 dto를 순회하면서 주문 상품 엔티티 생성 후 리스트에 추가
-        for (OrderDto orderDto : orderDtoList) {
-            Item item = itemRepository.findById(orderDto.getItemId())
+        for (OrderItemDto orderItemDto : orderItemDtoList) {
+            Item item = itemRepository.findById(orderItemDto.getItemId())
                     .orElseThrow(EntityNotFoundException::new);
 
-            OrderItem orderItem = OrderItem.createOrderItem(item, orderDto.getCount());
+            OrderItem orderItem = OrderItem.createOrderItem(item, orderItemDto.getCount());
             orderItemList.add(orderItem);
         }
         // 4. 위에서 생성한 주문 상품 리스트와 주문자를 이용해서 주문 엔티티 생성
@@ -174,4 +179,33 @@ public class OrderService {
         return order.getId();
     }
 
-}
+    /**
+     * 주문 상세 정보 조회
+     * @param orderId 주문 ID
+     * @param email 로그인사용자 email
+     * @return 주문 상세 DTO
+     */
+    @Transactional(readOnly = true)
+    public List<OrderItemDto> getOrderDetail(Long orderId, String email) {
+        log.info("주문 상세 조회: 주문 ID={}, 사용자 이메일={}", orderId, email);
+
+        // 주문 존재 및 사용자 검증
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 주문을 찾을 수 없습니다."));
+
+        if (!order.getMember().getEmail().equals(email)) {
+            throw new SecurityException("해당 주문에 접근할 권한이 없습니다.");
+        }
+
+        // 주문 아이템 조회 및 DTO 변환 (이미지 포함)
+        List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
+        return orderItems.stream()
+                .map(orderItem -> {
+                    String imgUrl = itemImgRepository.findByItemIdAndRepimgYn(orderItem.getItem().getId(), "Y").getImgUrl();
+                    return new OrderItemDto(orderItem, imgUrl);
+                })
+                .collect(Collectors.toList());
+    }
+    }
+
+

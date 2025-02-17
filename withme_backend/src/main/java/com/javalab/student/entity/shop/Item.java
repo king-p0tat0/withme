@@ -17,15 +17,8 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Item extends BaseEntity {
-    /*
-     * @Id: 해당 필드를 기본 키로 설정
-     * @Column: 해당 필드를 컬럼으로 설정
-     * @GeneratedValue: 기본 키의 값을 자동으로 생성
-     * GenerationType.AUTO: JPA 구현체가 자동으로 생성 방식을 결정
-     * GenerationType.IDENTITY: 데이터베이스에 위임하여 기본 키 생성
-     * GenerationType.SEQUENCE: 데이터베이스 시퀀스를 사용하여 기본 키 생성
-     * GenerationType.TABLE: 키 생성 전용 테이블을 사용하여 기본 키 생성
-     */
+
+
     @Id
     @Column(name="item_id") // 컬럼명 지정
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -35,7 +28,7 @@ public class Item extends BaseEntity {
     private String itemNm; //상품명, 이름을 지정하지 않음 item_nm
 
     @Column(name="price", nullable = false)
-    private int price; //가격
+    private Long price; //가격
 
     @Column(nullable = false)
     private int stockNumber; //재고수량
@@ -50,17 +43,15 @@ public class Item extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ItemSellStatus itemSellStatus; //상품 판매 상태
 
-    // LocalDateTime: JPA 2.2부터 지원
-    // LocalDateTime: 날짜와 시간을 모두 저장, 밀리 초 단위까지 저장
-    //private LocalDateTime regTime; //등록 시간
-    //private LocalDateTime updateTime; //수정 시간
 
-    /**
-     * ItemFormDto를 받아서 Item 엔티티를 업데이트
-     * @param itemFormDto : 상품 등록, 수정시 상품 정보를 전달하는 DTO
-     * - 영속화 되어 있는 Item Entity의 값을 수정하면 더티체킹에 의해서 자동으로 업데이트 쿼리 실행
-     * - 주로 상품 이미지를 제외한 나머지 상품 정보를 변경할 때 사용
-     */
+
+/**
+ * ItemFormDto를 받아서 Item 엔티티를 업데이트
+ * @param itemFormDto : 상품 등록, 수정시 상품 정보를 전달하는 DTO
+ * - 영속화 되어 있는 Item Entity의 값을 수정하면 더티체킹에 의해서 자동으로 업데이트 쿼리 실행
+ * - 주로 상품 이미지를 제외한 나머지 상품 정보를 변경할 때 사용
+ */
+
     public void updateItem(ItemFormDto itemFormDto) {
         this.itemNm = itemFormDto.getItemNm();
         this.price = itemFormDto.getPrice();
@@ -69,10 +60,12 @@ public class Item extends BaseEntity {
         this.itemSellStatus = itemFormDto.getItemSellStatus();
     }
 
-    /**
-     * 상품의 재고를 감소시킨다.
-     * @param stockNumber
-     */
+
+/**
+ * 상품의 재고를 감소시킨다.
+ * @param stockNumber
+ */
+
     public void removeStock(int stockNumber){
         int restStock = this.stockNumber - stockNumber;
         if(restStock<0){
@@ -81,10 +74,12 @@ public class Item extends BaseEntity {
         this.stockNumber = restStock;
     }
 
-    /**
-     * 상품의 재고를 증가시킨다.
-     * @param stockNumber
-     */
+
+/**
+ * 상품의 재고를 증가시킨다.
+ * @param stockNumber
+ */
+
     public void addStock(int stockNumber){
         this.stockNumber += stockNumber;
     }

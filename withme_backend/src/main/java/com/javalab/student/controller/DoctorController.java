@@ -54,6 +54,8 @@ public class DoctorController {
     public ResponseEntity<DoctorApplication> updateApplication(
             @Valid @RequestBody DoctorFormDto doctorFormDto,
             @PathVariable Long id) {
+        log.info("전문가 수정 컨트롤러 요청");
+        log.info("받아온 정보: {}", doctorFormDto);
 
 
         DoctorApplication doctor = doctorService.updateDoctorApplication(id, doctorFormDto);

@@ -78,6 +78,20 @@ public class SecurityConfig {
 
         // URL 접근 권한 설정
         http.authorizeHttpRequests(request -> request
+                // ✅ WebSocket 관련 요청은 인증 검사 제외
+                //    WebSocket 접속이 정상인지 체크하는 핸드쉐이크 요청인 /ws/info와 WebSocket 연결, /ws/**는 인증 없이 접근할 수 있도록 설정합니다.
+                .requestMatchers("/ws/**").permitAll()  //
+                .requestMatchers("/api/questionnaires/free").permitAll()
+                .requestMatchers("/topic/**").permitAll()  // ✅ STOMP 메시지 브로커 경로 허용
+                .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail","/api/auth/login/kakao").permitAll() // 로그인 API 허용 [수정]
+                .requestMatchers(HttpMethod.GET, "/api/notices/**","/api/posts/**","/api/comment/**","/api/posts/*/comments").permitAll() // GET 요청은 모든 사용자에게 허용
+                //.requestMatchers("/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated() //인증 필요
+                .requestMatchers(HttpMethod.POST, "/api/posts", "/api/comments","/api/posts/*/comments").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated()
+               .requestMatchers(HttpMethod.DELETE, "/api/posts/**", "/api/comments/**","/api/posts/*/comments/**").authenticated()
+                // 공지사항 등록, 수정, 삭제는 ADMIN만 접근 가능
+                .requestMatchers(HttpMethod.POST, "/api/notices/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/notices/**").hasRole("ADMIN")
         
                 // WebSocket 설정
                 .requestMatchers("/ws/**", "/topic/**").permitAll()
@@ -119,7 +133,16 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/notices/**").hasRole("ADMIN")
                 .requestMatchers("/api/students/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/members/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 사용자 정보 수정 API는 USER, ADMIN만 접근 가능
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()  // 스웨거 Swagger UI는 인증을 거치지 않고 접근 가능
+                .requestMatchers("/api/messages/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 사용자의 읽지 않은 메시지 개수 조회 API는 USER, ADMIN만 접근 가능
+                .requestMatchers("/api/questions/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR")
+                .requestMatchers("/api/chat/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 채팅방 생성, 채팅방 목록 조회 API는 USER, ADMIN만 접근 가능
+                // 쇼핑몰
+                .requestMatchers("/api/item/list", "/api/item/view/**").permitAll()
                 .requestMatchers("/api/item/new", "/api/item/edit/**","/api/item/delete/**").hasRole("ADMIN")
+                .requestMatchers("/api/cart/**","/api/orders/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR")
+                .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 결제
 
                 .requestMatchers(HttpMethod.POST, "/api/posts/upload").permitAll()
                 // 인증된 사용자 전용
