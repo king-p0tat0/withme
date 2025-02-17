@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth } from '../../common/fetchWithAuth';
 import DoctorViewAdmin from './DoctorViewAdmin';
-import '../../assets/css/admin/DoctorUpdate.css';
+import '../../css/DoctorUpdate.css';
 
 export default function DoctorUpdate() {
     const [pendingDoctors, setPendingDoctors] = useState([]); // 대기중 전문가 리스트 상태
@@ -13,7 +13,6 @@ export default function DoctorUpdate() {
         try {
             const response = await fetchWithAuth('http://localhost:8080/api/admin/doctor/pending');
             const data = await response.json();
-            console.log("전문가 신청 데이터 : ", data);
             setPendingDoctors(data); // 서버에서 받은 데이터로 상태 업데이트
         } catch (err) {
             console.error('신청 리스트를 가져오는 데 실패', err);
@@ -57,25 +56,23 @@ export default function DoctorUpdate() {
             <table className="doctor-table">
                 <thead>
                     <tr>
-                        <th>신청번호</th>
+                        <th>전문가번호</th>
                         <th>이름</th>
                         <th>담당과목</th>
                         <th>병원정보</th>
                         <th>상태</th>
-                        <th>신청일</th>
                         <th>상세보기</th>
                     </tr>
                 </thead>
                 <tbody>
                     {pendingDoctors.length > 0 ? (
                         pendingDoctors.map((doctor) => (
-                            <tr key={doctor.applicationId}>
-                                <td>{doctor.applicationId}</td>
+                            <tr key={doctor.doctorId}>
+                                <td>{doctor.doctorId}</td>
                                 <td>{doctor.member.name}</td>
                                 <td>{doctor.subject}</td>
                                 <td>{doctor.hospital}</td>
                                 <td>{getStatusText(doctor.status)}</td>
-                                <td>{new Date(doctor.regTime).toLocaleDateString('ko-KR')}</td>
                                 <td>
                                     <button className="detail-button" onClick={() => openModal(doctor)}>상세보기</button>
                                 </td>

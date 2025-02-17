@@ -1,7 +1,8 @@
 /* Admin.css */
 .admin-container {
     display: flex;
-   /* height: 100vh;*/
+    height: 100vh;
+    width: 100%;
 }
 
 .side-menu {

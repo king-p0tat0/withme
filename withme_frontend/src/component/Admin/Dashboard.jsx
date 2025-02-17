@@ -4,6 +4,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { fetchWithAuth } from '../../common/fetchWithAuth';
 import { API_URL } from '../../constant';
 import '../../assets/css/admin/Dashboard.css';
+import { useSelector, useDispatch } from 'react-redux';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -12,6 +13,8 @@ export default function Dashboard() {
     const [newDoctorApplications, setNewDoctorApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedChart, setSelectedChart] = useState(null); // 모달 상태
+
+
 
     useEffect(() => {
         const fetchData = async () => {

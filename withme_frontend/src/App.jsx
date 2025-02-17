@@ -1,39 +1,40 @@
 import React, { useEffect } from "react";
-import { AppBar, Toolbar, Typography, Button } from "@mui/material";
-import { Routes, Route, Link, Navigate } from "react-router-dom";
-
-import MemberForm from "./component/member/MemberForm";
+import { Routes, Route, useLocation } from "react-router-dom"; // 중복 import 정리
 import { useSelector, useDispatch } from "react-redux";
-import { fetchUserInfo, clearUser } from "./redux/authSlice";
 import { PersistGate } from "redux-persist/integration/react";
 import { persistor } from "./redux/store";
+import { fetchUserInfo, clearUser } from "./redux/authSlice";
 import { API_URL } from "./constant";
 import { fetchWithAuth } from "./common/fetchWithAuth.js";
 
-//ui
+// ui
 import UiComponents from "./component/elements/UiComponents";
 
 //pet
 import PetDetailsView from "./component/pet/PetDetailsView";
 import PetRegister from "./component/pet/PetRegister";
 
-//공지사항
+// 공지사항
 import NoticeList from "./component/notice/NoticeList";
 import NoticeForm from "./component/notice/NoticeForm";
-//import NoticeView from "./component/notice/NoticeView"; //아코디언으로 변경
 
 // 전문가 신청, 수정
+import NoticeView from "./component/notice/NoticeView";
+
+// 전문가 가입, 신청, 수정
+import SignupDoctor from "./component/member/SignupDoctor"; // 수의사 회원가입 페이지
 import RegisterDoctor from "./component/doctor/RegisterDoctor";
 import DoctorApplicationStatus from "./component/doctor/DoctorApplicationStatus";
 import DoctorApplicationEdit from "./component/doctor/DoctorApplicationEdit";
 
-//커뮤니티
+// 커뮤니티
 import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
 import PostView from "./component/posts/PostView";
 
-//관리자
+// 관리자
 import Admin from "./component/admin/Admin";
+import DoctorUpdate from "./component/admin/DoctorUpdate";
 import Dashboard from "./component/admin/Dashboard";
 
 // ✅ 회원 관련
@@ -42,17 +43,18 @@ import MyPage from "./component/member/MyPage.jsx";
 import MyPageProfileEdit from "./component/member/MyPageProfileEdit";
 import MyPagePasswordEdit from "./component/member/MyPagePasswordEdit";
 import Policy from "./component/member/Policy"; // 약관정책
-import RegisterMember from "./component/member/RegisterMember"; // 회원정보 입력
+import RegisterMember from "./component/member/RegisterMember"; // 일반 회원가입 페이지
 import SignupSuccess from "./component/member/SignupSuccess"; // 가입 완료
 
 // ✅ 의사 관련
-//import RegisterDoctor from "./component/doctor/RegisterDoctor";
+import DoctorSignupSuccess from "./component/member/DoctorSignupSuccess"; // 가입 완료
 
 // ✅ 기타 페이지
 import Home from "./component/Home";
 import UnauthorizedPage from "./component/UnAuthorizedPage.jsx";
 import Header from "./component/common/Header";
 import Footer from "./component/common/Footer";
+import NavBar from "./component/common/NavBar";
 
 // ✅ 추가: 문진(survey) 관련 컴포넌트 import
 import FreeSurvey from "./component/survey/FreeSurvey";
@@ -62,11 +64,18 @@ import PaidSurveyResult from "./component/survey/PaidSurveyResult";
 import PaidSurveySelection from "./component/survey/PaidSurveySelection";
 import SurveyMain from "./component/survey/SurveyMain";
 
+// 쇼핑몰
+import ItemList from "./component/shop/Product/ItemList";
+import ItemView from "./component/shop/Product/ItemView";
+import ItemAdd from "./component/shop/Product/ItemAdd";
+import ItemEdit from "./component/shop/Product/ItemEdit";
+
 function App() {
   // 리덕스 스토어의 상태를 가져오기 위해 useSelector 훅 사용, auth 슬라이스에서 user, isLoggedIn 상태를 가져옴
   // user: 사용자 정보 객체, isLoggedIn: 로그인 여부
   const { user, isLoggedIn } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const location = useLocation();
 
   useEffect(() => {
     if (!user && isLoggedIn) {
@@ -92,19 +101,23 @@ function App() {
     <div className="App">
       {/*헤더 부분*/}
       <Header />
-      {/*라우팅 부분*/}
+      {/* Home을 제외한 모든 페이지에 NavBar 노출하도록 설정 */}
+      {location.pathname !== "/" && <NavBar />}
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/registerDoctor" element={<RegisterDoctor />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
+
+        {/* 공지사항 */}
         <Route path="/mypage/profile-edit" element={<MyPageProfileEdit />} />
         <Route path="/mypage/password-edit" element={<MyPagePasswordEdit />} />
 
         {/* 공지사항 목록 */}
         <Route path="/notices" element={<NoticeList />} />
         <Route path="/notices/new" element={<NoticeForm />} />
-        <Route path="/notices/edit/:id" element={<NoticeForm />} />
+        <Route path="/notices/:id/edit" element={<NoticeForm mode="edit" />} />
 
         {/* 커뮤니티 목록 */}
         <Route path="/posts" element={<PostList />} />
@@ -113,12 +126,16 @@ function App() {
         <Route path="/posts/:id/edit" element={<PostForm />} />
 
         {/* ✅ 관리자 페이지 */}
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<Admin user={user} />} />
+        <Route path="/admin/dashboard" element={<Dashboard user={user} />} />
+        <Route path="/doctor/status" element={<DoctorUpdate />} />
+        <Route path="/survey-main" element={<SurveyMain />} />
 
         {/* 회원가입 페이지 */}
         <Route path="/policy" element={<Policy />} />
         <Route path="/registerMember" element={<RegisterMember />} />
         <Route path="/signupSuccess" element={<SignupSuccess />} />
+        <Route path="/doctorSignupSuccess" element={<DoctorSignupSuccess />} />
 
         {/* 펫 페이지 */}
         <Route path="/mypage/pet/:petId" element={<PetDetailsView />} />
@@ -134,9 +151,18 @@ function App() {
           element={<PaidSurveySelection />}
         />
         <Route path="/survey/paid/result" element={<PaidSurveyResult />} />
+        {/* 쇼핑몰 */}
+        <Route path="/item/list" element={<ItemList />} />
+        <Route path="/item/view/:itemId" element={<ItemView user={user} />} />
+        <Route path="/item/add" element={<ItemAdd user={user} />} />
+        <Route path="/item/edit/:itemId" element={<ItemEdit />} />
+
+        {/* 수의사 */}
+        <Route path="/signupDoctor" element={<SignupDoctor />} />
 
         {/* ✅ 기타 페이지 */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route path="/ui" element={<UiComponents />} />
       </Routes>
       <Footer />
     </div>
