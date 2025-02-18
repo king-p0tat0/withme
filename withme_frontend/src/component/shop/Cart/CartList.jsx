@@ -9,6 +9,7 @@ export default function CartPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedItems, setSelectedItems] = useState([]); // 선택된 상품 목록
+    const [deleteMessage, setDeleteMessage] = useState(''); // 삭제 메시지 상태
     const navigate = useNavigate();
 
     // 장바구니 목록 조회
@@ -31,28 +32,6 @@ export default function CartPage() {
         fetchCartItems();
     }, []);
 
-    // 상품 수량 변경
-    const handleQuantityChange = async (cartItemId, count) => {
-        if (count < 1) {
-            alert('수량은 1개 이상이어야 합니다.');
-            return;
-        }
-        try {
-            const response = await fetchWithAuth(`${API_URL}cart/cartItem/${cartItemId}?count=${count}`, {
-                method: 'PATCH',
-            });
-            if (!response.ok) {
-                throw new Error('수량 변경 실패');
-            }
-            setCartItems(prevItems => prevItems.map(item =>
-                item.cartItemId === cartItemId ? { ...item, count } : item
-            ));
-            console.log(`수량 변경: 상품ID ${cartItemId}, 새로운 수량 ${count}`);
-        } catch (error) {
-            alert(error.message);
-        }
-    };
-
     // 상품 삭제
     const handleDelete = async (cartItemId) => {
         try {
@@ -64,6 +43,55 @@ export default function CartPage() {
             }
             setCartItems(prevItems => prevItems.filter(item => item.cartItemId !== cartItemId));
             console.log(`삭제된 상품 ID: ${cartItemId}`);
+
+            // 삭제 메시지 설정
+            setDeleteMessage('장바구니에서\n상품이 삭제됐어요.');
+            setTimeout(() => setDeleteMessage(''), 3000);
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
+    // 수량 조절 함수
+    const handleQuantityChange = (cartItemId, newCount) => {
+        if (newCount < 1) {
+            alert('수량은 1개 이상이어야 합니다.');
+            return;
+        }
+        setCartItems(prevItems =>
+            prevItems.map(item =>
+                item.cartItemId === cartItemId ? { ...item, count: newCount } : item
+            )
+        );
+    };
+
+    // 선택된 상품 삭제
+    const handleDeleteSelectedItems = async () => {
+        if (selectedItems.length === 0) {
+            alert('삭제할 상품을 선택해 주세요.');
+            return;
+        }
+
+        // 사용자 확인 창
+        const confirmDelete = window.confirm(`선택하신 ${selectedItems.length}개 상품을 장바구니에서 삭제하시겠습니까?`);
+        if (!confirmDelete) return; // 사용자가 취소하면 삭제하지 않음
+
+        try {
+            // 선택된 상품 삭제 요청
+            await Promise.all(
+                selectedItems.map(cartItemId =>
+                    fetchWithAuth(`${API_URL}cart/cartItem/${cartItemId}`, { method: 'DELETE' })
+                )
+            );
+
+            // 삭제된 상품들만 필터링해서 업데이트
+            setCartItems(prevItems => prevItems.filter(item => !selectedItems.includes(item.cartItemId)));
+            setSelectedItems([]); // 선택된 항목 비우기
+            console.log("선택된 상품 삭제 완료");
+
+            // 삭제 메시지 설정
+            setDeleteMessage('장바구니에서\n상품이 삭제됐어요.');
+            setTimeout(() => setDeleteMessage(''), 3000); // 3초 후 메시지 사라지게
         } catch (error) {
             alert(error.message);
         }
@@ -98,7 +126,7 @@ export default function CartPage() {
 
             navigate(`/orders/${orderId}`,{
                 state: {orderData}
-                });
+            });
 
         } catch (error) {
             alert(error.message);
@@ -137,7 +165,21 @@ export default function CartPage() {
 
     if (loading) return <div>로딩 중...</div>;
     if (error) return <div>{error}</div>;
-    if (cartItems.length === 0) return <div>장바구니가 비어 있습니다.</div>;
+    if (cartItems.length === 0) {
+        return (
+            <div className="empty-container">
+                <img src="/assets/images/cart-dog.jpg" alt="강아지" />
+                <div className="top-text">
+                    <p className="empty">E / M / P / T / Y</p>
+                    <p className="no-item">NO ITEM IN SHOPPING CART</p>
+                </div>
+                <div className="bottom-text">
+                    <p>장바구니가 비어있습니다.</p>
+                    <p>선택하신 상품을 장바구니에 담아주세요.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="cart-container">
@@ -145,12 +187,15 @@ export default function CartPage() {
 
             {/* 전체 선택 체크박스 */}
             <div>
-                <input
-                    type="checkbox"
-                    checked={selectedItems.length === cartItems.length}
-                    onChange={handleSelectAll}
-                />
-                <label>전체 선택</label>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={selectedItems.length === cartItems.length}
+                        onChange={handleSelectAll}
+                    />
+                    전체 선택
+                </label>
+                <button className="delete-selected-button" onClick={handleDeleteSelectedItems}><span style={{ color: "#A7A7A7", marginRight: "5px" }}>X</span> 선택 삭제</button>
             </div>
 
             {cartItems.map(item => (
@@ -160,27 +205,46 @@ export default function CartPage() {
                         checked={selectedItems.includes(item.cartItemId)}
                         onChange={() => handleSelectItem(item.cartItemId)}
                     />
-                    <img src={SERVER_URL2 + item.imgUrl} alt={item.itemNm} className="cart-item-image" />
+                    <img
+                        src={SERVER_URL2 + item.imgUrl}
+                        alt={item.itemNm}
+                        className="cart-item-image" />
                     <div className="cart-item-info">
                         <h4>{item.itemNm}</h4>
-                        <p>가격: {item.price.toLocaleString()}원</p>
-                        <div>
-                            <button onClick={() => handleQuantityChange(item.cartItemId, item.count - 1)}>-</button>
-                            <span>{item.count}</span>
-                            <button onClick={() => handleQuantityChange(item.cartItemId, item.count + 1)}>+</button>
+                        <p>{item.price.toLocaleString()}원</p>
+                        <div className="count-wrap">
+                            <button className="countBtn minusBtn" onClick={() => handleQuantityChange(item.cartItemId, item.count - 1)}>-</button>
+                            <span style={{ border: "none", fontSize: "1em" }}>{item.count}</span>
+                            <button className="countBtn plusBtn" onClick={() => handleQuantityChange(item.cartItemId, item.count + 1)}>+</button>
                         </div>
-                        <p>주문 가격: {(item.price * item.count).toLocaleString()}원</p>
-                        <button onClick={() => handleDelete(item.cartItemId)}>삭제</button>
+                        <p style={{ color: "black "}}>상품금액 <span style={{ fontWeight: "bold", marginLeft: "5px" }}>{(item.price * item.count).toLocaleString()}</span>원</p>
+                        <button className="deleteBtn" onClick={() => handleDelete(item.cartItemId)}>X</button>
                     </div>
                 </div>
             ))}
 
+            {/* 삭제 메시지 */}
+            {deleteMessage && (
+                <div className="delete-message">
+                    <img src="/assets/images/icon/cart-color.png" alt="cart-color" />
+                    <p>{deleteMessage}</p>
+                </div>
+            )}
+
             {/* 최종 주문 가격 */}
-            <div>
-                <h3>최종 주문 가격: {calculateTotalPrice().toLocaleString()}원</h3>
+            <div className="cart-footer">
+                <div className="cart-footer-content">
+                    <h3>총 {selectedItems.length}건<span style={{ margin: "0 8px" }} />주문금액 <span className="total-price">{calculateTotalPrice().toLocaleString()}</span>원</h3>
+                    <button
+                        className="order-button"
+                        onClick={handleOrder}
+                        disabled={selectedItems.length === 0}
+                        >
+                        주문하기
+                    </button>
+                </div>
             </div>
 
-            <button className="order-button" onClick={handleOrder}>주문하기</button>
         </div>
     );
 }

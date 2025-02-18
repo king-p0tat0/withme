@@ -4,7 +4,6 @@
     margin-top: 100px;
     padding: 20px 0;
     text-align: center;
-    font-family: 'Arial', sans-serif;
 }
 
 .footer-container {
@@ -36,35 +35,34 @@
     padding: 10px 0;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
-  }
+}
 
-  .cs-center-container {
+    .cs-center-container {
     display: flex;
     align-items: center;
-  }
+}
 
-  .cs-center {
+.cs-center {
     text-align: center;
     margin-right: 20px;
     padding-right: 20px;
     border-right: 1px solid #ddd;
-  }
+}
 
-  .cs-center h2 {
+.cs-center h2 {
     font-size: 2em;
     font-weight: bold;
-    padding-top: 10px;
-  }
+}
 
-  .cs-number {
+.cs-number {
     color: rgb(202, 0, 0);
     font-weight: bold;
-  }
+}
 
-  .cs-info {
+.cs-info {
     font-size: 1.1em;
     color: #555;
-  }
+}
 
 
 .footer-bottom {

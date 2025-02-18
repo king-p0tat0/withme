@@ -11,8 +11,6 @@ export default function ItemView({ user }) {
     const [error, setError] = useState(null); // 에러 상태
     const navigate = useNavigate();
 
-    console.log("받아온 user : " , user);
-
     // 상품 상세 정보를 가져오는 함수
     useEffect(() => {
         if (!itemId) return;

@@ -195,6 +195,11 @@
     font-size: 1.2em;
     color: black;
     font-weight: bold;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .price-cart-container {
@@ -235,9 +240,9 @@ button:disabled {
 .pagination {
     display: flex;
     justify-content: center;
-    margin-top: 30px; /* 상품 리스트와 더 잘 구분되도록 여백 추가 */
+    margin-top: 70px;
     width: 100%;
-    margin-bottom: 100px; /* 푸터와 가까워지도록 여백 추가 */
+    margin-bottom: 100px;
 }
 
 .pagination button {

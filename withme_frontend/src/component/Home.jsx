@@ -3,9 +3,9 @@ import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchWithAuth } from '../common/fetchWithAuth';
 import { API_URL, SERVER_URL2 } from "../constant"; // API_URL 가져오기
-import './Home.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import './Home.css';
 
 function Home() {
   const [items, setItems] = useState([]);  // 상품 리스트 상태
@@ -110,26 +110,21 @@ function Home() {
                 <p className="error">{error}</p>
               ) : (
                 <ul>
-                  {items.slice(0, 8).map((item) => ( // 상품 2줄, 8개만 노출
-                    <li className="product-item" key={item.itemId}>
-                      <div className="productLink">
+                  {items.slice(0, 8).map((item) => (
+                    <li className="product-item" key={item.id}>
+                      <div className="productLink"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => navigate(`/item/view/${item.id}`)}>
                         <img
-                          src={`${SERVER_URL2}${item.itemImgDtoList[0]?.imgUrl}`}
+                          src={item.itemImgDtoList?.length > 0 ? `${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}` : "/assets/images/default-product.png"}
                           alt={item.itemNm}
                           className="product-image"
                         />
-
-                        <div className="image-overlay">
-                          <button
-                            className="view-details-btn"
-                            onClick={() => navigate(`/item/view/${item.itemId}`)} // 상세보기로 이동
-                          >
-                            상세보기
-                          </button>
-                        </div>
                         <div className="product-info">
                           <h3 className="productName">{item.itemNm}</h3>
                           <p className="price">{item.price.toLocaleString()}원</p>
+                        </div>
+                        <div className="button-wrap">
                           <button type="button" className="product-btn">구매하기</button>
                         </div>
                       </div>

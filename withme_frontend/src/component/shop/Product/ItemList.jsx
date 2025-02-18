@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL, SERVER_URL2 } from '../../../constant';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShoppingBasket } from '@fortawesome/free-solid-svg-icons';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faShoppingBasket, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux";
+import { fetchWithAuth } from '../../../common/fetchWithAuth'; // import fetchWithAuth 추가
 import '../../../assets/css/shop/ItemList.css';
 
 export default function ItemList() {
+    const { itemId } = useParams();
     const { user, isLoggedIn } = useSelector((state) => state.auth);
     const navigate = useNavigate();
     const [items, setItems] = useState([]);
@@ -15,7 +16,7 @@ export default function ItemList() {
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
-    const [cart, setCart] = useState([]);
+    const [cart, setCart] = useState([]); // useState로 장바구니 관리
     const itemsPerPage = 8;
 
     useEffect(() => {
@@ -60,18 +61,35 @@ export default function ItemList() {
         if (page >= 1 && page <= totalPages) setCurrentPage(page);
     };
 
-    const addToCart = (item) => {
-        setCart((prevCart) => {
-            const itemExists = prevCart.some(cartItem => cartItem.itemId === item.itemId);
+    // 장바구니 추가 함수
+    const handleAddToCart = async (item) => {
+        if (!user) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
 
-            if (itemExists) {
-                alert(`이미 장바구니에 담겨진 상품입니다.`);
-                return prevCart;
+        try {
+            const cartItem = {
+                itemId: item.id,
+                count: 1 // 기본 수량 1개
+            };
+
+            const response = await fetchWithAuth(`${API_URL}cart/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cartItem)
+            });
+
+            if (response.ok) {
+                alert('장바구니에 추가되었습니다.');
             } else {
-                alert(`장바구니에 추가되었습니다.`);
-                return [...prevCart, item];
+                const errorMsg = await response.text();
+                alert(`장바구니 추가 실패: ${errorMsg}`);
             }
-        });
+        } catch (error) {
+            console.error('장바구니 추가 오류:', error);
+            alert('장바구니 추가 중 오류가 발생했습니다.');
+        }
     };
 
     return (
@@ -101,7 +119,7 @@ export default function ItemList() {
                 onClick={handleSurveyNavigation}
                 style={{ cursor: "pointer" }}
             >
-                <img src="/assets/images/green-banner1.png" alt="배너 이미지" className="bannerImage" />
+                <img src="/assets/images/green-banner.png" alt="배너 이미지" className="bannerImage" />
             </div>
 
             <div className="item-list-page">
@@ -120,13 +138,14 @@ export default function ItemList() {
                             </div>
                         ) : (
                             currentItems.map((item) => (
-                                <div className="item-card" key={item.itemId}>
+                                <div className="item-card" key={item.id}>
                                     {item.itemImgDtoList?.length > 0 && (
                                         <div className="image-container">
                                             <img
                                                 src={`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`}
                                                 alt={item.itemNm}
                                                 className="item-image"
+                                                style={{ boxShadow: "none" }}
                                             />
                                             <button
                                                 className="view-details-btn"
@@ -141,9 +160,9 @@ export default function ItemList() {
                                         <h3 className="itemName">{item.itemNm}</h3>
                                         <div className="price-cart-container">
                                             <p className="price">{item.price.toLocaleString()}원</p>
-                                            <button
+                                           <button
                                                 className="add-to-cart-btn"
-                                                onClick={() => addToCart(item)}
+                                                onClick={() => handleAddToCart(item)}
                                                 disabled={item.itemSellStatus === 'SOLD_OUT'}
                                             >
                                                 <img src="/assets/images/icon/cart.png" alt="cart" className="cartIcon" />

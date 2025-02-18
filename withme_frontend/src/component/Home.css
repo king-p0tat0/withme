@@ -245,7 +245,7 @@ hr {
     text-overflow: ellipsis;
 }
 
-
+/* 필터링된 상품 리스트 */
 .filtered-product-list {
     margin-top: 80px;
 }
