@@ -70,10 +70,13 @@ import ItemView from "./component/shop/Product/ItemView";
 import ItemAdd from "./component/shop/Product/ItemAdd";
 import ItemEdit from "./component/shop/Product/ItemEdit";
 import CartList from "./component/shop/Cart/CartList";
-import Order from "./component/shop/Order/OrderDetail"
-import PayResult from "./component/shop/Order/PayResult"
+import Order from "./component/shop/Order/OrderDetail";
+import PayResult from "./component/shop/Order/PayResult";
 import SubscriptionPage from "./component/shop/Product/SubscriptionPage";
 import SubscriptionPayment from "./component/shop/Order/SubscriptionPayment";
+
+//검색
+import SearchResults from "./component/SearchResults";
 
 function App() {
   // 리덕스 스토어의 상태를 가져오기 위해 useSelector 훅 사용, auth 슬라이스에서 user, isLoggedIn 상태를 가져옴
@@ -114,38 +117,31 @@ function App() {
         <Route path="/registerDoctor" element={<RegisterDoctor />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage/:id" element={<MyPage />} />
-
-        {/* 공지사항 */}
+        {/* 마이프로필 */}
         <Route path="/mypage/profile-edit" element={<MyPageProfileEdit />} />
         <Route path="/mypage/password-edit" element={<MyPagePasswordEdit />} />
-
         {/* 공지사항 목록 */}
         <Route path="/notices" element={<NoticeList />} />
         <Route path="/notices/new" element={<NoticeForm />} />
         <Route path="/notices/:id/edit" element={<NoticeForm mode="edit" />} />
-
         {/* 커뮤니티 목록 */}
         <Route path="/posts" element={<PostList />} />
         <Route path="/posts/:id" element={<PostView />} />
         <Route path="/posts/new" element={<PostForm />} />
         <Route path="/posts/:id/edit" element={<PostForm />} />
-
         {/* ✅ 관리자 페이지 */}
         <Route path="/admin" element={<Admin user={user} />} />
         <Route path="/admin/dashboard" element={<Dashboard user={user} />} />
         <Route path="/doctor/status" element={<DoctorUpdate />} />
         <Route path="/survey-main" element={<SurveyMain />} />
-
         {/* 회원가입 페이지 */}
         <Route path="/policy" element={<Policy />} />
         <Route path="/registerMember" element={<RegisterMember />} />
         <Route path="/signupSuccess" element={<SignupSuccess />} />
         <Route path="/doctorSignupSuccess" element={<DoctorSignupSuccess />} />
-
         {/* 펫 페이지 */}
         <Route path="/mypage/pet/:petId" element={<PetDetailsView />} />
         <Route path="/mypage/pet/register" element={<PetRegister />} />
-
         {/* 문진(survey) */}
         <Route path="/survey/free" element={<FreeSurvey />} />
         <Route path="/survey/free/result" element={<FreeSurveyResult />} />
@@ -154,6 +150,8 @@ function App() {
           path="/survey/paid/selection"
           element={<PaidSurveySelection />}
         />
+        {/* 검색 */}
+        <Route path="/item/search" element={<SearchResults />} />
         <Route path="/survey/paid/result" element={<PaidSurveyResult />} />
         {/* 쇼핑몰 */}
         <Route path="/item/list" element={<ItemList />} />
@@ -162,19 +160,24 @@ function App() {
         <Route path="/item/edit/:itemId" element={<ItemEdit />} />
         <Route path="/cart/list" element={<CartList />} />
         <Route path="/orders/:orderId" element={<Order />} />
-        <Route path="/payResult/:orderId" element={<PayResult />} />  {/* ✅ 결제 결과 페이지 라우트 추가 */}
-        <Route path="/subscription" element={<SubscriptionPage />} /> {/* 구독 결제 확인 페이지 */}
-
-
+        <Route path="/payResult/:orderId" element={<PayResult />} />{" "}
+        {/* ✅ 결제 결과 페이지 라우트 추가 */}
+        <Route path="/subscription" element={<SubscriptionPage />} />{" "}
+        {/* 구독 결제 확인 페이지 */}
         {/* 수의사 */}
         <Route path="/signupDoctor" element={<SignupDoctor />} />
-        <Route path="/doctor/register" element={<RegisterDoctor user={user} />} />
-        <Route path="/doctors/status/:id" element={<DoctorApplicationStatus user={user}/>} />
-        <Route path="/doctors/edit/:id" element={<DoctorApplicationEdit user={user}/>} />
-
-
-
-
+        <Route
+          path="/doctor/register"
+          element={<RegisterDoctor user={user} />}
+        />
+        <Route
+          path="/doctors/status/:id"
+          element={<DoctorApplicationStatus user={user} />}
+        />
+        <Route
+          path="/doctors/edit/:id"
+          element={<DoctorApplicationEdit user={user} />}
+        />
         {/* ✅ 기타 페이지 */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/ui" element={<UiComponents />} />

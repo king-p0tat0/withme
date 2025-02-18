@@ -1,16 +1,17 @@
 package com.javalab.student.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.Duration;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.javalab.student.entity.Member;
 import com.javalab.student.repository.MemberRepository;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Redis 서비스 클래스

@@ -67,6 +67,8 @@ public class Member extends BaseEntity{
 
 
 
+
+
     /*
         * 회원 엔티티 생성 정적 메서드
         * - MemberFormDto의 값들이 -> Member 엔티티로 이동

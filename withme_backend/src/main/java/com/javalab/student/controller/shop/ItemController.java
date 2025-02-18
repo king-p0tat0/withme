@@ -58,16 +58,30 @@ public class ItemController {
      * 상품 등록 API
      * BindingResult : 유효성 검사 결과
      */
-    @PostMapping("/new")
-    public ResponseEntity<?> createItem(@Valid @RequestPart("itemFormDto") ItemFormDto itemFormDto,
-                                        @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList) {
-        try {
-            Long savedItemId = itemService.saveItem(itemFormDto, itemImgFileList);
-            return ResponseEntity.ok().body(savedItemId);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("상품 등록 실패: " + e.getMessage());
-        }
+    // @PostMapping("/new")
+    // public ResponseEntity<?> createItem(@Valid @RequestPart("itemFormDto") ItemFormDto itemFormDto,
+    //                                     @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList) {
+    //     try {
+    //         Long savedItemId = itemService.saveItem(itemFormDto, itemImgFileList);
+    //         return ResponseEntity.ok().body(savedItemId);
+    //     } catch (Exception e) {
+    //         return ResponseEntity.badRequest().body("상품 등록 실패: " + e.getMessage());
+    //     }
+    // }
+
+@PostMapping("/new")
+public ResponseEntity<?> createItem(
+    @Valid @RequestPart("itemFormDto") ItemFormDto itemFormDto,
+    @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList
+) {
+    try {
+         // 상품 저장 시 알러지 성분 정보도 함께 저장
+        Long savedItemId = itemService.saveItem(itemFormDto, itemImgFileList);
+        return ResponseEntity.ok().body(savedItemId);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
+}
 
     /**
      * 상품 상세 조회 API

@@ -109,7 +109,9 @@ public class SecurityConfig {
                     "/api/auth/logout",
                     "/api/members/register",
                     "/api/members/checkEmail",
-                    "/api/auth/login/kakao"
+                    "/api/auth/login/kakao",
+                    "/api/items/search/**",
+                    "/api/substances/list"
                 ).permitAll()
 
                 // GET 요청 허용

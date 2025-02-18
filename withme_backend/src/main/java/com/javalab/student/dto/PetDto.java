@@ -1,9 +1,10 @@
 package com.javalab.student.dto;
 
-
+import com.javalab.student.entity.PetAllergy;
 import lombok.*;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,6 +23,7 @@ public class PetDto implements Serializable {
     private String gender;
     private String imageUrl;
     private String imageName;
+    private List<Long> allergyIds;
 
    
 }

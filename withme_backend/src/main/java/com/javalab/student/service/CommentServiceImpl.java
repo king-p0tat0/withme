@@ -2,12 +2,14 @@ package com.javalab.student.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.javalab.student.dto.CommentDto;
 import com.javalab.student.entity.Comment;
 import com.javalab.student.entity.Member;
@@ -15,6 +17,7 @@ import com.javalab.student.entity.Post;
 import com.javalab.student.repository.CommentRepository;
 import com.javalab.student.repository.MemberRepository;
 import com.javalab.student.repository.PostRepository;
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -91,34 +94,35 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
-    public CommentDto createComment(CommentDto commentDto) {
-        try {
-            Post post = postRepository.findById(commentDto.getPostId())
-                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
+@Transactional
+public CommentDto createComment(CommentDto commentDto) {
+    try {
+        Post post = postRepository.findById(commentDto.getPostId())
+            .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
 
-            Member member = memberRepository.findById(commentDto.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+        Member member = memberRepository.findById(commentDto.getUserId())
+            .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
 
-            Comment comment = new Comment();
-            comment.setContent(commentDto.getContent());
-            comment.setPost(post);
-            comment.setUserId(commentDto.getUserId());
-            comment.setUserName(commentDto.getUserName());
+        Comment comment = new Comment();
+        comment.setContent(commentDto.getContent());
+        comment.setPost(post);
+        comment.setUserId(commentDto.getUserId());
+        comment.setUserName(commentDto.getUserName());
 
-            if (commentDto.getParentCommentId() != null) {
-                Comment parentComment = commentRepository.findById(commentDto.getParentCommentId())
-                    .orElseThrow(() -> new EntityNotFoundException("부모 댓글을 찾을 수 없습니다."));
-                comment.setParentComment(parentComment);
-            }
-
-            Comment savedComment = commentRepository.save(comment);
-            return convertToDto(savedComment);
-        } catch (Exception e) {
-            log.error("댓글 생성 중 오류 발생: {}", e.getMessage(), e);
-            throw new RuntimeException("댓글 생성에 실패했습니다.", e);
+        // 부모 댓글 ID가 null이 아니고 0이 아닐 때만 부모 댓글 찾기
+        if (commentDto.getParentCommentId() != null && commentDto.getParentCommentId() != 0) {
+            Comment parentComment = commentRepository.findById(commentDto.getParentCommentId())
+                .orElseThrow(() -> new EntityNotFoundException("부모 댓글을 찾을 수 없습니다."));
+            comment.setParentComment(parentComment);
         }
+
+        Comment savedComment = commentRepository.save(comment);
+        return convertToDto(savedComment);
+    } catch (Exception e) {
+        log.error("댓글 생성 중 오류 발생: {}", e.getMessage(), e);
+        throw new RuntimeException("댓글 생성에 실패했습니다.", e);
     }
+}
 
     @Override
     @Transactional

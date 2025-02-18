@@ -1,15 +1,20 @@
 package com.javalab.student.service;
 
 import com.javalab.student.dto.PetDto;
+import com.javalab.student.dto.SubstanceDto;
 import com.javalab.student.entity.Member;
 import com.javalab.student.entity.Pet;
+import com.javalab.student.entity.PetAllergy;
 import com.javalab.student.repository.MemberRepository;
 import com.javalab.student.repository.PetRepository;
 import com.javalab.student.service.PetService;
+import com.javalab.student.entity.Substance;
+import com.javalab.student.repository.PetAllergyRepository;
+import com.javalab.student.repository.SubstanceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +26,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 
@@ -32,6 +40,8 @@ public class PetServiceImpl implements PetService {
     
     private final PetRepository petRepository;
     private final MemberRepository memberRepository;
+    private final PetAllergyRepository petAllergyRepository;
+    private final SubstanceRepository substanceRepository;
     private final ModelMapper modelMapper;
 
     @Value("${petImgLocation}")
@@ -104,6 +114,48 @@ public String uploadPetImage(MultipartFile file) {
         return petDto;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<SubstanceDto> getAllSubstances() {
+        return substanceRepository.findAll().stream()
+                .map(substance -> SubstanceDto.builder()
+                        .substanceId(substance.getSubstanceId())
+                        .name(substance.getName())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void savePetAllergies(Long petId, List<Long> allergyIds) {
+        // 기존 알러지 정보 삭제
+        petAllergyRepository.deleteByPetId(petId);
+
+        // 새로운 알러지 정보 저장
+        if (allergyIds != null && !allergyIds.isEmpty()) {
+            allergyIds.forEach(substanceId -> {
+                PetAllergy petAllergy = new PetAllergy();
+                petAllergy.setPetId(petId);
+                petAllergy.setSubstanceId(substanceId);
+                petAllergyRepository.save(petAllergy);
+            });
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SubstanceDto> getPetAllergies(Long petId) {
+        List<Long> substanceIds = petAllergyRepository.findSubstanceIdsByPetId(petId);
+        return substanceRepository.findAllById(substanceIds).stream()
+                .map(substance -> SubstanceDto.builder()
+                        .substanceId(substance.getSubstanceId())
+                        .name(substance.getName())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+
+
 
 @Override
 @Transactional
@@ -127,6 +179,12 @@ public PetDto registerPet(PetDto petDto, MultipartFile image) {
         }
 
         Pet savedPet = petRepository.save(pet);
+
+         // 알러지 정보 저장
+         if (petDto.getAllergyIds() != null && !petDto.getAllergyIds().isEmpty()) {
+            savePetAllergies(savedPet.getPetId(), petDto.getAllergyIds());
+        }
+        
         return modelMapper.map(savedPet, PetDto.class);
     } catch (IOException e) {
         log.error("이미지 업로드 중 오류 발생: {}", e.getMessage());

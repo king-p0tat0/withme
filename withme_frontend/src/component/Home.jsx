@@ -1,14 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import MainNotice from "./notice/MainNotice";
-import "./Home.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import "./Home.css";
 
 function Home() {
   const { user, isLoggedIn } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleSurveyNavigation = (e) => {
     e.preventDefault();
@@ -32,6 +32,30 @@ function Home() {
     };
   }, []);
 
+  // 검색어 입력 핸들러
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // 검색 실행 핸들러
+  const handleSearch = async (e) => {
+    if (e.key === "Enter" || e.type === "click") {
+      if (searchQuery.trim()) {
+        // 로그인한 사용자이고 반려동물이 있는 경우
+        if (isLoggedIn && user?.petId) {
+          navigate(
+            `/item/search?query=${encodeURIComponent(searchQuery)}&petId=${
+              user.petId
+            }`
+          );
+        } else {
+          // 일반 검색
+          navigate(`/item/search?query=${encodeURIComponent(searchQuery)}`);
+        }
+      }
+    }
+  };
+
   return (
     <div className="Home">
       <nav>
@@ -53,8 +77,16 @@ function Home() {
               type="text"
               placeholder="어떤 상품을 찾아볼까요?"
               className="search-input"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyPress={handleSearch}
             />
-            <FontAwesomeIcon icon={faSearch} className="search-icon" />
+            <FontAwesomeIcon
+              icon={faSearch}
+              className="search-icon"
+              onClick={handleSearch}
+              style={{ cursor: "pointer" }}
+            />
           </li>
           <li>
             <img

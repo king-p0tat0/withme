@@ -61,9 +61,6 @@
           }
         }
       }
-
-      .list_date {
-      }
     }
   }
 
@@ -169,10 +166,14 @@
 
 /* Comment css */
 .comment_section {
+  .no_comment {
+    padding: 20px;
+    text-align: center;
+  }
   .comment_write_area {
     margin: 50px 0 20px;
-
     .write_button {
+      position: relative;
       width: 100%;
       padding: 12px;
       background: #f8f9fa;
@@ -185,9 +186,29 @@
       &:hover {
         background-color: #e9ecef;
       }
-
-      &:disabled {
+      /* &:disabled {
         background-color: #e9ecef;
+        cursor: not-allowed;
+      } */
+      &:disabled::after {
+        content: "로그인이 필요합니다";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: black;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        white-space: nowrap;
+        cursor: not-allowed;
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      &:disabled:hover::after {
+        opacity: 1;
         cursor: not-allowed;
       }
     }
@@ -551,22 +572,10 @@
   }
 }
 
-.rdw-link-modal-input {
-  width: 100%;
-  box-sizing: border-box;
+.tox-tinymce {
+  border: none !important;
 }
-.rdw-link-modal,
-.rdw-embedded-modal,
-.rdw-image-modal,
-.rdw-embedded-modal {
-  height: auto !important;
-  .rdw-link-modal-btn,
-  .rdw-link-modal-btn,
-  .rdw-embedded-modal-btn,
-  .rdw-embedded-modal-btn,
-  .rdw-image-modal-btn,
-  .rdw-image-modal-btn {
-    color: #333;
-    padding: 0;
-  }
+
+.tox .tox-statusbar {
+  display: none !important;
 }
