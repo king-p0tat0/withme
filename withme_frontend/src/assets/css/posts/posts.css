@@ -61,9 +61,6 @@
           }
         }
       }
-
-      .list_date {
-      }
     }
   }
 
@@ -551,22 +548,10 @@
   }
 }
 
-.rdw-link-modal-input {
-  width: 100%;
-  box-sizing: border-box;
+.tox-tinymce {
+  border: none !important;
 }
-.rdw-link-modal,
-.rdw-embedded-modal,
-.rdw-image-modal,
-.rdw-embedded-modal {
-  height: auto !important;
-  .rdw-link-modal-btn,
-  .rdw-link-modal-btn,
-  .rdw-embedded-modal-btn,
-  .rdw-embedded-modal-btn,
-  .rdw-image-modal-btn,
-  .rdw-image-modal-btn {
-    color: #333;
-    padding: 0;
-  }
+
+.tox .tox-statusbar {
+  display: none !important;
 }

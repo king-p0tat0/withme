@@ -22,21 +22,21 @@ package com.javalab.student.repository;
 
 //     private final Random random = new Random();
 
-    /*@Test
-    @DisplayName("랜덤 상품 20개 저장 테스트")
-    @Commit
-    public void saveRandomItemsTest() {
-        for (int i = 0; i < 20; i++) {
-            Item item = Item.builder()
-                    .itemNm("테스트상품" + i) // 랜덤 상품명
-                    .price(random.nextInt(50000) + 1000) // 1,000 ~ 50,000원 랜덤 가격
-                    .stockNumber(random.nextInt(100) + 1) // 1 ~ 100개 랜덤 재고
-                    .itemDetail("상품테스트중" + i) // 랜덤 상품 설명
-                    .itemSellStatus(ItemSellStatus.SELL)
-                    .build();
+//     @Test
+//     @DisplayName("랜덤 상품 20개 저장 테스트")
+//     @Commit
+//     public void saveRandomItemsTest() {
+//         for (int i = 0; i < 20; i++) {
+//             Item item = Item.builder()
+//                     .itemNm("테스트상품" + i) // 랜덤 상품명
+//                     .price(random.nextInt(50000) + 1000) // 1,000 ~ 50,000원 랜덤 가격
+//                     .stockNumber(random.nextInt(100) + 1) // 1 ~ 100개 랜덤 재고
+//                     .itemDetail("상품테스트중" + i) // 랜덤 상품 설명
+//                     .itemSellStatus(ItemSellStatus.SELL)
+//                     .build();
 
-            itemRepository.save(item);
-            log.info("Saved Item {}: {}", i + 1, item);
-        }
-    }*/
-}
+//             itemRepository.save(item);
+//             log.info("Saved Item {}: {}", i + 1, item);
+//         }
+//     }
+// }
