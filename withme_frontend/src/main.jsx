@@ -8,8 +8,8 @@ import { PersistGate } from "redux-persist/integration/react"; // PersistGate ê°
 //mui custom
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./assets/css/mui/theme";
-import "./assets/css/reset/reset.css";
-import "./assets/css/reset/common.css";
+// import "./assets/css/reset/reset.css";
+// import "./assets/css/reset/common.css";
 
 createRoot(document.getElementById("root")).render(
   <Provider store={store}>

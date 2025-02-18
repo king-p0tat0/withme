@@ -123,7 +123,13 @@ export default function ItemView({ user }) {
                     <p><strong>상태:</strong> {item.itemSellStatus === 'SELL' ? '판매중' : '품절'}</p>
                     <p><strong>설명:</strong> {item.itemDetail}</p>
 
-                    <button className="add-to-cart-btn" onClick={handleAddToCart} >장바구니 담기</button>
+                    <button
+                        className="add-to-cart-btn"
+                        onClick={handleAddToCart}
+                        style={{ color: "black" }}
+                        >
+                        장바구니 담기
+                    </button>
 
                     {/* 관리자인 경우에만 수정 및 삭제 버튼을 표시 */}
                     {user && user.roles && user.roles.includes('ROLE_ADMIN') && (

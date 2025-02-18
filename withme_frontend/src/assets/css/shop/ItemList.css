@@ -49,6 +49,7 @@
     padding: 8px 12px;
     font-size: 16px;
     border-radius: 25px;
+    outline: none;
 }
 
 .item-list-container {

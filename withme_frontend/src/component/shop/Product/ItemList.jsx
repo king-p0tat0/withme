@@ -130,7 +130,7 @@ export default function ItemList() {
                                             />
                                             <button
                                                 className="view-details-btn"
-                                                onClick={() => navigate(`/item/${item.itemId}`)}
+                                                onClick={() => navigate(`/item/view/${item.id}`)}
                                             >
                                                 상세보기
                                             </button>
