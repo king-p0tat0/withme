@@ -37,8 +37,8 @@ function Home() {
       <nav>
         <ul>
           <li><Link to="/">홈</Link></li>
-          <li><Link to="/item/list">전체상품</Link></li>
-          <li><Link to="/notice">공지사항</Link></li>
+          <li><Link to="/item/list">쇼핑몰</Link></li>
+          <li><Link to="/notices">공지사항</Link></li>
           <li><Link to="/posts">커뮤니티</Link></li>
           <li className="search-box">
             <input type="text" placeholder="어떤 상품을 찾아볼까요?" className="search-input" />

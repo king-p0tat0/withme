@@ -61,6 +61,7 @@ header {
     white-space: nowrap;
     display: block;
     animation: floatUpDown 2s infinite ease-in-out;
+    z-index: 1000;
 }
 
 .tooltip::after {

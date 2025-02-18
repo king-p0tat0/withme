@@ -6,6 +6,8 @@ import { persistor } from "./redux/store";
 import { fetchUserInfo, clearUser } from "./redux/authSlice";
 import { API_URL } from "./constant";
 import { fetchWithAuth } from "./common/fetchWithAuth.js";
+import "./App.css";
+import { Helmet } from "react-helmet";
 
 // ui
 import UiComponents from "./component/elements/UiComponents";
@@ -41,7 +43,7 @@ import RegisterMember from "./component/member/RegisterMember"; // 일반 회원
 import SignupSuccess from "./component/member/SignupSuccess"; // 가입 완료
 
 // ✅ 의사 관련
-import DoctorSignupSuccess from "./component/member/DoctorSignupSuccess"; // 가입 완료
+import DoctorSignupSuccess from "./component/member/DoctorSignupSuccess"; // 수의사 가입 완료
 
 // ✅ 기타 페이지
 import Home from "./component/Home";
@@ -97,10 +99,19 @@ function App() {
 
   return (
     <div className="App">
+      <Helmet>
+        <title>행복한 반려생활의 시작, 위드미</title>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap"
+          rel="stylesheet"
+        />
+        <link rel="icon" href="/assets/images/favicon.ico" />
+      </Helmet>
+
       {/*헤더 부분*/}
       <Header />
       {/* Home을 제외한 모든 페이지에 NavBar 노출하도록 설정 */}
-      {location.pathname !== "/" && <NavBar />}
+      {location.pathname !== "/" && location.pathname !== "/item/list" && <NavBar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -152,9 +163,6 @@ function App() {
         <Route path="/doctor/register" element={<RegisterDoctor user={user} />} />
         <Route path="/doctors/status/:id" element={<DoctorApplicationStatus user={user}/>} />
         <Route path="/doctors/edit/:id" element={<DoctorApplicationEdit user={user}/>} />
-
-
-
 
         {/* ✅ 기타 페이지 */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />

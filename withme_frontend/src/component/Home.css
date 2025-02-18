@@ -1,3 +1,4 @@
+/* Home 화면 전용 header CSS */
 nav {
     display: flex;
     justify-content: center;
@@ -12,9 +13,11 @@ nav ul {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 90%;
+    width: 100%;
     padding: 0;
     gap: 10px;
+    background-color: #FFF6F1;
+
 }
 
 nav li {
@@ -78,7 +81,7 @@ nav li:last-child {
     margin-left: auto;
 }
 
-/* =========================================== */
+/* Banner CSS */
 .container {
     width: 100%;
     margin: 0 auto;
@@ -86,16 +89,19 @@ nav li:last-child {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
+    padding: 0 !important;
+    box-shadow: none !important;
+    padding-bottom: 90px !important;
 }
 
 .banner {
-position: relative;
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: #FFF6F1;
     width: 100vw;
-    height: 500px;
+    height: 600px;
 }
 
 .banner img {
