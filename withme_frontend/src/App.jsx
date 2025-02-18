@@ -149,6 +149,7 @@ function App() {
         <Route path="/survey/paid" element={<PaidSurvey />} />
         <Route path="/survey/paid/selection" element={<PaidSurveySelection />} />
         <Route path="/survey/paid/result" element={<PaidSurveyResult />} />
+
         {/* 쇼핑몰 */}
         <Route path="/item/list" element={<ItemList />} />
         <Route path="/item/view/:itemId" element={<ItemView user={user} />} />

@@ -281,7 +281,6 @@ hr {
 
 /* 관리자 버튼 CSS */
 .admin-btn {
-    font-family: 'Nanum Gothic', sans-serif;
     font-weight: bold;
     background: white;
     border: none;
