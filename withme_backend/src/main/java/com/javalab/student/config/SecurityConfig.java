@@ -25,11 +25,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 /**
  * Spring Security 설정 파일
@@ -95,43 +90,43 @@ public class SecurityConfig {
          * favicon.ico : 파비콘 요청은 인증 없이 접근 가능, 이코드 누락시키면 계속 서버에 요청을 보내서 서버에 부하를 줄 수 있다.
          */
         http.authorizeHttpRequests(request -> request
-                // WebSocket 관련 요청 허용
-                .requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
+                // ✅ WebSocket 관련 요청 허용
+                .requestMatchers("/ws/**").permitAll()
+                .requestMatchers("/topic/**").permitAll()
 
+                // ✅ 문진(Questionnaire) 관련 API 허용
+                .requestMatchers("/api/questionnaires/free").permitAll()
+                .requestMatchers("/api/questionnaires/{questionnaireId}").permitAll()
+                .requestMatchers("/api/questionnaires/user/{userId}").permitAll()
+                .requestMatchers("/api/questionnaires/free/latest/{userId}").permitAll()
+                .requestMatchers("/api/questionnaires/paid/latest/{userId}").permitAll()
 
-                // 인증 및 회원 관련 API
-                .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail", "/api/auth/userInfo").permitAll()
-
-                // 문진 관련 API - 더 구체적인 패턴을 먼저 배치
-                .requestMatchers("/api/questions/free/latest/{userId}").hasAuthority("ROLE_USER")
-                .requestMatchers("/api/questions/paid/latest/{userId}").hasAuthority("ROLE_VIP")
-                .requestMatchers("/api/questions/free/**").hasAuthority("ROLE_USER")
-                .requestMatchers("/api/questions/paid/**").hasAuthority("ROLE_VIP")
-                .requestMatchers("/api/questions").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
-
-                // 설문 주제 및 사용자 선택 주제 관련 API
+                // ✅ 유료 문진 관련 API (ROLE_VIP만 접근 가능)
                 .requestMatchers("/api/survey-topics/paid/**").hasAuthority("ROLE_VIP")
-                .requestMatchers("/api/survey-topics/**").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
-                .requestMatchers("/api/user-selected-topics/**").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
+                .requestMatchers("/api/user-selected-topics/**").hasAuthority("ROLE_VIP")
+                .requestMatchers("/survey/paid/**").hasAuthority("ROLE_VIP")
 
-                // 관리자 관련 API
+                // ✅ 인증 및 회원 관련 API
+                .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail").permitAll()
+                .requestMatchers("/api/auth/userInfo").permitAll()
+                .requestMatchers("/api/members/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_VIP", "ROLE_DOCTOR")
+
+                // ✅ 관리자 관련 API
                 .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
 
-                // 학생 관련 API
+                // ✅ 학생 관련 API
                 .requestMatchers(HttpMethod.GET, "/api/students/**").permitAll()
                 .requestMatchers("/api/students/**").hasAuthority("ROLE_ADMIN")
 
-                // 의사 관련 API
+                // ✅ 의사 관련 API
                 .requestMatchers("/api/doctors/**").permitAll()
 
-                // 메시지 및 커뮤니티 관련 API
-                .requestMatchers("/api/messages/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_VIP", "ROLE_DOCTOR")
+                // ✅ 메시지 및 커뮤니티 관련 API
+                .requestMatchers("/api/messages/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers("/api/questions/**").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
                 .requestMatchers("/api/chat/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
-                // 회원 관련 API
-                .requestMatchers("/api/members/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_VIP", "ROLE_DOCTOR")
-
-                // 정적 리소스 허용
+                // ✅ 정적 리소스 허용
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(
                         "/images/**",
@@ -151,9 +146,11 @@ public class SecurityConfig {
                         "/ping.js"
                 ).permitAll()
 
-                // 중요: 모든 요청에 대해 인증 필요 (마지막에 배치)
+                // ✅ 중요: 모든 요청에 대해 인증 필요 (마지막에 배치)
                 .anyRequest().authenticated()
         );
+
+
 
         /*
          * 필터의 순서는 addFilterBefore 메서드를 사용하여 정의
@@ -177,6 +174,7 @@ public class SecurityConfig {
          */
         http.addFilterBefore(refreshTokenCheckFilter, TokenAuthenticationFilter.class);
 
+
         /**
          * 인증 실패 시 처리할 핸들러를 설정
          * - 권한이 없는 페이지에 접근 시 처리할 핸들러를 설정
@@ -188,9 +186,7 @@ public class SecurityConfig {
 
         // http.csrf(csrf -> csrf.disable()); // CSRF 보안 설정을 비활성화
         http.csrf(csrf -> csrf.disable());  // 프론트 엔드를 리액트로 할경우 CSRF 보안 설정을 비활성화
-
-        // ✅ CORS 설정을 커스텀 메서드로 변경
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+        http.cors(Customizer.withDefaults());   // 이 설정은 출처가 다른 도메인에서 요청을 허용하기 위한 설정, 스프링은 8080포트에서 실행되고 있고, 리액트는 3000포트에서 실행되고 있기 때문에 스프링은 3000 포트에서 오는 요청을 허용하지 않는다. 이를 해결하기 위해 CORS 설정을 추가한다.
 
         /*
          * 소셜 로그인 설정
@@ -230,6 +226,7 @@ public class SecurityConfig {
                 .build();
     }
 
+
     /**
      * 비밀번호 암호화를 위한 PasswordEncoder 빈 등록
      * - BCryptPasswordEncoder : BCrypt 해시 함수를 사용하여 비밀번호를 암호화
@@ -237,26 +234,6 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    /**
-     * ✅ CORS 설정 메서드 추가
-     * - localhost:3000 및 127.0.0.1:3000에서의 접근 허용
-     * - 모든 HTTP 메서드 및 헤더 허용
-     * - Authorization 헤더 클라이언트에서 접근 가능
-     */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowedMethods(List.of("*"));
-        configuration.setExposedHeaders(List.of("Authorization"));
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 
 }

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * 설문 주제 컨트롤러
@@ -34,12 +33,7 @@ public class SurveyTopicController {
      */
     @GetMapping
     public ResponseEntity<List<SurveyTopic>> getAllTopics() {
-        List<SurveyTopic> topics = surveyTopicService.getAllTopics();
-        // Survey 정보를 제외하고 반환
-        List<SurveyTopic> filteredTopics = topics.stream()
-                .map(this::filterSurveyInfo)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(filteredTopics);
+        return ResponseEntity.ok(surveyTopicService.getAllTopics());
     }
 
     /**
@@ -48,7 +42,7 @@ public class SurveyTopicController {
     @GetMapping("/{topicId}")
     public ResponseEntity<SurveyTopic> getTopicById(@PathVariable Long topicId) {
         Optional<SurveyTopic> topic = surveyTopicService.getTopicById(topicId);
-        return topic.map(t -> ResponseEntity.ok(filterSurveyInfo(t)))
+        return topic.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -63,22 +57,18 @@ public class SurveyTopicController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❗ 해당 surveyId에 대한 주제가 없습니다.");
         }
 
-        // Survey 정보를 제외하고 반환
-        List<SurveyTopic> filteredTopics = topics.stream()
-                .map(this::filterSurveyInfo)
-                .collect(Collectors.toList());
-
-        System.out.println("✅ 조회된 주제 개수: " + filteredTopics.size());
-        return ResponseEntity.ok(filteredTopics);
+        System.out.println("✅ 조회된 주제 개수: " + topics.size());
+        return ResponseEntity.ok(topics);
     }
+
+
 
     /**
      * ✅ 새로운 설문 주제 생성
      */
     @PostMapping
     public ResponseEntity<SurveyTopic> createTopic(@RequestBody SurveyTopic surveyTopic) {
-        SurveyTopic savedTopic = surveyTopicService.createTopic(surveyTopic);
-        return ResponseEntity.ok(filterSurveyInfo(savedTopic));
+        return ResponseEntity.ok(surveyTopicService.createTopic(surveyTopic));
     }
 
     /**
@@ -96,13 +86,5 @@ public class SurveyTopicController {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
         return ResponseEntity.badRequest().body("잘못된 요청: " + ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
-    }
-
-    /**
-     * 🛠️ Survey 정보를 제외한 SurveyTopic 반환 메서드
-     */
-    private SurveyTopic filterSurveyInfo(SurveyTopic topic) {
-        topic.setSurvey(null);  // Survey 필드를 null로 설정하여 JSON 반환 시 순환 참조 방지
-        return topic;
     }
 }

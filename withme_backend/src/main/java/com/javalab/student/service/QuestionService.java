@@ -55,13 +55,21 @@ public class QuestionService {
     }
 
     /**
-     * ✅ 특정 주제 목록(topics)에 해당하는 유료 문진 질문 리스트 반환 (선택지 포함)
+     * ✅ 특정 userId에 해당하는 유료 문진 질문 리스트 반환 (선택지 포함)
      */
     @Transactional(readOnly = true)
-    public List<QuestionDTO> getPaidQuestionsByTopics(List<Long> topicIds) {
+    public List<QuestionDTO> getPaidQuestionsByUserId(Long userId) {
+        // ✅ 유저가 선택한 주제 목록 조회
+        List<UserSelectedTopics> selectedTopics = userSelectedTopicsRepository.findAllByMember_Id(userId);
+
+        // ✅ 선택한 주제의 ID 목록 추출
+        List<Long> topicIds = selectedTopics.stream()
+                .map(topic -> topic.getSurveyTopic().getTopicId())
+                .collect(Collectors.toList());
+
+        // ✅ 선택한 주제에 해당하는 질문 목록 조회
         return questionRepository.findBySurveyTopic_TopicIdIn(topicIds).stream()
                 .map(QuestionDTO::fromEntity)
                 .collect(Collectors.toList());
     }
-
 }

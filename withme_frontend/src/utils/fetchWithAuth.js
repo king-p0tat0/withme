@@ -9,7 +9,7 @@
  *   전송된 리프레시 토큰은 서버에서 검증 후 새로운 액세스 토큰을 발급하고 이를 응답으로 클라이언트에 전송함.
  */
 
-import { SERVER_URL } from "../constant"; // "/refresh" 요청 시 사용
+import {SERVER_URL} from "../constant"; // "/refresh" 요청 시 사용
 
 /**
  * 액세스 토큰 갱신 함수
@@ -44,6 +44,7 @@ export const refreshAccessToken = async () => {
         return false; // 실패 여부 반환
     }
 };
+
 
 
 /**
@@ -91,17 +92,6 @@ export const fetchWithAuth = async (url, options = {}) => {
             }
         }
 
-        // ✅ 추가 코드: 서버 응답에서 메시지 여부 확인
-        if (response.ok) {
-            const clone = response.clone();
-            const data = await clone.json();
-            if (data && data.hasNewMessage) {
-                const messageEvent = new CustomEvent('messageReceived', { detail: data.latestMessage });
-                window.dispatchEvent(messageEvent);
-                console.log("🔔 홈 페이지에 새 메시지 팝업 이벤트 발생");
-            }
-        }
-
         // 3. 정상 응답 반환
         return response;
     } catch (error) {
@@ -109,7 +99,6 @@ export const fetchWithAuth = async (url, options = {}) => {
         throw error;
     }
 };
-
 
 /**
  * 인증이 필요 없는 API 요청을 보내는 함수
@@ -136,3 +125,4 @@ export const fetchWithoutAuth = async (url, options = {}) => {
         throw error; // 오류 다시 던지기
     }
 };
+

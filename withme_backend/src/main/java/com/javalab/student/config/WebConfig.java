@@ -7,12 +7,6 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/**
- * WebConfig, 환경설정 파일
- * - @Configuration : 이 클래스가 Spring의 설정 파일임을 명시, 여기에는 하나 이상의 @Bean이 있음.
- *   프로젝트가 구동될 때 이 클래스를 읽어들여 Bean으로 등록
- *
- */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
@@ -32,12 +26,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3001")
+                .allowedOrigins("http://localhost:3000")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")    // 모든 헤더를 허용
                 .allowCredentials(true);    // 쿠키를 주고 받을 수 있게 설정, 세션을 사용할 때는 true로 설정, 왜? 세션은 쿠키를 사용하기 때문, 쿠키에는 사용자의 정보가 담겨있음
     }
-
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -52,7 +45,6 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/static-images/**")
                 .addResourceLocations("classpath:/static/images/");  // 정적 리소스
 
-
         // [스웨거] Swagger UI 설정
         // /swagger-ui/**로 시작하는 URL 요청은 서버의 /META-INF/resources/webjars/swagger-ui/ 디렉토리에서 파일을 찾습니다.
         // 이 경로는 Swagger UI의 HTML, CSS, JavaScript 파일들을 포함하고 있습니다.
@@ -66,8 +58,6 @@ public class WebConfig implements WebMvcConfigurer {
         // 모든 URL 요청을 리액트의 index.html로 매핑하기 위한 설정[수정]
         registry.addResourceHandler("/**")
                 .addResourceLocations("classpath:/student_frontend/public/");
-
-
     }
 
     /**

@@ -61,43 +61,32 @@ const authSlice = createSlice({
  *   액션 생성자 함수에 전달하여 사용자 정보를 저장합니다.
  */
 export const fetchUserInfo = () => async (dispatch) => {
- try {
-   const response = await fetchWithAuth(`${API_URL}auth/userInfo`);
-   if (!response.ok) {
-     if (response.status === 401) {
-       console.warn("인증되지 않은 사용자 요청입니다.");
-       return; // 401 상태일 때 상태 초기화 없이 종료
-     }
-     throw new Error("사용자 정보 가져오기 실패");
-   }
-   const userData = await response.json();
-   console.log("fetchUserInfo 사용자 정보 userData : ", userData);
+  try {
+    const response = await fetchWithAuth(`${API_URL}auth/userInfo`);
+    if (!response.ok) {
+      if (response.status === 401) {
+        console.warn("인증되지 않은 사용자 요청입니다.");
+        return; // 401 상태일 때 상태 초기화 없이 종료
+      }
+      throw new Error("사용자 정보 가져오기 실패");
+    }
+    const userData = await response.json();
+    console.log("fetchUserInfo 사용자 정보 userData : ", userData);
 
-   // 사용자 정보가 없는 경우 경고를 출력하고 초기화는 수행하지 않음
-   if (!userData || Object.keys(userData).length === 0) {
-     console.warn("존재하지 않는 사용자 정보입니다.");
-     return;
-   }
+    // 사용자 정보가 없는 경우 경고를 출력하고 초기화는 수행하지 않음
+    if (!userData || Object.keys(userData).length === 0) {
+      console.warn("존재하지 않는 사용자 정보입니다.");
+      //dispatch(clearUser()); // 액션 생성자 함수 clearUser를 디스패치하여 사용자 정보 초기화[수정]
+      return;
+    }
 
-   console.log("사용자 정보:", userData);
+    console.log("사용자 정보:", userData);
 
-   dispatch(setUser(userData)); // 응답 결과로 Redux 상태를 변경 하기 위해 setUser 액션을 디스패치
-
-   // 사용자 정보 로드 후 메시지 데이터도 함께 로드
-   const messagesResponse = await fetchWithAuth(`${API_URL}messages/received/${userData.id}`);
-   if (messagesResponse.ok) {
-     const messages = await messagesResponse.json();
-     dispatch(setMessages(messages));
-
-     // 읽지 않은 메시지 수 설정
-     const unreadCount = messages.filter(msg => !msg.read).length;
-     dispatch(setUnreadCount(unreadCount));
-   }
-
- } catch (error) {
-   //console.error("사용자 정보 가져오기 오류:", error.message);
-   dispatch(clearUser()); // 오류 시 사용자 정보 초기화
- }
+    dispatch(setUser(userData)); // 응답 결과로 Redux 상태를 변경 하기 위해 setUser 액션을 디스패치
+  } catch (error) {
+    //console.error("사용자 정보 가져오기 오류:", error.message);
+    dispatch(clearUser()); // 오류 시 사용자 정보 초기화
+  }
 };
 
 /**

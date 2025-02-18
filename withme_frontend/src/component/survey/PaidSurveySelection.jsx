@@ -1,31 +1,19 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { API_URL } from "../../constant";
-import img2 from "../../image/img2.png";
-import {
-  Box,
-  Typography,
-  Checkbox,
-  Button,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Paper,
-} from "@mui/material";
 
 const PaidSurveySelectionPage = () => {
-  const [topics, setTopics] = useState([]); // 문진 주제 목록
-  const [selectedTopics, setSelectedTopics] = useState([]); // 선택된 주제 목록
+  const [topics, setTopics] = useState([]); // ✅ 문진 주제 목록
+  const [selectedTopics, setSelectedTopics] = useState([]); // ✅ 선택된 주제 목록
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
 
   const token = localStorage.getItem("token");
   const config = {
     headers: {
-      Authorization: token ? `Bearer ${token}` : "", // JWT 포함
+      Authorization: token ? `Bearer ${token}` : "", // ✅ JWT 포함
     },
     withCredentials: true,
   };
@@ -40,17 +28,14 @@ const PaidSurveySelectionPage = () => {
     console.log("🔍 로그인된 사용자 정보:", user);
     fetchSurveyTopics();
     fetchSelectedTopics(user.id);
-  }, [user, navigate]);
+  }, [user]);
 
   const fetchSurveyTopics = () => {
     axios
       .get(`${API_URL}survey-topics/paid/2`, config)
       .then((response) => {
         console.log("유료 문진 주제 목록:", response.data);
-        const filteredTopics = response.data.filter(
-          (topic) => topic.topicName !== "심혈관 건강"
-        );
-        setTopics(filteredTopics);
+        setTopics(response.data);
       })
       .catch((error) => {
         console.error("❌ 문진 주제를 불러오지 못했습니다.", error);
@@ -71,6 +56,9 @@ const PaidSurveySelectionPage = () => {
       .catch((error) => console.error("❌ 사용자 선택 주제 불러오기 실패:", error));
   };
 
+  /**
+   * ✅ 개별 체크박스 선택/해제
+   */
   const handleTopicChange = (topicId) => {
     setSelectedTopics((prevSelected) =>
       prevSelected.includes(topicId)
@@ -79,6 +67,9 @@ const PaidSurveySelectionPage = () => {
     );
   };
 
+  /**
+   * ✅ 전체 선택/해제 기능
+   */
   const handleSelectAll = () => {
     if (selectedTopics.length === topics.length) {
       setSelectedTopics([]);
@@ -87,181 +78,56 @@ const PaidSurveySelectionPage = () => {
     }
   };
 
-  const startPaidSurvey = () => {
-    if (selectedTopics.length === 0) {
-      alert("🚨 최소 한 개 이상의 주제를 선택해주세요!");
-      return;
-    }
-    navigate("/survey/paid", { state: { selectedTopics } });
-  };
-
   return (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "space-around",
-        padding: "2rem",
-        backgroundColor: "#FFFBF8",
-        minHeight: "100vh",
-      }}
-    >
-      <Paper
-        elevation={3}
-        sx={{
-          width: "45%",
-          padding: "1rem",
-          backgroundColor: "#FFFBF8",
-          borderRadius: "10px",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1rem" }}>
-          <img src={img2} alt="문진 아이콘" style={{ height: "60px", marginRight: "10px" }} />
-          <Typography
-            variant="h5"
-            component="h2"
-            sx={{
-              fontWeight: "bold",
-              color: "#d67d00",
-              textDecoration: "underline",
-              textDecorationColor: "pink",
-              textAlign: "center",
-            }}
-          >
-            유료 문진 검사 주제 선택
-          </Typography>
-        </Box>
-        <Typography
-          variant="subtitle1"
-          sx={{
-            marginBottom: "1rem",
-            color: "#757575",
-            textAlign: "center",
-            fontWeight: "bold",
-          }}
-        >
-          문진을 진행할 주제를 선택하세요.
-        </Typography>
+    <div className="p-6">
+      <h2 className="text-xl font-bold mb-4">유료 문진 검사 주제 선택</h2>
+      <p className="mb-2 text-gray-600">문진을 진행할 주제를 선택하세요.</p>
 
-        <Box sx={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
-          <Checkbox
-            checked={selectedTopics.length === topics.length}
-            onChange={handleSelectAll}
-            color="primary"
-          />
-          <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-            전체 선택
-          </Typography>
-        </Box>
+      {/* ✅ 전체 선택 체크박스 */}
+      <label className="flex items-center space-x-2 font-bold mb-3">
+        <input
+          type="checkbox"
+          checked={selectedTopics.length === topics.length}
+          onChange={handleSelectAll}
+        />
+        <span>전체 선택</span>
+      </label>
 
-        {topics.length === 0 ? (
-          <Typography variant="body2">❗ 문진 주제를 불러오지 못했습니다.</Typography>
-        ) : (
-          <List>
-            {topics.map((topic) => (
-              <ListItem
-                key={topic.topicId}
-                button
-                onClick={() => handleTopicChange(topic.topicId)}
-                sx={{
-                  cursor: "pointer",
-                  backgroundColor: "#FFFBF8",
-                  margin: "5px 0",
-                  borderRadius: "5px",
-                  "&:hover": { backgroundColor: "#ffe0b2" },
-                }}
-              >
-                <ListItemIcon>
-                  <Checkbox
-                    checked={selectedTopics.includes(topic.topicId)}
-                    onChange={() => handleTopicChange(topic.topicId)}
-                    color="primary"
-                  />
-                </ListItemIcon>
-                <ListItemText primary={topic.topicName} />
-              </ListItem>
-            ))}
-          </List>
-        )}
-      </Paper>
+      {/* ✅ 주제 선택 목록 */}
+      {topics.length === 0 ? (
+        <p>❗ 문진 주제를 불러오지 못했습니다.</p>
+      ) : (
+        <ul>
+          {topics.map((topic) => (
+            <li key={topic.topicId} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                value={topic.topicId}
+                checked={selectedTopics.includes(topic.topicId)}
+                onChange={() => handleTopicChange(topic.topicId)}
+              />
+              <span>{topic.topicName}</span>
+            </li>
+          ))}
+        </ul>
+      )}
 
-      <Paper
-        elevation={3}
-        sx={{
-          width: "45%",
-          padding: "1rem",
-          backgroundColor: "#FFFBF8",
-          borderRadius: "10px",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-        }}
-      >
-        <Typography
-          variant="h6"
-          component="h3"
-          sx={{
-            fontWeight: "bold",
-            marginBottom: "1rem",
-            color: "#d67d00",
-            textDecoration: "underline",
-            textDecorationColor: "pink",
-            textAlign: "center",
-          }}
-        >
-          선택한 주제:
-        </Typography>
-        {selectedTopics.length > 0 ? (
-          <Box
-            sx={{
-              backgroundColor: "#FFFBF8",
-              padding: "1rem",
-              borderRadius: "10px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-            }}
-          >
+      {/* ✅ 선택한 주제 목록 */}
+      {selectedTopics.length > 0 && (
+        <div className="mt-4 p-4 border border-gray-300 rounded">
+          <h3 className="text-lg font-semibold mb-2">선택한 주제:</h3>
+          <ul className="list-disc pl-5">
             {topics
               .filter((topic) => selectedTopics.includes(topic.topicId))
               .map((topic) => (
-                <Box
-                  key={topic.topicId}
-                  sx={{
-                    backgroundColor: "#FFB6C1",
-                    color: "white",
-                    padding: "0.5rem 1rem",
-                    borderRadius: "5px",
-                    textAlign: "center",
-                  }}
-                >
-                  ✔️ {topic.topicName}
-                </Box>
+                <li key={topic.topicId} className="text-blue-600">
+                  {topic.topicName}
+                </li>
               ))}
-          </Box>
-        ) : (
-          <Typography variant="body2" sx={{ color: "#757575" }}>
-            검진 주제를 선택하세요.
-          </Typography>
-        )}
-
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={startPaidSurvey}
-          sx={{
-            marginTop: "2rem",
-            backgroundColor: "#FFB6C1",
-            "&:hover": {
-              backgroundColor: "#d67d00",
-            },
-            padding: "1rem",
-            fontSize: "1.1rem",
-            borderRadius: "10px",
-          }}
-        >
-          다음으로 문진 검사 시작하기
-        </Button>
-      </Paper>
-    </Box>
+          </ul>
+        </div>
+      )}
+    </div>
   );
 };
 
