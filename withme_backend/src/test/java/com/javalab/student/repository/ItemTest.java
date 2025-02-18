@@ -1,26 +1,26 @@
 package com.javalab.student.repository;
 
-import com.javalab.student.constant.ItemSellStatus;
-import com.javalab.student.entity.shop.Item;
-import com.javalab.student.repository.shop.ItemRepository;
-import jakarta.transaction.Transactional;
-import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Commit;
+// import com.javalab.student.constant.ItemSellStatus;
+// import com.javalab.student.entity.shop.Item;
+// import com.javalab.student.repository.shop.ItemRepository;
+// import jakarta.transaction.Transactional;
+// import lombok.extern.log4j.Log4j2;
+// import org.junit.jupiter.api.DisplayName;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.boot.test.context.SpringBootTest;
+// import org.springframework.test.annotation.Commit;
 
-import java.util.Random;
+// import java.util.Random;
 
-@SpringBootTest
-@Log4j2
-@Transactional
-public class ItemTest {
-    @Autowired
-    ItemRepository itemRepository;
+// @SpringBootTest
+// @Log4j2
+// @Transactional
+// public class ItemTest {
+//     @Autowired
+//     ItemRepository itemRepository;
 
-    private final Random random = new Random();
+//     private final Random random = new Random();
 
     /*@Test
     @DisplayName("랜덤 상품 20개 저장 테스트")

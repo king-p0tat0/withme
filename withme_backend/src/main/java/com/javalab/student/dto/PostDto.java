@@ -5,6 +5,8 @@ import lombok.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import jakarta.validation.constraints.NotBlank;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,8 +21,10 @@ public class PostDto {
 
     private Long userId;
 
+    @NotBlank(message = "제목은 필수입니다.")
     private String title;
 
+    @NotBlank(message = "내용은 필수입니다.")
     private String content;
 
     private Integer rewardPoints;
@@ -29,6 +33,10 @@ public class PostDto {
 
     private String postCategory;
    
+    private String imageUrl;
+
+    private String thumbnailUrl;
+
      @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime regTime;
     
