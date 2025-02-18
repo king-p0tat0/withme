@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 토큰 인증 필터
+ * 액세스 토큰 인증 필터
  * - Spring Security의 요청 필터로 동작한다.
  * - 요청마다 JWT 토큰을 검증하고 인증 객체를 SecurityContext에 저장하는 역할.
  * - 시큐리티의 정상적인 동작 보다 먼저 실행되어야 한다.

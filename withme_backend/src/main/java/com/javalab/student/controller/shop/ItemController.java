@@ -58,16 +58,30 @@ public class ItemController {
      * 상품 등록 API
      * BindingResult : 유효성 검사 결과
      */
-    @PostMapping("/new")
-    public ResponseEntity<?> createItem(@Valid @RequestPart("itemFormDto") ItemFormDto itemFormDto,
-                                        @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList) {
-        try {
-            Long savedItemId = itemService.saveItem(itemFormDto, itemImgFileList);
-            return ResponseEntity.ok().body(savedItemId);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("상품 등록 실패: " + e.getMessage());
-        }
+    // @PostMapping("/new")
+    // public ResponseEntity<?> createItem(@Valid @RequestPart("itemFormDto") ItemFormDto itemFormDto,
+    //                                     @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList) {
+    //     try {
+    //         Long savedItemId = itemService.saveItem(itemFormDto, itemImgFileList);
+    //         return ResponseEntity.ok().body(savedItemId);
+    //     } catch (Exception e) {
+    //         return ResponseEntity.badRequest().body("상품 등록 실패: " + e.getMessage());
+    //     }
+    // }
+
+@PostMapping("/new")
+public ResponseEntity<?> createItem(
+    @Valid @RequestPart("itemFormDto") ItemFormDto itemFormDto,
+    @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList
+) {
+    try {
+         // 상품 저장 시 알러지 성분 정보도 함께 저장
+        Long savedItemId = itemService.saveItem(itemFormDto, itemImgFileList);
+        return ResponseEntity.ok().body(savedItemId);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
+}
 
     /**
      * 상품 상세 조회 API
@@ -124,16 +138,17 @@ public class ItemController {
 
     /**
      * 상품 삭제 API
+     * (품절로 변경)
      */
-    @DeleteMapping("/delete/{itemId}")
+    @PatchMapping("/delete/{itemId}")
     public ResponseEntity<?> deleteItem(@PathVariable("itemId") Long itemId) {
         try {
-            itemService.delete(itemId);  // 서비스 레벨에서 상품 삭제 로직 수행
-            return ResponseEntity.ok("상품이 삭제되었습니다.");
+            itemService.updateItemStatus(itemId, ItemSellStatus.SOLD_OUT);
+            return ResponseEntity.ok("상품이 품절 처리 되었습니다.");
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("존재하지 않는 상품입니다.");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("상품 삭제 중 에러가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("상품 제거 중 에러가 발생했습니다.");
         }
     }
 

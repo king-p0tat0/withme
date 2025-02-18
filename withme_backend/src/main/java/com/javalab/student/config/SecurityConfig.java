@@ -1,5 +1,6 @@
 package com.javalab.student.config;
 
+
 import com.javalab.student.config.jwt.RefreshTokenCheckFilter;
 import com.javalab.student.config.jwt.TokenAuthenticationFilter;
 import com.javalab.student.config.jwt.TokenProvider;
@@ -44,17 +45,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Log4j2
 public class SecurityConfig {
 
-    private final CustomUserDetailsService customUserDetailsService;
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
-    private final TokenAuthenticationFilter tokenAuthenticationFilter;
-    private final TokenProvider tokenProvider;
-    private final RefreshTokenCheckFilter refreshTokenCheckFilter;
-    private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
+    private final CustomUserDetailsService customUserDetailsService; // 사용자 정보를 가져오는 역할
+    private final CustomOAuth2UserService customOAuth2UserService;  // 소셜 로그인
+    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler; // 로그인 성공 핸들러
+    private final TokenAuthenticationFilter tokenAuthenticationFilter; // 토큰을 검증하고 인증 객체를 SecurityContext에 저장하는 역할
+    private final TokenProvider tokenProvider;  // 토큰 생성 및 검증
+    private final RefreshTokenCheckFilter refreshTokenCheckFilter; // 추가된 필터
+    private final CustomLogoutSuccessHandler customLogoutSuccessHandler; // 로그아웃 성공 핸들러
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // 로그인 설정
+
         http.formLogin(form -> form
                 .loginProcessingUrl("/api/auth/login")
                 .successHandler(customAuthenticationSuccessHandler)
@@ -66,10 +68,15 @@ public class SecurityConfig {
                 .permitAll()
         );
 
-        // 로그아웃 설정
+        /*
+            * [수정] 로그아웃 설정
+            * logout() : 스프링의 기본 로그아웃 관련 설정
+            * - /api/auth/logout 을 기본 로그아웃 요청을 처리하는 URL로 하겠다.
+            *   즉 리액트에서 이 요청을 보내면 시큐리티의 기본 로그아웃 처리가 진행된다.
+         */
         http.logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
-                .logoutSuccessHandler(customLogoutSuccessHandler)
+                .logoutSuccessHandler(customLogoutSuccessHandler) // 커스텀 로그아웃 성공 핸들러 사용
                 .permitAll()
         );
 
@@ -78,7 +85,7 @@ public class SecurityConfig {
 
         // URL 접근 권한 설정
         http.authorizeHttpRequests(request -> request
-                // ✅ WebSocket 관련 요청은 인증 검사 제외
+
                 //    WebSocket 접속이 정상인지 체크하는 핸드쉐이크 요청인 /ws/info와 WebSocket 연결, /ws/**는 인증 없이 접근할 수 있도록 설정합니다.
                 .requestMatchers("/ws/**").permitAll()  //
                 .requestMatchers("/api/questionnaires/free").permitAll()
@@ -92,19 +99,21 @@ public class SecurityConfig {
                 // 공지사항 등록, 수정, 삭제는 ADMIN만 접근 가능
                 .requestMatchers(HttpMethod.POST, "/api/notices/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/notices/**").hasRole("ADMIN")
-        
+
                 // WebSocket 설정
                 .requestMatchers("/ws/**", "/topic/**").permitAll()
-                
+
                 // 인증 불필요 API
                 .requestMatchers(
                     "/api/auth/login",
                     "/api/auth/logout",
                     "/api/members/register",
                     "/api/members/checkEmail",
-                    "/api/auth/login/kakao"
+                    "/api/auth/login/kakao",
+                    "/api/items/search/**",
+                    "/api/substances/list"
                 ).permitAll()
-                
+
                 // GET 요청 허용
                 .requestMatchers(HttpMethod.GET,
                         "/api/notices/**",
@@ -141,8 +150,8 @@ public class SecurityConfig {
                 // 쇼핑몰
                 .requestMatchers("/api/item/list", "/api/item/view/**").permitAll()
                 .requestMatchers("/api/item/new", "/api/item/edit/**","/api/item/delete/**").hasRole("ADMIN")
-                .requestMatchers("/api/cart/**","/api/orders/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR")
-                .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 결제
+                .requestMatchers("/api/cart/**","/api/orders/**").authenticated()
+                .requestMatchers("/api/payments/**").authenticated() // 결제
 
                 //커뮤니티
                 //커뮤니티 이미지 업로드
@@ -153,14 +162,33 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/posts/**", "/api/posts/*/comments/**").authenticated()
 
                 // 특정 역할 사용자
-                .requestMatchers("/api/members/**").hasAnyRole("USER", "ADMIN", "VIP")
+                .requestMatchers("/api/members/**").authenticated()
                 .requestMatchers("/api/messages/**", "/api/chat/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/api/cart/**","/api/orders/**").hasAnyRole("ADMIN","USER","VIP","DOCTOR")
+                .requestMatchers("/api/cart/**","/api/orders/**").authenticated()
 
                 // API 문서 및 의사 관련
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api/doctors/**").permitAll()
                 .requestMatchers("/api/auth/userInfo").permitAll()
+
+                // 메시지 및 커뮤니티 관련 API
+                .requestMatchers("/api/messages/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers("/api/chat/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+
+
+
+                // 문진 관련 API - 더 구체적인 패턴을 먼저 배치
+                .requestMatchers("/api/questions/free/latest/{userId}").hasAuthority("ROLE_USER")
+                .requestMatchers("/api/questions/paid/latest/{userId}").hasAuthority("ROLE_VIP")
+                .requestMatchers("/api/questions/free/**").hasAuthority("ROLE_USER")
+                .requestMatchers("/api/questions/paid/**").hasAuthority("ROLE_VIP")
+                .requestMatchers("/api/questions").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
+
+                // 설문 주제 및 사용자 선택 주제 관련 API
+                .requestMatchers("/api/survey-topics/paid/**").hasAuthority("ROLE_VIP")
+                .requestMatchers("/api/survey-topics/**").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
+                .requestMatchers("/api/user-selected-topics/**").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
+
 
                 // 정적 리소스
                 .requestMatchers(
@@ -180,18 +208,38 @@ public class SecurityConfig {
                         "/**/*.svg",
                         "/**/*.html",
                         "/ping.js"
-                ).permitAll()
-                
-                // 그 외 요청
+                ).permitAll() // 정적 리소스는 모두 허용
                 .anyRequest().authenticated()
         );
 
-        // 필터 설정
+        /*
+        * 필터의 순서는 addFilterBefore 메서드를 사용하여 정의
+        * RefreshTokenCheckFilter -> TokenAuthenticationFilter -> UsernamePasswordAuthenticationFilter 순서로 실행
+        * UsernamePasswordAuthenticationFilter가 전체 필터 체인의 기준점
+        * 콘솔 로그에서 Filter 로 검색하면 전체 필터와 순서가 출력됨.
+        */
+        /**
+         * UsernamePasswordAuthenticationFilter 이전에 TokenAuthenticationFilter 추가
+         * - 사용자의 인증이 일어나기 전에 토큰을 검증하고 인증 객체를 SecurityContext에 저장
+         * - 그렇게 저장된 인증 객체는 컨트롤러에서 @AuthenticationPrincipal 어노테이션을 사용하여 사용할 수 있다.
+         * [수정] UsernamePasswordAuthenticationFilter보다 앞에 있어야, 사용자가 제출한 인증 정보가 아닌 토큰을 통한 인증이 우선 처리됩니다.
+         * 토큰 인증이 완료되지 않은 경우 폼 기반 인증을 수행하도록 체인에서 뒤쪽에 위치합니다.
+         */
         http.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        /**
+         * RefreshTokenCheckFilter 추가, TokenAuthenticationFilter가 액세스 토큰의 유효성을 확인하기 전에
+         * RefreshTokenCheckFilter가 리프레시 토큰의 유효성을 확인하고 액세스 토큰을 발급해야
+         * 리프레시 토큰을 먼저 타면 혹시 액세스 토큰이 완료되어도 리프레시 토큰이 유효하다면 살릴 수가 있다.
+         * 즉, TokenAuthenticationFilter보다 앞에 배치되어야, 토큰 갱신 작업이 먼저 이루어진 후 인증 검사가 실행됩니다.
+         */
         http.addFilterBefore(refreshTokenCheckFilter, TokenAuthenticationFilter.class);
-        
 
-        // 예외 처리
+
+        /**
+         * 인증 실패 시 처리할 핸들러를 설정
+         * - 권한이 없는 페이지에 접근 시 처리할 핸들러를 설정
+         * - 인증 실패 시 401 Unauthorized 에러를 반환
+         */
         http.exceptionHandling(exception -> exception
                 .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
         );
@@ -199,7 +247,7 @@ public class SecurityConfig {
         // CSRF 설정
         http.csrf(csrf -> csrf.disable());
 
-        
+
 
         // OAuth2 로그인 설정
         http.oauth2Login(oauth2 -> oauth2
@@ -207,9 +255,19 @@ public class SecurityConfig {
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
         );
 
+        // 지금까지 설정한 내용을 빌드하여 반환, 반환 객체는 SecurityFilterChain 객체
         return http.build();
     }
 
+    /**
+     * AuthenticationManager 빈 등록
+     * - AuthenticationManagerBuilder를 사용하여 인증 객체를 생성하고 반환
+     * - 이렇게 생성된 빈은 누구에 의해서 사용되는가? -> TokenAuthenticationFilter
+     * - TokenAuthenticationFilter에서 인증 객체를 SecurityContext에 저장하기 위해 사용
+     * @param http
+     * @return
+     * @throws Exception
+     */
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
@@ -219,8 +277,14 @@ public class SecurityConfig {
                 .build();
     }
 
+
+    /**
+     * 비밀번호 암호화를 위한 PasswordEncoder 빈 등록
+     * - BCryptPasswordEncoder : BCrypt 해시 함수를 사용하여 비밀번호를 암호화
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }

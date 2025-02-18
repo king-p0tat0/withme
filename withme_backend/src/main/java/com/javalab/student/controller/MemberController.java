@@ -1,6 +1,7 @@
 package com.javalab.student.controller;
 
 import com.javalab.student.config.jwt.TokenProvider;
+import com.javalab.student.constant.Role;
 import com.javalab.student.dto.*;
 import com.javalab.student.entity.Member;
 import com.javalab.student.repository.MemberRepository;
@@ -250,6 +251,15 @@ public ResponseEntity<?> login(@RequestBody LoginFormDto loginFormDto) {
     @GetMapping("/list")
     public ResponseEntity<List<Member>> getAllMembers() {
         return ResponseEntity.ok(memberService.getMember());
+    }
+
+    /**
+     * 멤버 권한 변경
+     */
+    @PatchMapping("/role/{email}")
+    public ResponseEntity<?> changeRole(@PathVariable String email, @RequestParam Role role) {
+        memberService.updateMemberRole(email, role);
+        return ResponseEntity.ok().build();
     }
 
 }

@@ -1,17 +1,14 @@
 package com.javalab.student.controller.shop;
 
-import com.javalab.student.dto.shop.CartDetailDto;
-import com.javalab.student.dto.shop.CartItemDto;
-import com.javalab.student.dto.shop.CartOrderItemDto;
-import com.javalab.student.dto.shop.CartOrderRequestDto;
+import com.javalab.student.dto.shop.*;
 import com.javalab.student.service.shop.CartService;
+import com.javalab.student.service.shop.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +31,7 @@ import java.util.List;
 public class CartController {
 
     private final CartService cartService;
+    private final SubscriptionService subscriptionService;
 
     /**
      *  장바구니 상품 추가
@@ -140,6 +138,30 @@ public class CartController {
 
         Long orderId = cartService.orderCartItem(cartOrderItems, principal.getName());
         log.info("장바구니 주문 완료: 주문ID {}", orderId);
+        return new ResponseEntity<>(orderId, HttpStatus.OK);
+    }
+
+
+    /**
+     * 구독 상품 주문 처리
+     */
+    @PostMapping("/subscriptions/orders")
+    public @ResponseBody ResponseEntity<?> orderSubscriptionItem(@RequestBody SubscriptionOrderItemDto subscriptionOrderRequestDto,
+                                                                 Principal principal) {
+        log.info("구독 상품 주문 요청: {}, 사용자 {}", subscriptionOrderRequestDto, principal.getName());
+
+        // 구독 상품 주문할 상품 리스트화
+        if (subscriptionOrderRequestDto.getItemId() == null) {
+            return new ResponseEntity<>("구독 상품 정보를 선택해주세요", HttpStatus.FORBIDDEN);
+        }
+
+        log.info("구독 상품 주문 처리 시작.");
+
+        // 구독 상품 주문 처리
+        Long orderId = subscriptionService.orderSubscriptionItem(subscriptionOrderRequestDto, principal.getName());
+        log.info("구독 상품 주문 완료: 주문ID {}", orderId);
+
+
         return new ResponseEntity<>(orderId, HttpStatus.OK);
     }
 }

@@ -1,5 +1,9 @@
 package com.javalab.student.security.handler;
 
+import com.javalab.student.config.jwt.TokenProvider;
+import com.javalab.student.security.dto.MemberSecurityDto;
+import com.javalab.student.service.RedisService;
+import com.javalab.student.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -8,11 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-
-import com.javalab.student.config.jwt.TokenProvider;
-import com.javalab.student.security.dto.MemberSecurityDto;
-import com.javalab.student.service.RedisService;
-import com.javalab.student.service.RefreshTokenService;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -56,7 +55,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         // 이렇게 추출할 수 있는 이유는 이미 로그인 과정에서 인증이 끝나고 인증 객체가 생성되었기 때문입니다.
         MemberSecurityDto userDetails = (MemberSecurityDto) authentication.getPrincipal();
 
-        // 2️⃣ Redis에 사용자 권한 정보 캐싱(이메일을 전달하면 권한 정보를 데이터베이스에서 조회한 뒤 Redis에 저장)
+        // 2. Redis에 사용자 권한 정보 캐싱(이메일을 전달하면 권한 정보를 데이터베이스에서 조회한 뒤 Redis에 저장)
         redisService.cacheUserAuthorities(userDetails.getEmail());
         log.info("사용자의 권한 정보가 Redis에 성공적으로 저장되었습니다.");
 
@@ -116,6 +115,4 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 roles
         ));
     }
-
-
 }

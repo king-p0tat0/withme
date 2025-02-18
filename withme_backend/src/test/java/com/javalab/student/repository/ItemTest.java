@@ -35,8 +35,8 @@ package com.javalab.student.repository;
 //                     .itemSellStatus(ItemSellStatus.SELL)
 //                     .build();
 
-//             itemRepository.save(item);
-//             log.info("Saved Item {}: {}", i + 1, item);
-//         }
-//     }
-// }
+           // itemRepository.save(item);
+           // log.info("Saved Item {}: {}", i + 1, item);
+       // }
+    //}
+//}

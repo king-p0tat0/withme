@@ -1,9 +1,12 @@
 package com.javalab.student.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 설문(Survey) 엔티티
@@ -16,6 +19,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Table(name = "survey")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Survey {
 
     @Id
@@ -35,6 +39,11 @@ public class Survey {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    // SurveyTopic과의 양방향 참조 방지
+    @OneToMany(mappedBy = "survey", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore  // 순환 참조 방지를 위해 추가
+    private List<SurveyTopic> surveyTopics;
 
     // 엔티티 생성 시 현재 시간으로 createdAt 값을 설정
     @PrePersist

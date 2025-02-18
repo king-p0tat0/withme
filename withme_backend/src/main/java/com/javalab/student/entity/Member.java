@@ -18,7 +18,7 @@ import java.util.List;
  * 회원 엔티티
  * - 회원 정보를 저장하는 엔티티 클래스
  * - 회원 정보를 저장하는 테이블과 매핑된다.
- * - 주로 서비스 레이어와 리포지토리 레이어에서 사용된다.
+ * - 주로 서비스 레이어와 리포지토리 레이어에서 사용된다.ffffffffffffffffffffffffffffffffffffffffffffffff
  * - 화면에서 데이터를 전달받는 용도로는 사용하지 않는게 관례이다.
  */
 @Entity
@@ -64,6 +64,8 @@ public class Member extends BaseEntity{
     private boolean social; // 소셜 로그인 여부, 이값을 사용하는 쪽에서는 e.g member.isSocial()로 사용
 
     private String provider; // 소셜 로그인 제공자 이름 (예: kakao)
+
+
 
 
 

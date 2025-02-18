@@ -4,9 +4,11 @@ import com.javalab.student.dto.QuestionDTO;
 import com.javalab.student.entity.Question;
 import com.javalab.student.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,6 +38,7 @@ public class QuestionController {
     }
 
 
+
     /**
      * ✅ 질문 ID로 질문 조회
      */
@@ -48,35 +51,27 @@ public class QuestionController {
 
 
     /**
-     * ✅ 특정 설문 ID에 해당하는 질문 조회 (무료 문진)
+     * 특정 문진 설문의 질문 목록 조회 (선택지 포함)
      */
-    @GetMapping("/free/{id}")
-    public ResponseEntity<List<QuestionDTO>> getFreeQuestionsBySurveyId(@PathVariable("id") Long surveyId) {
+    @GetMapping("/free/{surveyId}")
+    public ResponseEntity<List<QuestionDTO>> getFreeQuestionsBySurveyId(@PathVariable("surveyId") Long surveyId) {
         List<QuestionDTO> questionDTOs = questionService.getFreeSurveyQuestions(surveyId);
         return ResponseEntity.ok(questionDTOs);
     }
 
-
     /**
      * ✅ 특정 유저 ID(userId)에 해당하는 질문 조회 (유료 회원 문진 진행)
      */
-    @GetMapping("/paid/{userId}")
-    public ResponseEntity<List<QuestionDTO>> getPaidQuestionsByUserId(@PathVariable Long userId) {
-        List<QuestionDTO> questionDTOs = questionService.getPaidQuestionsByUserId(userId);
-        return ResponseEntity.ok(questionDTOs);
+    // ✅ 유료 문진 질문 목록을 topics 파라미터로 가져오기
+    @GetMapping("/paid")
+    public ResponseEntity<List<QuestionDTO>> getPaidQuestions(@RequestParam List<Long> topics) {
+        System.out.println("✅ 요청된 topics: " + topics);
+        List<QuestionDTO> questions = questionService.getPaidQuestionsByTopics(topics);
+        if (questions.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyList());
+        }
+        return ResponseEntity.ok(questions);
     }
 
 
-    /**
-     * 📌 Question 엔티티를 QuestionDTO로 변환하는 메서드
-     */
-    private QuestionDTO convertToDTO(Question question) {
-        return QuestionDTO.builder()
-                .questionId(question.getQuestionId())
-                .seq(question.getSeq())
-                .questionText(question.getQuestionText())
-                .questionType(question.getQuestionType().name()) // ENUM → String 변환
-                .topicId(question.getSurveyTopic().getTopicId()) // ✅ 주제 ID 포함
-                .build();
-    }
 }
