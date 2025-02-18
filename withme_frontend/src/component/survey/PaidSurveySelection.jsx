@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { API_URL } from "../../constant";
+import img2 from "../../image/img2.png";
 import {
   Box,
   Typography,
@@ -46,7 +47,6 @@ const PaidSurveySelectionPage = () => {
       .get(`${API_URL}survey-topics/paid/2`, config)
       .then((response) => {
         console.log("유료 문진 주제 목록:", response.data);
-        // 심혈관 건강 주제 삭제
         const filteredTopics = response.data.filter(
           (topic) => topic.topicName !== "심혈관 건강"
         );
@@ -101,36 +101,36 @@ const PaidSurveySelectionPage = () => {
         display: "flex",
         justifyContent: "space-around",
         padding: "2rem",
-        backgroundColor: "#fff3e0", // Very light orange
+        backgroundColor: "#FFFBF8",
         minHeight: "100vh",
       }}
     >
-      {/* Left Side: Survey Topics */}
       <Paper
         elevation={3}
         sx={{
           width: "45%",
           padding: "1rem",
-          backgroundColor: "#ffe0b2", // Light orange
+          backgroundColor: "#FFFBF8",
           borderRadius: "10px",
           boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
         }}
       >
-        <Typography
-          variant="h5"
-          component="h2"
-          sx={{
-            fontWeight: "bold",
-            marginBottom: "1rem",
-            color: "#d67d00",
-            backgroundColor: "#ffcc80",
-            padding: "10px",
-            borderRadius: "5px",
-            textAlign: "center",
-          }}
-        >
-          유료 문진 검사 주제 선택
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1rem" }}>
+          <img src={img2} alt="문진 아이콘" style={{ height: "60px", marginRight: "10px" }} />
+          <Typography
+            variant="h5"
+            component="h2"
+            sx={{
+              fontWeight: "bold",
+              color: "#d67d00",
+              textDecoration: "underline",
+              textDecorationColor: "pink",
+              textAlign: "center",
+            }}
+          >
+            유료 문진 검사 주제 선택
+          </Typography>
+        </Box>
         <Typography
           variant="subtitle1"
           sx={{
@@ -165,7 +165,7 @@ const PaidSurveySelectionPage = () => {
                 onClick={() => handleTopicChange(topic.topicId)}
                 sx={{
                   cursor: "pointer",
-                  backgroundColor: "#fff3e0",
+                  backgroundColor: "#FFFBF8",
                   margin: "5px 0",
                   borderRadius: "5px",
                   "&:hover": { backgroundColor: "#ffe0b2" },
@@ -185,13 +185,12 @@ const PaidSurveySelectionPage = () => {
         )}
       </Paper>
 
-      {/* Right Side: Selected Topics */}
       <Paper
         elevation={3}
         sx={{
           width: "45%",
           padding: "1rem",
-          backgroundColor: "#ffe0b2", // Light orange
+          backgroundColor: "#FFFBF8",
           borderRadius: "10px",
           boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
         }}
@@ -203,9 +202,8 @@ const PaidSurveySelectionPage = () => {
             fontWeight: "bold",
             marginBottom: "1rem",
             color: "#d67d00",
-            backgroundColor: "#ffcc80",
-            padding: "10px",
-            borderRadius: "5px",
+            textDecoration: "underline",
+            textDecorationColor: "pink",
             textAlign: "center",
           }}
         >
@@ -214,11 +212,11 @@ const PaidSurveySelectionPage = () => {
         {selectedTopics.length > 0 ? (
           <Box
             sx={{
-              backgroundColor: "#fff3e0", // Very light orange
+              backgroundColor: "#FFFBF8",
               padding: "1rem",
               borderRadius: "10px",
               display: "flex",
-              flexWrap: "wrap",
+              flexDirection: "column",
               gap: "10px",
             }}
           >
@@ -228,13 +226,11 @@ const PaidSurveySelectionPage = () => {
                 <Box
                   key={topic.topicId}
                   sx={{
-                    backgroundColor: "#ffb74d",
+                    backgroundColor: "#FFB6C1",
                     color: "white",
                     padding: "0.5rem 1rem",
                     borderRadius: "5px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "5px",
+                    textAlign: "center",
                   }}
                 >
                   ✔️ {topic.topicName}
@@ -253,7 +249,7 @@ const PaidSurveySelectionPage = () => {
           onClick={startPaidSurvey}
           sx={{
             marginTop: "2rem",
-            backgroundColor: "#ff8c00",
+            backgroundColor: "#FFB6C1",
             "&:hover": {
               backgroundColor: "#d67d00",
             },

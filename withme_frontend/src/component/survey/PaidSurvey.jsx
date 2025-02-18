@@ -6,14 +6,15 @@ import { fetchWithAuth } from "../../common/fetchWithAuth.js";
 import { DataGrid } from "@mui/x-data-grid";
 import { LinearProgress, Button, Typography, Box } from "@mui/material";
 import { styled } from '@mui/system';
+import img2 from "../../image/img2.png";
 
 const FancyLinearProgress = styled(LinearProgress)(({ theme }) => ({
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#f2dcd0', // Light Peach
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFE4E1',
     '& .MuiLinearProgress-bar': {
-        backgroundImage: 'linear-gradient(to right, #e9967a, #f08080)', // Coral gradients
-        borderRadius: 10,
+        backgroundImage: 'linear-gradient(to right, #FFB6C1, #FF69B4)',
+        borderRadius: 20,
         transition: 'width 0.6s ease',
     },
 }));
@@ -49,7 +50,6 @@ const PaidSurveyPage = () => {
                 const response = await fetchWithAuth(`${API_URL}questions/paid?topics=${selectedTopics.join(',')}`);
                 if (!response.ok) throw new Error("질문을 불러오는데 실패했습니다.");
                 const data = await response.json();
-                if (!Array.isArray(data)) throw new Error("데이터 형식이 올바르지 않습니다.");
 
                 const grouped = selectedTopics.reduce((acc, topic) => {
                     acc[topic] = data.filter(q => String(q.topicId) === String(topic));
@@ -59,40 +59,12 @@ const PaidSurveyPage = () => {
                 setGroupedQuestions(grouped);
                 setQuestions(data);
 
-                // currentQuestions 설정 로직 수정
                 const initialTopic = selectedTopics[0];
                 if (grouped[initialTopic]) {
                     setCurrentQuestions(grouped[initialTopic]);
                 } else {
                     setCurrentQuestions([]);
                 }
-
-                // topicNames 설정
-                const names = {};
-                [
-                    { topic_id: 1, topic_name: '소화 건강' },
-                    { topic_id: 2, topic_name: '피부 건강' },
-                    { topic_id: 3, topic_name: '구강 건강' },
-                    { topic_id: 4, topic_name: '체중 관리' },
-//                     { topic_id: 5, topic_name: '심혈관 건강' },
-                    { topic_id: 5, topic_name: '털과 모질 관리' },
-                    { topic_id: 6, topic_name: '눈 건강' },
-                    { topic_id: 7, topic_name: '행동 건강' },
-                    { topic_id: 8, topic_name: '면역 체계' },
-                    { topic_id: 9, topic_name: '간 건강' },
-                    { topic_id: 10, topic_name: '신장 기능' },
-                    { topic_id: 11, topic_name: '요로 건강' },
-                    { topic_id: 12, topic_name: '에너지 수준' },
-                    { topic_id: 13, topic_name: '노화 및 이동성' },
-                    { topic_id: 14, topic_name: '기생충 관리' },
-                    { topic_id: 15, topic_name: '백신 접종 이력' },
-                    { topic_id: 16, topic_name: '스트레스 및 불안' },
-                    { topic_id: 17, topic_name: '영양 균형' },
-                    { topic_id: 18, topic_name: '알레르기 관리' }
-                ].forEach(item => {
-                    names[item.topic_id] = item.topic_name;
-                });
-                setTopicNames(names);
 
             } catch (error) {
                 console.error("질문 로딩 오류:", error);
@@ -127,7 +99,7 @@ const PaidSurveyPage = () => {
             const topicScore = topicQuestions.reduce((sum, q) => sum + (answers[q.questionId]?.score || 0), 0);
             return { topic, score: topicScore };
         });
-        navigate("/survey/paid/result", { state: { topicScores } });
+        navigate("/survey/paid/result", { state: { topicScores, answers } }); // answers도 함께 전달
     };
 
     const handleNext = () => {
@@ -151,33 +123,33 @@ const PaidSurveyPage = () => {
         }
     };
 
-  const columns = [
-    { field: "seq", headerName: "번호", flex: 0.5, headerAlign: "center", align: "center" },
-    { field: "questionText", headerName: "질문", flex: 2, headerAlign: "center", align: "center" },
-    {
-      field: "choices",
-      headerName: "선택지",
-      flex: 3,
-      headerAlign: "center", align: "center",
-      renderCell: (params) => (
-        <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: 'center' }}>
-          {params.row.choices.map((choice, index) => (
-            <label key={choice.choiceId} style={{ display: "flex", alignItems: "center" }}>
-              <input
-                type="radio"
-                name={`question-${params.row.questionId}`}
-                value={choice.choiceId}
-                onChange={() => handleAnswerChange(params.row.questionId, choice.choiceId, index)}
-                checked={answers[params.row.questionId]?.choiceId === choice.choiceId}
-              />
-              {choice.choiceText}
-            </label>
-          ))}
-        </Box>
-      ),
-    },
-  ];
-
+    const columns = [
+        { field: "seq", headerName: "번호", flex: 0.5, headerAlign: "center", align: "center" },
+        { field: "questionText", headerName: "질문", flex: 2, headerAlign: "center", align: "center" },
+        {
+            field: "choices",
+            headerName: "선택지",
+            flex: 3,
+            headerAlign: "center", align: "center",
+            renderCell: (params) => (
+                <Box sx={{ display: "flex", gap: "10px", justifyContent: 'center' }}>
+                    {params.row.choices.map((choice, index) => (
+                        <label key={choice.choiceId} style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                            <input
+                                type="radio"
+                                name={`question-${params.row.questionId}`}
+                                value={choice.choiceId}
+                                onChange={() => handleAnswerChange(params.row.questionId, choice.choiceId, index)}
+                                checked={answers[params.row.questionId]?.choiceId === choice.choiceId}
+                                style={{ marginRight: "5px" }}
+                            />
+                            {choice.choiceText}
+                        </label>
+                    ))}
+                </Box>
+            ),
+        },
+    ];
 
     const numberedQuestions = currentQuestions.map((q, index) => ({
         ...q,
@@ -185,80 +157,73 @@ const PaidSurveyPage = () => {
         id: q.questionId
     }));
 
+    const progressValue = ((currentTopicIndex + 1) / selectedTopics.length) * 100;
+
     return (
         <Box sx={{
             padding: "20px",
             textAlign: "center",
             maxWidth: "1200px",
             margin: "0 auto",
-            backgroundColor: "#f8f0e3", // Light Peach
+            backgroundColor: "#FFFBF8",
             borderRadius: "10px",
-            boxShadow: "0px 3px 5px rgba(0, 0, 0, 0.1)"
+            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)"
         }}>
-            <Typography variant="h4" sx={{
-                fontSize: "2.5rem",
-                fontWeight: "bold",
-                color: "#e4717a", // Coral
-                backgroundColor: "#f9e7e7", // Very Light Peach
-                padding: "10px 20px",
-                borderRadius: "10px",
-                display: "inline-block",
-                marginBottom: "20px"
-            }}>
-                유료 문진 검사
-            </Typography>
+            <div style={{ borderBottom: "3px solid pink", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px" }}>
+                <img src={img2} alt="img2" style={{ height: "80px", marginRight: "15px" }} />
+                <Typography variant="h4" sx={{ fontWeight: "bold", color: "#333" }}>유료 문진 검사</Typography>
+            </div>
+
             <Box sx={{ marginBottom: "20px" }}>
                 <Typography variant="subtitle1" sx={{
                     marginBottom: "15px",
-                    fontSize: "1.2rem",
+                    fontSize: "1.5rem",
                     fontWeight: "bold",
-                    color: "#666" // Dark Gray
+                    color: "#555"
                 }}>
                     현재 주제: {topicNames[selectedTopics[currentTopicIndex]]} ({currentTopicIndex + 1} / {selectedTopics.length})
                 </Typography>
-                <FancyLinearProgress
-                    variant="determinate"
-                    value={((currentTopicIndex + 1) / selectedTopics.length) * 100}
+                <FancyLinearProgress variant="determinate" value={progressValue} />
+                <Typography variant="body1" sx={{
+                    marginTop: "5px",
+                    fontSize: "1.2rem",
+                    color: "#333"
+                }}>{Math.round(progressValue)}%</Typography>
+            </Box>
+
+            <Box sx={{ height: 700, width: "100%", marginTop: "20px" }}>
+                <DataGrid
+                    rows={numberedQuestions}
+                    columns={columns}
+                    hideFooter={true}
+                    disableRowSelectionOnClick
+                    sx={{
+                        "& .MuiDataGrid-columnHeaders": {
+                            fontSize: "1.2rem",
+                            fontWeight: "bold",
+                            backgroundColor: "#FFE4E1",
+                            color: "#333",
+                            textAlign: "center"
+                        },
+                        "& .MuiDataGrid-cell": {
+                            fontSize: "1rem",
+                            textAlign: "center",
+                            color: "#555",
+                        },
+                    }}
                 />
             </Box>
-            <Box sx={{ height: 700, width: "100%", marginTop: "20px" }}>
-                {currentQuestions.length > 0 ? (
-                    <DataGrid
-                        rows={numberedQuestions}
-                        columns={columns}
-                        hideFooter={true}
-                        disableRowSelectionOnClick
-                        sx={{
-                            "& .MuiDataGrid-columnHeaders": {
-                                fontSize: "1.2rem",
-                                fontWeight: "bold",
-                                backgroundColor: "#f4cccc", // Light Coral
-                                color: "#555", // Dark Gray
-                                textAlign: "center"
-                            },
-                            "& .MuiDataGrid-cell": {
-                                fontSize: "1rem",
-                                textAlign: "center",
-                                color: "#777", // Medium Gray
-                            },
-                        }}
-                    />
-                ) : (
-                    <div>질문이 없습니다.</div>
-                )}
-            </Box>
-            <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
+
+            <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between" }}>
                 <Button
                     onClick={handlePrev}
                     disabled={currentTopicIndex === 0}
                     variant="contained"
                     sx={{
-                        backgroundColor: "#f2dcd0", // Light Peach
-                        color: "#e4717a", // Coral
+                        backgroundColor: "#FFB6C1",
+                        color: "#fff",
                         fontSize: "1.1rem",
-                        width: "100%",
-                        maxWidth: "48%",
-                        "&:hover": { backgroundColor: "#f4cccc" }, // Light Coral
+                        '&:hover': { backgroundColor: "#FF69B4" },
                         margin: "5px"
                     }}
                 >
@@ -269,12 +234,10 @@ const PaidSurveyPage = () => {
                         onClick={handleNext}
                         variant="contained"
                         sx={{
-                            backgroundColor: "#e4717a", // Coral
-                            color: "white",
+                            backgroundColor: "#FFB6C1",
+                            color: "#fff",
                             fontSize: "1.1rem",
-                            width: "100%",
-                            maxWidth: "48%",
-                            "&:hover": { backgroundColor: "#e75480" }, // Hot Pink
+                            '&:hover': { backgroundColor: "#FF69B4" },
                             margin: "5px"
                         }}
                     >
@@ -285,12 +248,10 @@ const PaidSurveyPage = () => {
                         onClick={handleSubmit}
                         variant="contained"
                         sx={{
-                            backgroundColor: "#e4717a", // Coral
-                            color: "white",
+                            backgroundColor: "#FFB6C1",
+                            color: "#fff",
                             fontSize: "1.1rem",
-                            width: "100%",
-                            maxWidth: "48%",
-                            "&:hover": { backgroundColor: "#e75480" }, // Hot Pink
+                            '&:hover': { backgroundColor: "#FF69B4" },
                             margin: "5px"
                         }}
                     >

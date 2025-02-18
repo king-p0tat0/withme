@@ -25,6 +25,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * Spring Security 설정 파일
@@ -91,7 +96,8 @@ public class SecurityConfig {
          */
         http.authorizeHttpRequests(request -> request
                 // WebSocket 관련 요청 허용
-                .requestMatchers("/ws/**", "/topic/**").permitAll()
+                .requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
+
 
                 // 인증 및 회원 관련 API
                 .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail", "/api/auth/userInfo").permitAll()
@@ -119,7 +125,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/doctors/**").permitAll()
 
                 // 메시지 및 커뮤니티 관련 API
-                .requestMatchers("/api/messages/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers("/api/messages/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_VIP", "ROLE_DOCTOR")
                 .requestMatchers("/api/chat/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
                 // 회원 관련 API
@@ -149,8 +155,6 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
         );
 
-
-
         /*
          * 필터의 순서는 addFilterBefore 메서드를 사용하여 정의
          * RefreshTokenCheckFilter -> TokenAuthenticationFilter -> UsernamePasswordAuthenticationFilter 순서로 실행
@@ -173,7 +177,6 @@ public class SecurityConfig {
          */
         http.addFilterBefore(refreshTokenCheckFilter, TokenAuthenticationFilter.class);
 
-
         /**
          * 인증 실패 시 처리할 핸들러를 설정
          * - 권한이 없는 페이지에 접근 시 처리할 핸들러를 설정
@@ -185,7 +188,9 @@ public class SecurityConfig {
 
         // http.csrf(csrf -> csrf.disable()); // CSRF 보안 설정을 비활성화
         http.csrf(csrf -> csrf.disable());  // 프론트 엔드를 리액트로 할경우 CSRF 보안 설정을 비활성화
-        http.cors(Customizer.withDefaults());   // 이 설정은 출처가 다른 도메인에서 요청을 허용하기 위한 설정, 스프링은 8080포트에서 실행되고 있고, 리액트는 3000포트에서 실행되고 있기 때문에 스프링은 3000 포트에서 오는 요청을 허용하지 않는다. 이를 해결하기 위해 CORS 설정을 추가한다.
+
+        // ✅ CORS 설정을 커스텀 메서드로 변경
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         /*
          * 소셜 로그인 설정
@@ -225,7 +230,6 @@ public class SecurityConfig {
                 .build();
     }
 
-
     /**
      * 비밀번호 암호화를 위한 PasswordEncoder 빈 등록
      * - BCryptPasswordEncoder : BCrypt 해시 함수를 사용하여 비밀번호를 암호화
@@ -233,6 +237,26 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * ✅ CORS 설정 메서드 추가
+     * - localhost:3000 및 127.0.0.1:3000에서의 접근 허용
+     * - 모든 HTTP 메서드 및 헤더 허용
+     * - Authorization 헤더 클라이언트에서 접근 가능
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedMethods(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
 }

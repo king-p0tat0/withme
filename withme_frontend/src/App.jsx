@@ -1,12 +1,10 @@
-import React, { useEffect } from "react";
-//import { AppBar, Toolbar, Typography, Button } from "@mui/material";
-import { Routes, Route, Link, Navigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchUserInfo, clearUser } from "./redux/authSlice";
-import { PersistGate } from "redux-persist/integration/react";
-import { persistor } from "./redux/store";
+import { fetchUserInfo } from "./redux/authSlice";
 import { API_URL } from "./constant";
-import { fetchWithAuth } from "./common/fetchWithAuth.js";
+import { Snackbar, Alert, Badge } from "@mui/material";
+import useWebSocket from "./hook/useWebSocket";
 
 // ✅ 공지사항
 import NoticeList from "./component/notice/NoticeList";
@@ -26,6 +24,8 @@ import MemberForm from "./component/member/MemberForm";
 import RegisterDoctor from "./component/doctor/RegisterDoctor";
 import DoctorApplicationStatus from "./component/doctor/DoctorApplicationStatus";
 import DoctorApplicationEdit from "./component/doctor/DoctorApplicationEdit";
+import DoctorDashboard from "./component/doctor/DoctorDashboard";
+import DoctorMessageList from "./component/doctor/DoctorMessageList";
 
 // ✅ 커뮤니티
 import PostList from "./component/posts/PostList";
@@ -50,33 +50,60 @@ import PaidSurveyResult from "./component/survey/PaidSurveyResult";
 import PaidSurveySelection from "./component/survey/PaidSurveySelection";
 import SurveyMain from "./component/survey/SurveyMain";
 
+// 권한 기반 라우팅을 위한 ProtectedRoute 컴포넌트
+const ProtectedRoute = ({ isAllowed, redirectPath = '/unauthorized', children }) => {
+  if (!isAllowed) {
+    return <Navigate to={redirectPath} replace />;
+  }
+  return children ? children : <Outlet />;
+};
+
 function App() {
   const { user, isLoggedIn } = useSelector((state) => state.auth);
+  const { open: snackbarOpen, message: snackbarMessage } = useSelector((state) => state.snackbar);
+  const { unreadCount } = useSelector((state) => state.messages);
   const dispatch = useDispatch();
+  const [notification, setNotification] = useState(null);
 
+  // 🔍 사용자 정보 초기 로딩
   useEffect(() => {
     if (!user && isLoggedIn) {
       dispatch(fetchUserInfo());
     }
   }, [user, isLoggedIn, dispatch]);
 
-  const handleLogout = async () => {
-    try {
-      await fetchWithAuth(`${API_URL}/auth/logout`, {
-        method: "POST"
-      });
-      dispatch(clearUser());
-      await persistor.purge(); // Redux Persist 데이터 초기화
-      window.location.href = "/";
-    } catch (error) {
-      console.error("로그아웃 실패:", error.message);
-      alert("로그아웃 중 오류가 발생했습니다.");
-    }
-  };
+  // 📡 WebSocket 연결 (useWebSocket Hook 사용)
+  useWebSocket(user);
+
+  // 알림 닫기
+  const handleCloseNotification = () => setNotification(null);
 
   return (
     <div className="App">
-      <Header />
+      <Header unreadCount={unreadCount} />
+
+      {/* 🔔 WebSocket 알림 표시 */}
+      <Snackbar
+        open={!!notification || snackbarOpen}
+        autoHideDuration={5000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleCloseNotification}
+          severity="info"
+          sx={{
+            width: '100%',
+            '& .MuiAlert-message': {
+              fontSize: '0.9rem',
+              fontWeight: 500
+            }
+          }}
+        >
+          {notification?.message || snackbarMessage}
+        </Alert>
+      </Snackbar>
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/registerDoctor" element={<RegisterDoctor />} />
@@ -95,7 +122,14 @@ function App() {
         <Route path="/posts/:id" element={<PostView />} />
 
         {/* 관리자 */}
-        <Route path="/admin" element={<Admin />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute isAllowed={!!user && user.roles.includes('ROLE_ADMIN')}>
+              <Admin />
+            </ProtectedRoute>
+          }
+        />
 
         {/* 회원가입 */}
         <Route path="/policy" element={<Policy />} />
@@ -108,6 +142,18 @@ function App() {
         <Route path="/survey/paid" element={<PaidSurvey />} />
         <Route path="/survey/paid/selection" element={<PaidSurveySelection />} />
         <Route path="/survey/paid/result" element={<PaidSurveyResult />} />
+
+        {/* 전문의 관련 */}
+        <Route
+          element={
+            <ProtectedRoute isAllowed={!!user && user.roles.includes('ROLE_DOCTOR')} />
+          }
+        >
+          <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+          <Route path="/doctor-messages" element={<DoctorMessageList />} />
+          <Route path="/doctor/application/status" element={<DoctorApplicationStatus />} />
+          <Route path="/doctor/application/edit" element={<DoctorApplicationEdit />} />
+        </Route>
 
         {/* 기타 */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />

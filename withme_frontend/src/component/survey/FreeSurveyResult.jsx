@@ -1,6 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import img2 from "../../image/img2.png";
 
 function FreeSurveyResultPage() {
   const location = useLocation();
@@ -12,8 +13,8 @@ function FreeSurveyResultPage() {
   const totalScore = Math.round((Object.values(answers).reduce((sum, answer) => sum + answer.score, 0) / (totalQuestions * 5)) * maxScore);
 
   const chartData = [
-    { name: "문진 결과 점수", value: totalScore, color: "#FF4C4C" },
-    { name: "남은 점수", value: maxScore - totalScore, color: "#FFD700" },
+    { name: "문진 결과 점수", value: totalScore, color: "#E75480" },
+    { name: "남은 건강 점수", value: maxScore - totalScore, color: "#FFB6C1" },
   ];
 
   const getMessage = (score) => {
@@ -26,26 +27,33 @@ function FreeSurveyResultPage() {
   return (
     <div style={{
       width: "100vw",
-      height: "100vh",
+      minHeight: "100vh",
       padding: "30px",
+      paddingTop: "100px", // 위쪽 여백 추가
       boxSizing: "border-box",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "#FFF8E1"
+      justifyContent: "flex-start", // 위에서부터 시작
+      backgroundColor: "#FFFBF8",
+      overflowY: "auto" // 내용이 넘칠 경우 스크롤 가능하도록 설정
     }}>
-      <h2 style={{
-        fontSize: "2.5rem",
-        fontWeight: "bold",
-        marginBottom: "30px",
-        color: "#333",
-        backgroundColor: "#FFE0B2",
-        padding: "15px 25px",
-        borderRadius: "15px",
-      }}>
-        🐾 무료 문진 검사 결과 🐾
-      </h2>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          marginBottom: "30px"
+        }}>
+          <img src={img2} alt="문진 검사 결과" style={{ width: "10rem", height: "10rem", marginRight: "20px" }} />
+          <h2 style={{
+            fontSize: "2.5rem",
+            fontWeight: "bold",
+            color: "#333",
+            textDecoration: "underline",
+            textDecorationColor: "pink"
+          }}>
+            무료 문진 검사 결과
+          </h2>
+        </div>
 
       <p style={{
         fontSize: "1.6rem",
@@ -71,16 +79,17 @@ function FreeSurveyResultPage() {
       </p>
 
       <div style={{ marginBottom: "40px" }}>
-        <PieChart width={500} height={500}>
+        <PieChart width={600} height={600}>
           <Pie
             data={chartData}
             cx="50%"
             cy="50%"
-            outerRadius={150}
-            innerRadius={90}
+            outerRadius={180}
+            innerRadius={100}
             fill="#82ca9d"
             dataKey="value"
             label={({ name, value }) => `${name}: ${value}점`}
+            animationDuration={1000}
           >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
@@ -98,16 +107,42 @@ function FreeSurveyResultPage() {
           fontWeight: "bold",
           padding: "15px 30px",
           color: "#fff",
-          backgroundColor: "#FF8C00",
+          backgroundColor: "#FFC1CC",
           border: "none",
           borderRadius: "12px",
           cursor: "pointer",
-          transition: "transform 0.2s ease-in-out"
+          transition: "transform 0.3s ease-in-out",
+          marginLeft: "auto",
+          position: "relative"
         }}
-        onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
-        onMouseLeave={(e) => e.target.style.transform = "scale(1.0)"}
+        onMouseEnter={(e) => {
+          e.target.style.transform = "scale(1.1)";
+          const tooltip = e.target.querySelector(".tooltip");
+          if (tooltip) tooltip.style.visibility = "visible";
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.transform = "scale(1.0)";
+          const tooltip = e.target.querySelector(".tooltip");
+          if (tooltip) tooltip.style.visibility = "hidden";
+        }}
       >
-        🐾 회원가입하러 가기~
+        🐾 유료회원으로 전환~
+        <div className="tooltip" style={{
+          position: "absolute",
+          top: "-50px",
+          right: "-20px",
+          backgroundColor: "#FFD1DC",
+          color: "#000",
+          padding: "12px",
+          borderRadius: "15px",
+          fontSize: "1.2rem",
+          visibility: "hidden",
+          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)",
+          transition: "opacity 0.3s",
+          whiteSpace: "nowrap"
+        }}>
+          🐶 더 많은 혜택을 원하시면 유료로 전환하세요!
+        </div>
       </button>
     </div>
   );
