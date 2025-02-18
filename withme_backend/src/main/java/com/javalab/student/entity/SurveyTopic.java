@@ -1,7 +1,9 @@
 package com.javalab.student.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+
 
 @Entity
 @Getter
@@ -10,6 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Table(name = "survey_topic")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class SurveyTopic {
 
     @Id
@@ -18,8 +21,8 @@ public class SurveyTopic {
     private Long topicId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "survey_id", nullable = false)  // survey_id와 연결
-    private Survey survey;  // 연관된 설문
+    @JoinColumn(name = "survey_id", referencedColumnName = "survey_id")
+    private Survey survey;
 
     @Column(name = "topic_name", nullable = false, length = 255)
     private String topicName;  // 주제명

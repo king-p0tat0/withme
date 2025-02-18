@@ -32,7 +32,7 @@ import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
 import PostView from "./component/posts/PostView";
 
-// 관리자
+//관리자
 import Admin from "./component/admin/Admin";
 import DoctorUpdate from "./component/admin/DoctorUpdate";
 import Dashboard from "./component/admin/Dashboard";
@@ -144,8 +144,7 @@ function App() {
         <Route path="/mypage/pet/:petId" element={<PetDetailsView />} />
         <Route path="/mypage/pet/register" element={<PetRegister />} />
 
-        {/* ✅ 추가: 문진(survey) 관련 페이지 */}
-        <Route path="/survey" element={<SurveyMain />} />
+        {/* 문진(survey) */}
         <Route path="/survey/free" element={<FreeSurvey />} />
         <Route path="/survey/free/result" element={<FreeSurveyResult />} />
         <Route path="/survey/paid" element={<PaidSurvey />} />
