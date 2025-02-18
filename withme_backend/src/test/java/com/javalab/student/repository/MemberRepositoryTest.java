@@ -72,6 +72,19 @@ class MemberRepositoryTest {
     @DisplayName("회원 저장 테스트")
     @Commit
     public void createMultipleMembersForTest() {
+        // 1. 관리자 계정 추가
+        String adminEmail = "test@test.com";
+        String adminPassword = "1234";
+        String adminName = "Admin";
+        String adminAddress = "Seoul";
+        String adminPhone = "01011112222";
+        Role adminRole = Role.ADMIN;  // 관리자 역할
+
+        Member adminMember = createMember(adminName, adminEmail, adminPassword, adminAddress, adminPhone, adminRole);
+        memberRepository.save(adminMember);  // 관리자 계정 저장
+        System.out.println("Created Admin: " + adminMember.getName() + " (" + adminMember.getEmail() + ")");
+
+        // 2. 50명 회원 데이터 생성
         String[] names = {"John", "Jane", "Tom", "Emily", "Michael", "Sarah", "David", "Jessica", "Daniel", "Laura", "James", "Anna", "William", "Sophia", "Benjamin"};
         String[] addresses = {"Seoul", "Busan", "Incheon", "Daegu", "Gwangju", "Daejeon", "Jeju", "Ulsan", "Suwon", "Changwon"};
         String[] phoneNumbers = {"01012345678", "01023456789", "01034567890", "01045678901", "01056789012", "01067890123", "01078901234", "01089012345", "01090123456", "01001234567"};
@@ -79,16 +92,16 @@ class MemberRepositoryTest {
         for (int i = 1; i <= 50; i++) {
             // 기본 가짜 데이터를 생성
             String name = names[i % names.length] + i;
-            String email = "test"+ i + "@test.com";
+            String email = "test" + i + "@test.com";
             String password = "1234";  // 가짜 비밀번호
             String address = addresses[i % addresses.length];
             String phone = phoneNumbers[i % phoneNumbers.length];
-            Role role = Role.USER;
+            Role role = Role.USER;  // 일반 사용자 역할
 
             // Member 객체 생성
             Member member = createMember(name, email, password, address, phone, role);
 
-            // 생성한 Member 객체를 저장 (저장 예시)
+            // 생성한 Member 객체를 저장
             memberRepository.save(member);
 
             // 생성한 회원 정보 출력 (선택사항)

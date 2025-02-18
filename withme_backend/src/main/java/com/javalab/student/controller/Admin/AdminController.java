@@ -1,12 +1,9 @@
-package com.javalab.student.controller;
+package com.javalab.student.controller.Admin;
 
 import com.javalab.student.constant.OrderStatus;
 import com.javalab.student.dto.NewRegistrationDTO;
 import com.javalab.student.dto.shop.TopSellingProductDTO;
 import com.javalab.student.entity.shop.Item;
-import com.javalab.student.entity.shop.OrderItem;
-import com.javalab.student.repository.shop.ItemRepository;
-import com.javalab.student.repository.shop.OrderItemRepository;
 import com.javalab.student.repository.shop.OrderRepository;
 import com.javalab.student.service.DoctorService;
 import com.javalab.student.service.MemberService;
@@ -23,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")

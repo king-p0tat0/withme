@@ -141,8 +141,8 @@ public class SecurityConfig {
                 // 쇼핑몰
                 .requestMatchers("/api/item/list", "/api/item/view/**").permitAll()
                 .requestMatchers("/api/item/new", "/api/item/edit/**","/api/item/delete/**").hasRole("ADMIN")
-                .requestMatchers("/api/cart/**","/api/orders/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR")
-                .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 결제
+                .requestMatchers("/api/cart/**","/api/orders/**").authenticated()
+                .requestMatchers("/api/payments/**").authenticated() // 결제
 
                 //커뮤니티
                 //커뮤니티 이미지 업로드
@@ -153,9 +153,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/posts/**", "/api/posts/*/comments/**").authenticated()
 
                 // 특정 역할 사용자
-                .requestMatchers("/api/members/**").hasAnyRole("USER", "ADMIN", "VIP")
+                .requestMatchers("/api/members/**").authenticated()
                 .requestMatchers("/api/messages/**", "/api/chat/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/api/cart/**","/api/orders/**").hasAnyRole("ADMIN","USER","VIP","DOCTOR")
+                .requestMatchers("/api/cart/**","/api/orders/**").authenticated()
 
                 // API 문서 및 의사 관련
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()

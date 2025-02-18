@@ -121,7 +121,6 @@ export default function ItemView({ user }) {
                     <h2>{item.itemNm}</h2>
                     <p><strong>가격:</strong> {item.price.toLocaleString()}원</p>
                     <p><strong>재고:</strong> {item.stockNumber}</p>
-                    <p><strong>상태:</strong> {item.itemSellStatus === 'SELL' ? '판매중' : '품절'}</p>
                     <p><strong>설명:</strong> {item.itemDetail}</p>
 
                     <button className="add-to-cart-btn" onClick={handleAddToCart} >장바구니 담기</button>
