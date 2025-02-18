@@ -1,4 +1,4 @@
-package com.javalab.student.controller;
+package com.javalab.student.controller.Admin;
 
 import com.javalab.student.entity.Doctor;
 import com.javalab.student.entity.DoctorApplication;
