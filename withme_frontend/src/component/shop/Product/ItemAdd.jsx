@@ -194,6 +194,7 @@ const ItemRegistration = () => {
             >
               <MenuItem value="SELL">판매중</MenuItem>
               <MenuItem value="SOLD_OUT">품절</MenuItem>
+              <MenuItem value="SUBSCRIP">구독상품</MenuItem>
             </Select>
             <FormHelperText>판매 상태를 선택하세요</FormHelperText>
           </FormControl>

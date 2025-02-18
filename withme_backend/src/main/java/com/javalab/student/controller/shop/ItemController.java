@@ -124,16 +124,17 @@ public class ItemController {
 
     /**
      * 상품 삭제 API
+     * (품절로 변경)
      */
-    @DeleteMapping("/delete/{itemId}")
+    @PatchMapping("/delete/{itemId}")
     public ResponseEntity<?> deleteItem(@PathVariable("itemId") Long itemId) {
         try {
-            itemService.delete(itemId);  // 서비스 레벨에서 상품 삭제 로직 수행
-            return ResponseEntity.ok("상품이 삭제되었습니다.");
+            itemService.updateItemStatus(itemId, ItemSellStatus.SOLD_OUT);
+            return ResponseEntity.ok("상품이 품절 처리 되었습니다.");
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("존재하지 않는 상품입니다.");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("상품 삭제 중 에러가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("상품 제거 중 에러가 발생했습니다.");
         }
     }
 

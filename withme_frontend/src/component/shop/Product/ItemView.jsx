@@ -88,11 +88,12 @@ export default function ItemView({ user }) {
         // 삭제 요청 처리
         try {
             const response = await fetchWithAuth(`${API_URL}item/delete/${itemId}`, {
-                method: 'DELETE',
+                method: 'PATCH',
             });
             if (response.ok) {
                 alert('상품이 삭제되었습니다.');
                 // 삭제 후 리스트로 이동 추가
+                navigate('/item/list');
             } else {
                 alert('상품 삭제에 실패했습니다.');
             }

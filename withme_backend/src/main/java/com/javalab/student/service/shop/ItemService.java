@@ -227,11 +227,12 @@ public class ItemService {
 
 
     /**
-     * 아이템 삭제
+     * 아이템 판매 상태 변경
      */
-    public void delete(Long itemId) {
+    @Transactional
+    public void updateItemStatus(Long itemId, ItemSellStatus itemSellStatus) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(EntityNotFoundException::new);
-        itemRepository.delete(item);
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 상품입니다."));
+        item.setItemSellStatus(itemSellStatus); // JPA 변경 감지로 자동 업데이트
     }
 }

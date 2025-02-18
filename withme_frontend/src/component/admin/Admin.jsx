@@ -5,6 +5,7 @@ import UserList from './UserList';
 import ItemAdd from '../shop/Product/ItemAdd';
 import React, { useState  } from 'react';
 import Dashboard from './Dashboard';
+import ItemList from './ItemList';
 import '../../assets/css/admin/Admin.css';
 
 export default function Admin({user}) {
@@ -80,7 +81,10 @@ export default function Admin({user}) {
                                 <li className="menu-item"
                                  onClick={() => setCurrentPage(<ItemAdd />)}
                                  >상품 등록</li>
-                                <li className="menu-item">상품 목록</li>
+                                <li className="menu-item"
+                                 onClick={() => setCurrentPage(<ItemList />)}
+                                 >상품 목록</li>
+
                                 <li className="menu-item">주문 관리</li>
                             </ul>
                         )}

@@ -11,6 +11,7 @@ import com.javalab.student.repository.shop.OrderRepository;
 import com.javalab.student.service.DoctorService;
 import com.javalab.student.service.MemberService;
 import com.javalab.student.service.StatisticsService;
+import com.javalab.student.service.shop.ItemService;
 import com.javalab.student.service.shop.SalesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -33,6 +34,7 @@ public class AdminController {
     private final MemberService memberService;
     private final StatisticsService statisticsService;
     private final SalesService salesService;
+    private final ItemService itemService;
     @Autowired
     private OrderRepository orderRepository;
 
@@ -75,6 +77,11 @@ public class AdminController {
     //     return ResponseEntity.ok("Doctor application processed successfully");
     // }
 
+    // 관리자 전체 상품 리스트 조회
+    @GetMapping("/item/list")
+    public ResponseEntity<List<Item>> getItemList() {
+        return ResponseEntity.ok(itemService.getItemList());
+    }
 
     // 일별 신규 가입자 수를 반환하는 API
     @GetMapping("/newRegistrations")

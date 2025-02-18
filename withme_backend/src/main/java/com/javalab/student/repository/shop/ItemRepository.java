@@ -2,6 +2,7 @@ package com.javalab.student.repository.shop;
 
 import com.javalab.student.constant.ItemSellStatus;
 import com.javalab.student.entity.shop.Item;
+import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -59,4 +60,9 @@ public interface ItemRepository extends JpaRepository<Item, Long>,
     List<Item> findByItemDetailByNative(@Param("itemDetail") String itemDetail);
 
     List<Item> findByItemSellStatus(ItemSellStatus itemSellStatus);
+
+
+
+    @Query("UPDATE Item i SET i.itemSellStatus = :itemSellStatus WHERE i.id = :itemId")
+    void updateItemSellStatus(@Param("itemId") Long itemId, @Param("itemSellStatus") ItemSellStatus itemSellStatus);
 }
