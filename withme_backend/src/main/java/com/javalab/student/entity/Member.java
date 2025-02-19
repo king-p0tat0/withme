@@ -1,5 +1,6 @@
 package com.javalab.student.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.javalab.student.constant.Role;
 import com.javalab.student.dto.MemberFormDto;
 import jakarta.persistence.*;
@@ -11,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * 회원 엔티티
@@ -63,6 +65,10 @@ public class Member extends BaseEntity{
 
     private String provider; // 소셜 로그인 제공자 이름 (예: kakao)
 
+
+
+
+
     /*
         * 회원 엔티티 생성 정적 메서드
         * - MemberFormDto의 값들이 -> Member 엔티티로 이동
@@ -84,7 +90,7 @@ public class Member extends BaseEntity{
         member.setPhone(memberFormDto.getPhone());
         member.setPoints(0);
         member.setSocial(false); // 일반 회원가입이므로 소셜 로그인 여부는 false
-        member.setRole(memberFormDto.getRole() != null ? memberFormDto.getRole() : Role.USER);  // 회원가입 시 사용자의 권한 : USER  [수정]
+        member.setRole(memberFormDto.getRole()); // 소셜 사용자는 기본적으로 USER 권한
         return member;
     }
 
@@ -100,6 +106,8 @@ public class Member extends BaseEntity{
         member.setPoints(0);
         return member;
     }
+
+
 
     // 권한 정보 반환 메서드
     public Collection<? extends GrantedAuthority> getAuthorities() {

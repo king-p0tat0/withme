@@ -1,0 +1,141 @@
+import React, { useState, useEffect } from 'react';
+import { API_URL, SERVER_URL2 } from '../../../constant';
+import { useNavigate } from 'react-router-dom';
+import '../../../assets/css/shop/ItemList.css';
+
+export default function ItemList() {
+    const [items, setItems] = useState([]); // 상품 목록 상태
+    const [loading, setLoading] = useState(false); // 로딩 상태
+    const [error, setError] = useState(null); // 에러 상태
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedQuery, setDebouncedQuery] = useState('');
+    const navigate = useNavigate();
+
+    const itemsPerPage = 10;
+
+    // 상품 목록 가져오기
+    const fetchItems = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            console.log('상품 목록 가져오기...');
+            const response = await fetch(`${API_URL}item/list`); // 상품 목록 API 호출
+            const data = await response.json();
+            setItems(data); // 상품 데이터를 상태에 저장
+            console.log("가져온 상품 데이터 : ", data);
+        } catch (err) {
+            setError('상품 데이터를 가져오는 데 실패했습니다.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchItems(); // 컴포넌트 렌더링 시 상품 목록을 가져옵니다.
+    }, []);
+
+    // 검색 딜레이 적용 (0.5초)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedQuery(searchQuery); // 검색어 변경 후 0.5초 후에 디바운스 처리
+        }, 500);
+
+        return () => clearTimeout(timer); // 타이머 정리
+    }, [searchQuery]);
+
+    // 검색 필터링
+    const filteredData = items.filter((item) =>
+        item.itemNm.toLowerCase().includes(debouncedQuery.toLowerCase())
+    );
+
+    // 페이지네이션
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const currentData = filteredData.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    const handlePageChange = (page) => {
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+        }
+    };
+
+    // 상세보기 페이지로 이동
+    const handleViewDetail = (itemId) => {
+        navigate(`/item/view/${itemId}`);
+    };
+
+console.log(`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`);
+
+    return (
+        <div className="item-list-container">
+            <h1 className="title">상품 목록</h1>
+
+            {/* 검색창 */}
+            <div className="search-bar">
+                <input
+                    type="text"
+                    placeholder="상품명 검색"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)} // 검색어 변경 시 상태 업데이트
+                />
+            </div>
+
+            {loading ? (
+                <p className="loading">데이터를 불러오는 중...</p>
+            ) : error ? (
+                <p className="error">{error}</p>
+            ) : (
+                <>
+                    <div className="item-card-container">
+                        {currentData.length > 0 ? (
+                            currentData.map((item) => (
+                                <div className="item-card" key={item.id}>
+                                    {/* 대표 이미지 표시 */}
+                                    {item.itemImgDtoList && item.itemImgDtoList.length > 0 && (
+                                        <img
+                                            src={`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`}
+                                            alt={item.itemNm}
+                                            className="item-image"
+                                        />
+                                    )}
+
+                                    <div className="item-info">
+                                        <h3>{item.itemNm}</h3>
+                                        <p>가격: {item.price.toLocaleString()}원</p>
+                                        <p>재고: {item.stockNumber}</p>
+                                        <p>상태: {item.itemSellStatus === 'SELL' ? '판매중' : '품절'}</p>
+                                        <button onClick={() => handleViewDetail(item.id)}>상세보기</button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p>검색 결과가 없습니다.</p>
+                        )}
+                    </div>
+
+                    {/* 페이징 */}
+                    <div className="pagination">
+                        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                            이전
+                        </button>
+                        {Array.from({ length: totalPages }, (_, index) => (
+                            <button
+                                key={index + 1}
+                                onClick={() => handlePageChange(index + 1)}
+                                className={currentPage === index + 1 ? 'active' : ''}
+                            >
+                                {index + 1}
+                            </button>
+                        ))}
+                        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                            다음
+                        </button>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}

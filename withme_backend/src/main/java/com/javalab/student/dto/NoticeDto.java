@@ -15,6 +15,7 @@ public class NoticeDto {
     private String title;
     private String content;
     private String category;
+    private Boolean important = Boolean.FALSE;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

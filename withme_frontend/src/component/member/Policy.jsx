@@ -53,6 +53,7 @@ const Policy = () => {
 
   return (
     <div className="container">
+          <h1 style={{ marginTop: "80px" }}>회원가입</h1>
       <div className="description-container">
         <div className="description box">
           <img src="/assets/images/icon/file-check-color.png" alt="file-check" className="icon" />

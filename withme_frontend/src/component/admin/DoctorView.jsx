@@ -1,36 +1,3 @@
-import { useParams } from "react-router-dom";
-import React, { useState, useEffect } from "react";
-import '../../assets/css/admin/DoctorList.css';
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { fetchWithAuth } from "../../common/fetchWithAuth";
-import { API_URL } from '../../constant';
-import { Badge, Button } from "@mui/material"; // Badge 컴포넌트 추가
-
-export default function DoctorView({doctor, onClose, docList }) {
-    // 읽지 않은 메시지 카운트 상태 추가
-    const [unreadCount, setUnreadCount] = useState(0);
-    const navigate = useNavigate();
-
-    // 읽지 않은 메시지 수 조회
-    useEffect(() => {
-        const fetchUnreadCount = async () => {
-            try {
-                const response = await fetchWithAuth(`${API_URL}messages/unread/4`);
-                if (response.ok) {
-                    const count = await response.json();
-                    setUnreadCount(count);
-                }
-            } catch (error) {
-                console.error("읽지 않은 메시지 조회 실패:", error);
-            }
-        };
-
-        fetchUnreadCount();
-        // 1분마다 갱신
-        const interval = setInterval(fetchUnreadCount, 60000);
-        return () => clearInterval(interval);
-    }, []);
 
     // 기존 handleApprove 함수 유지
     const handleApprove = async (email, status) => {

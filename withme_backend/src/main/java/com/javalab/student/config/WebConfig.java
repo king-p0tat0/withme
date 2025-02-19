@@ -7,18 +7,19 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/**
- * WebConfig, 환경설정 파일
- * - @Configuration : 이 클래스가 Spring의 설정 파일임을 명시, 여기에는 하나 이상의 @Bean이 있음.
- *   프로젝트가 구동될 때 이 클래스를 읽어들여 Bean으로 등록
- *
- */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
     // application.properties 파일에 설정된 값을 가져옵니다.
     @Value("${uploadPath}")
     String uploadPath;  // file:///c:/shop/
+
+//     @Value("${petUploadPath}")
+//     String petUploadPath;  // /Users/judykim/Documents/uploads/pet
+
+
+@Value("${postImgLocation}")
+    private String postUploadPath;
 
     /**
      * Cross Origin Resource Sharing (CORS) 설정
@@ -32,12 +33,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3001")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedOrigins("http://localhost:3000")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH")
                 .allowedHeaders("*")    // 모든 헤더를 허용
                 .allowCredentials(true);    // 쿠키를 주고 받을 수 있게 설정, 세션을 사용할 때는 true로 설정, 왜? 세션은 쿠키를 사용하기 때문, 쿠키에는 사용자의 정보가 담겨있음
     }
-
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -45,13 +45,20 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/images/**")   // /images/** 요청이 오면 uploadPath로 매핑
                 .addResourceLocations(uploadPath);  // 로컬 컴퓨터에 저장된 파일을 읽어올 root 경로를 설정합니다.
 
+         // 게시글 이미지
+        registry.addResourceHandler("/api/posts/image/**")
+        .addResourceLocations("file:" + postUploadPath + "/");
+
+        // /api/pets/image/** 요청을 처리
+        // registry.addResourceHandler("/api/pets/image/**")
+        // .addResourceLocations("file:" + petUploadPath + "/");
+
         // aws
         //registry.addResourceHandler("/images/**")
         //    .addResourceLocations("file:///home/ec2-user/shop/chap05_shop_social/build/libs/upload/");
 
         registry.addResourceHandler("/static-images/**")
                 .addResourceLocations("classpath:/static/images/");  // 정적 리소스
-
 
         // [스웨거] Swagger UI 설정
         // /swagger-ui/**로 시작하는 URL 요청은 서버의 /META-INF/resources/webjars/swagger-ui/ 디렉토리에서 파일을 찾습니다.
@@ -66,8 +73,6 @@ public class WebConfig implements WebMvcConfigurer {
         // 모든 URL 요청을 리액트의 index.html로 매핑하기 위한 설정[수정]
         registry.addResourceHandler("/**")
                 .addResourceLocations("classpath:/student_frontend/public/");
-
-
     }
 
     /**

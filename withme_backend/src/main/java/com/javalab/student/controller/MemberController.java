@@ -1,6 +1,7 @@
 package com.javalab.student.controller;
 
 import com.javalab.student.config.jwt.TokenProvider;
+import com.javalab.student.constant.Role;
 import com.javalab.student.dto.*;
 import com.javalab.student.entity.Member;
 import com.javalab.student.repository.MemberRepository;
@@ -38,7 +39,7 @@ public class MemberController {
     private final RefreshTokenService refreshTokenService;
 
     /**
-     * 회원가입 처리
+     * 일반 회원가입 처리
      * @param memberFormDto - 클라이언트에서 전송한 회원가입 데이터
      * @return 성공 또는 실패 메시지를 포함한 JSON 응답
      */
@@ -250,6 +251,15 @@ public ResponseEntity<?> login(@RequestBody LoginFormDto loginFormDto) {
     @GetMapping("/list")
     public ResponseEntity<List<Member>> getAllMembers() {
         return ResponseEntity.ok(memberService.getMember());
+    }
+
+    /**
+     * 멤버 권한 변경
+     */
+    @PatchMapping("/role/{email}")
+    public ResponseEntity<?> changeRole(@PathVariable String email, @RequestParam Role role) {
+        memberService.updateMemberRole(email, role);
+        return ResponseEntity.ok().build();
     }
 
 }

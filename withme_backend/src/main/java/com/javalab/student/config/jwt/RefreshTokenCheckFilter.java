@@ -1,5 +1,12 @@
 package com.javalab.student.config.jwt;
 
+import java.io.IOException;
+import java.time.Duration;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 
 import com.javalab.student.config.jwt.TokenProvider;
 
@@ -13,12 +20,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.util.List;
 
 /**
  * 리프레시 토큰 체크 필터
@@ -40,7 +41,6 @@ public class RefreshTokenCheckFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // "/refresh" 요청이 아니면 다음 필터로 이동 즉, /refresh 요청만 처리
         if (!request.getRequestURI().equals("/refresh")) {
             filterChain.doFilter(request, response);
             return;

@@ -1,5 +1,6 @@
 package com.javalab.student.service;
 
+import com.javalab.student.constant.Role;
 import com.javalab.student.dto.*;
 import com.javalab.student.entity.Member;
 import com.javalab.student.repository.MemberRepository;
@@ -198,6 +199,13 @@ public class MemberService {
         return newRegistrationsCount.entrySet().stream()
                 .map(entry -> new NewRegistrationDTO(entry.getKey(), entry.getValue().intValue()))
                 .collect(Collectors.toList());
+    }
+
+    // 멤버 권한 변경 메소드
+    public void updateMemberRole(String email, Role role) {
+        Member member = memberRepository.findByEmail(email);
+        member.setRole(role);
+        memberRepository.save(member);
     }
 
 }
