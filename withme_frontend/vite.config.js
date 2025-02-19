@@ -9,9 +9,6 @@ export default defineConfig({
       include: ["global"]
     })
   ],
-  define: {
-    global: "globalThis"
-  },
   server: {
     port: 3000,
     proxy: {
@@ -24,4 +21,4 @@ export default defineConfig({
   define: {
     global: 'window',
   }
-})
+});

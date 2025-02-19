@@ -7,9 +7,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import useWebSocket from "../hook/useWebSocket";
 import { Modal, Box, Typography, Button, Badge } from "@mui/material";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch } from "@fortawesome/free-solid-svg-icons";
-import "./Home.css";
 
 function Home() {
   const { user, isLoggedIn } = useSelector((state) => state.auth);
@@ -18,6 +15,7 @@ function Home() {
   const [modalMessage, setModalMessage] = useState({ content: "", senderName: "" });
   const [lastMessageId, setLastMessageId] = useState(null);
   const [newConsultationCount, setNewConsultationCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // VIP 역할 확인 함수 (수정)
   const isVipUser = () => {
@@ -43,7 +41,6 @@ function Home() {
         }
       }
     }
-  const [searchQuery, setSearchQuery] = useState("");
 
     // 최신 메시지를 기존 메시지 API를 사용하여 가져오기
     if (isVipUser()) {
@@ -116,7 +113,7 @@ function Home() {
     return () => {
       document.body.style.backgroundColor = "";
     };
-    }, []);
+  }, []);
 
   // 검색어 입력 핸들러
   const handleSearchChange = (e) => {
@@ -157,22 +154,6 @@ function Home() {
   };
 
   return (
-    <>
-      <div className="Home">
-        {/* ✅ 네비게이션 바 */}
-        <nav>
-          <ul>
-            <li><Link to="/">홈</Link></li>
-            <li><Link to="#">전체상품</Link></li>
-            <li><Link to="/notice">공지사항</Link></li>
-            <li><Link to="/posts">커뮤니티</Link></li>
-            <li className="search-box">
-              <input type="text" placeholder="어떤 상품을 찾아볼까요?" className="search-input" />
-              <FontAwesomeIcon icon={faSearch} className="search-icon" />
-            </li>
-            <li><img src="/assets/images/logo.png" alt="로고 이미지" className="footer-logo" /></li>
-          </ul>
-        </nav>
     <div className="Home">
       <nav>
         <ul>
@@ -214,22 +195,21 @@ function Home() {
         </ul>
       </nav>
 
-        {/* ✅ 메인 콘텐츠 */}
-        <div className="container">
-          <div className="banner">
-            <img src="/assets/images/banner.png" alt="배너 이미지" />
-            {isDoctor ? (
-              <Badge badgeContent={newConsultationCount} color="error">
-                <Link to="#" onClick={handleConsultationHistory} className="survey-link">
-                  상담내역 &gt;
-                </Link>
-              </Badge>
-            ) : (
-              <Link to="#" onClick={handleSurveyNavigation} className="survey-link">
-                문진하러 가기 &gt;
+      <div className="container">
+        <div className="banner">
+          <img src="/assets/images/banner.png" alt="배너 이미지" />
+          {isDoctor ? (
+            <Badge badgeContent={newConsultationCount} color="error">
+              <Link to="#" onClick={handleConsultationHistory} className="survey-link">
+                상담내역 &gt;
               </Link>
-            )}
-          </div>
+            </Badge>
+          ) : (
+            <Link to="#" onClick={handleSurveyNavigation} className="survey-link">
+              문진하러 가기 &gt;
+            </Link>
+          )}
+        </div>
 
         <div className="item-wrap">
           <div className="notice">
@@ -240,55 +220,11 @@ function Home() {
             달콤한 하루 보내세요 💕 "
           </div>
 
-            {/* ✅ 전체 상품 리스트 */}
-            <div className="product-list all-product-list">
-              <p>전체 상품</p>
-              <hr />
-              <div className="products">
-                <ul>
-                  <li className="product-item">
-                    <Link to="#" className="productLink">
-                      <img src="/assets/images/product/product1.png" alt="상품이미지1" />
-                      <div className="product-info">
-                        <h3 className="productName">로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>
-                        <p className="price">34,500원</p>
-                        <button type="button" className="product-btn">구매하기</button>
-                      </div>
-                    </Link>
-                  </li>
-                </ul>
-                <button type="button" className="moreBtn">더 구경하기</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-       {/* WebSocket 메시지 모달 */}
-       <Modal
-         open={modalOpen}
-         onClose={handleClose}
-         aria-labelledby="vip-message-modal"
-       >
-         <Box sx={modalStyle}>
-           <Typography variant="h6" component="h2">
-             전문가의 새로운 답변 도착!
-           </Typography>
-           <Typography sx={{ mt: 2 }}>
-             {modalMessage.senderName}: {modalMessage.content}
-           </Typography>
-           <Button onClick={handleClose} sx={{ mt: 2 }}>
-             닫기
-           </Button>
-         </Box>
-       </Modal>
-     </div>
-    </>
           <div className="product-list all-product-list">
             <p>전체 상품</p>
             <hr />
             <div className="products">
               <ul>
-                {/* 하드코딩된 상품 리스트 */}
                 <li className="product-item">
                   <Link to="#" className="productLink">
                     <img
@@ -380,7 +316,8 @@ function Home() {
               className={`products filtered-products ${
                 isLoggedIn ? "" : "blur"
               }`}
-              id="productSection">
+              id="productSection"
+            >
               <ul>
                 {[...Array(4)].map((_, index) => (
                   <li className="product-item" key={index}>
@@ -407,8 +344,26 @@ function Home() {
           </div>
         </div>
       </div>
+
+      <Modal
+        open={modalOpen}
+        onClose={handleClose}
+        aria-labelledby="vip-message-modal"
+      >
+        <Box sx={modalStyle}>
+          <Typography variant="h6" component="h2">
+            전문가의 새로운 답변 도착!
+          </Typography>
+          <Typography sx={{ mt: 2 }}>
+            {modalMessage.senderName}: {modalMessage.content}
+          </Typography>
+          <Button onClick={handleClose} sx={{ mt: 2 }}>
+            닫기
+          </Button>
+        </Box>
+      </Modal>
     </div>
   );
 }
 
-export default Home; // 명시적 default export 추가
+export default Home;

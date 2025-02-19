@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
-import React, { useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom"; // 중복 import 정리
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { persistor } from "./redux/store";
 import { fetchUserInfo, clearUser } from "./redux/authSlice";
-import { fetchUserInfo } from "./redux/authSlice";
 import { API_URL } from "./constant";
 import { Snackbar, Alert, Badge } from "@mui/material";
 import useWebSocket from "./hook/useWebSocket";
