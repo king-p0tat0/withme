@@ -46,9 +46,6 @@ function Home() {
             <Link to="/notices">공지사항</Link>
           </li>
           <li>
-            <Link to="/subscription">구독</Link>
-          </li>
-          <li>
             <Link to="/posts">커뮤니티</Link>
           </li>
           <li className="search-box">
