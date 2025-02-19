@@ -1,10 +1,8 @@
 package com.javalab.student.entity;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.javalab.student.constant.Role;
 import com.javalab.student.dto.MemberFormDto;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -12,13 +10,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * 회원 엔티티
  * - 회원 정보를 저장하는 엔티티 클래스
  * - 회원 정보를 저장하는 테이블과 매핑된다.
- * - 주로 서비스 레이어와 리포지토리 레이어에서 사용된다.ffffffffffffffffffffffffffffffffffffffffffffffff
+ * - 주로 서비스 레이어와 리포지토리 레이어에서 사용된다.
  * - 화면에서 데이터를 전달받는 용도로는 사용하지 않는게 관례이다.
  */
 @Entity
