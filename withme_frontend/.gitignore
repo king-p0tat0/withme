@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+/src/component/admin/Dashboard.jsx
+/src/component/admin/Dashboard_old.jsx
+/src/component/admin/ItemList.jsx
+/src/component/admin/UserList.jsx
