@@ -1,0 +1,1853 @@
+Index: withme_backend/src/main/java/com/javalab/student/config/SecurityConfig.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.config;\r\n\r\n\r\nimport com.javalab.student.config.jwt.RefreshTokenCheckFilter;\r\nimport com.javalab.student.config.jwt.TokenAuthenticationFilter;\r\nimport com.javalab.student.config.jwt.TokenProvider;\r\nimport com.javalab.student.security.CustomUserDetailsService;\r\nimport com.javalab.student.security.handler.CustomAuthenticationEntryPoint;\r\nimport com.javalab.student.security.handler.CustomAuthenticationSuccessHandler;\r\nimport com.javalab.student.security.handler.CustomLogoutSuccessHandler;\r\nimport com.javalab.student.security.oauth.CustomOAuth2UserService;\r\nimport jakarta.servlet.http.HttpServletResponse;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.context.annotation.Bean;\r\nimport org.springframework.context.annotation.Configuration;\r\nimport org.springframework.http.HttpMethod;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.security.authentication.AuthenticationManager;\r\nimport org.springframework.security.config.Customizer;\r\nimport org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;\r\nimport org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;\r\nimport org.springframework.security.config.annotation.web.builders.HttpSecurity;\r\nimport org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;\r\nimport org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\r\nimport org.springframework.security.crypto.password.PasswordEncoder;\r\nimport org.springframework.security.web.SecurityFilterChain;\r\nimport org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;\r\n\r\n/**\r\n * Spring Security 설정 파일\r\n * - 인증, 권한 설정\r\n * @Configuration :\r\n * - 이 클래스가 Spring의 설정 파일임을 명시, 여기에는 하나 이상의 @Bean이 있음.\r\n * - Spring 컨테이너가 이 클래스를 읽어들여 Bean으로 등록\r\n * @EnableWebSecurity :\r\n * - Spring Security 설정을 활성화하며 내부적으로 시큐리티 필터 체인을 생성,\r\n *   이를 통해서 애플리케이션이 요청을 처리할 때 필터 체인을 거쳐 (인증) 및 (인가)를 수행하게 된다.\r\n * - 시큐리티 필터 체인은 여러 개의 필터로 구성되면 디스패처 서블릿 앞에 위치하게 된다.\r\n * - CSRF, 세션 관리, 로그인, 로그아웃, 권한, XSS방지 등을 처리하는 기능들이 활성화 된다.\r\n */\r\n@Configuration\r\n@EnableWebSecurity\r\n@RequiredArgsConstructor\r\npublic class SecurityConfig {\r\n\r\n    private final CustomUserDetailsService customUserDetailsService; // 사용자 정보를 가져오는 역할\r\n    private final CustomOAuth2UserService customOAuth2UserService;  // 소셜 로그인\r\n    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler; // 로그인 성공 핸들러\r\n    private final TokenAuthenticationFilter tokenAuthenticationFilter; // 토큰을 검증하고 인증 객체를 SecurityContext에 저장하는 역할\r\n    private final TokenProvider tokenProvider;  // 토큰 생성 및 검증\r\n    private final RefreshTokenCheckFilter refreshTokenCheckFilter; // 추가된 필터\r\n    private final CustomLogoutSuccessHandler customLogoutSuccessHandler; // 로그아웃 성공 핸들러\r\n\r\n\r\n    @Bean\r\n    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {\r\n\r\n        http.formLogin(form -> form\r\n                .loginPage(\"/api/auth/login\")   // 인증되지 않은 사용자가 보호된 리소스에 접근하면 /api/auth/login으로 리다이렉트됩니다.\r\n                // Spring Security가 인증 처리할 URL(로그인 요청을 처리하는 URL)을 설정, 리액트에서 로그인을 요청할때 사용(/api/auth/login)\r\n                .loginProcessingUrl(\"/api/auth/login\")\r\n                .successHandler(customAuthenticationSuccessHandler)\r\n                .failureHandler((request, response, exception) -> {\r\n                    response.setStatus(HttpStatus.UNAUTHORIZED.value());\r\n                    response.setContentType(\"application/json\");\r\n                    response.getWriter().write(\"{\\\"error\\\":\\\"login failure!\\\"}\");})\r\n                .permitAll()\r\n        );\r\n\r\n        /*\r\n         * [수정] 로그아웃 설정\r\n         * logout() : 스프링의 기본 로그아웃 관련 설정\r\n         * - /api/auth/logout 을 기본 로그아웃 요청을 처리하는 URL로 하겠다.\r\n         *   즉 리액트에서 이 요청을 보내면 시큐리티의 기본 로그아웃 처리가 진행된다.\r\n         */\r\n        http.logout(logout -> logout\r\n                .logoutUrl(\"/api/auth/logout\")\r\n                .logoutSuccessHandler(customLogoutSuccessHandler) // 커스텀 로그아웃 성공 핸들러 사용\r\n                .permitAll()\r\n        );\r\n\r\n        /*\r\n         * 정적 자원 및 URL에 대한 접근 제어 설정(인가) 로드맵\r\n         * authorizeRequests() : 애플리케이션의 접근 제어(Authorization) 정책을 정의\r\n         * requestMatchers() : 요청에 대한 보안 검사를 설정\r\n         * permitAll() : 모든 사용자에게 접근을 허용\r\n         * hasRole() : 특정 권한을 가진 사용자만 접근을 허용\r\n         * anyRequest() : 모든 요청에 대해 접근을 허용\r\n         * authenticated() : 인증된 사용자만 접근을 허용\r\n         * favicon.ico : 파비콘 요청은 인증 없이 접근 가능, 이코드 누락시키면 계속 서버에 요청을 보내서 서버에 부하를 줄 수 있다.\r\n         */\r\n        http.authorizeHttpRequests(request -> request\r\n                // ✅ WebSocket 관련 요청 허용\r\n                .requestMatchers(\"/ws/**\").permitAll()\r\n                .requestMatchers(\"/topic/**\").permitAll()\r\n\r\n                // ✅ 문진(Questionnaire) 관련 API 허용\r\n                .requestMatchers(\"/api/questionnaires/free\").permitAll()\r\n                .requestMatchers(\"/api/questionnaires/{questionnaireId}\").permitAll()\r\n                .requestMatchers(\"/api/questionnaires/user/{userId}\").permitAll()\r\n                .requestMatchers(\"/api/questionnaires/free/latest/{userId}\").permitAll()\r\n                .requestMatchers(\"/api/questionnaires/paid/latest/{userId}\").permitAll()\r\n\r\n                // ✅ 유료 문진 관련 API (ROLE_VIP만 접근 가능)\r\n                .requestMatchers(\"/api/survey-topics/paid/**\").hasAuthority(\"ROLE_VIP\")\r\n                .requestMatchers(\"/api/user-selected-topics/**\").hasAuthority(\"ROLE_VIP\")\r\n                .requestMatchers(\"/survey/paid/**\").hasAuthority(\"ROLE_VIP\")\r\n\r\n                // ✅ 인증 및 회원 관련 API\r\n                .requestMatchers(\"/\", \"/api/auth/login\", \"/api/auth/logout\", \"/api/members/register\", \"/api/members/checkEmail\").permitAll()\r\n                .requestMatchers(\"/api/auth/userInfo\").permitAll()\r\n                .requestMatchers(\"/api/members/**\").hasAnyAuthority(\"ROLE_USER\", \"ROLE_ADMIN\", \"ROLE_VIP\", \"ROLE_DOCTOR\")\r\n\r\n                // ✅ 관리자 관련 API\r\n                .requestMatchers(\"/api/admin/**\").hasAuthority(\"ROLE_ADMIN\")\r\n\r\n                // ✅ 학생 관련 API\r\n                .requestMatchers(HttpMethod.GET, \"/api/students/**\").permitAll()\r\n                .requestMatchers(\"/api/students/**\").hasAuthority(\"ROLE_ADMIN\")\r\n\r\n                // ✅ 의사 관련 API\r\n                .requestMatchers(\"/api/doctors/**\").permitAll()\r\n\r\n                // ✅ 메시지 및 커뮤니티 관련 API\r\n                .requestMatchers(\"/api/messages/**\").hasAnyAuthority(\"ROLE_USER\", \"ROLE_ADMIN\")\r\n                .requestMatchers(\"/api/questions/**\").hasAnyAuthority(\"ROLE_USER\", \"ROLE_VIP\")\r\n                .requestMatchers(\"/api/chat/**\").hasAnyAuthority(\"ROLE_USER\", \"ROLE_ADMIN\")\r\n\r\n                // ✅ 정적 리소스 허용\r\n                .requestMatchers(\"/swagger-ui/**\", \"/v3/api-docs/**\", \"/swagger-ui.html\").permitAll()\r\n                .requestMatchers(\r\n                        \"/images/**\",\r\n                        \"/static-images/**\",\r\n                        \"/css/**\",\r\n                        \"/img/**\",\r\n                        \"/favicon.ico\",\r\n                        \"/error\",\r\n                        \"/**/*.css\",\r\n                        \"/**/*.js\",\r\n                        \"/**/*.png\",\r\n                        \"/**/*.jpg\",\r\n                        \"/**/*.jpeg\",\r\n                        \"/**/*.gif\",\r\n                        \"/**/*.svg\",\r\n                        \"/**/*.html\",\r\n                        \"/ping.js\"\r\n                ).permitAll()\r\n\r\n                // ✅ 중요: 모든 요청에 대해 인증 필요 (마지막에 배치)\r\n                .anyRequest().authenticated()\r\n        );\r\n\r\n\r\n\r\n        /*\r\n         * 필터의 순서는 addFilterBefore 메서드를 사용하여 정의\r\n         * RefreshTokenCheckFilter -> TokenAuthenticationFilter -> UsernamePasswordAuthenticationFilter 순서로 실행\r\n         * UsernamePasswordAuthenticationFilter가 전체 필터 체인의 기준점\r\n         * 콘솔 로그에서 Filter 로 검색하면 전체 필터와 순서가 출력됨.\r\n         */\r\n        /**\r\n         * UsernamePasswordAuthenticationFilter 이전에 TokenAuthenticationFilter 추가\r\n         * - 사용자의 인증이 일어나기 전에 토큰을 검증하고 인증 객체를 SecurityContext에 저장\r\n         * - 그렇게 저장된 인증 객체는 컨트롤러에서 @AuthenticationPrincipal 어노테이션을 사용하여 사용할 수 있다.\r\n         * [수정] UsernamePasswordAuthenticationFilter보다 앞에 있어야, 사용자가 제출한 인증 정보가 아닌 토큰을 통한 인증이 우선 처리됩니다.\r\n         * 토큰 인증이 완료되지 않은 경우 폼 기반 인증을 수행하도록 체인에서 뒤쪽에 위치합니다.\r\n         */\r\n        http.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);\r\n        /**\r\n         * RefreshTokenCheckFilter 추가, TokenAuthenticationFilter가 액세스 토큰의 유효성을 확인하기 전에\r\n         * RefreshTokenCheckFilter가 리프레시 토큰의 유효성을 확인하고 액세스 토큰을 발급해야\r\n         * 리프레시 토큰을 먼저 타면 혹시 액세스 토큰이 완료되어도 리프레시 토큰이 유효하다면 살릴 수가 있다.\r\n         * 즉, TokenAuthenticationFilter보다 앞에 배치되어야, 토큰 갱신 작업이 먼저 이루어진 후 인증 검사가 실행됩니다.\r\n         */\r\n        http.addFilterBefore(refreshTokenCheckFilter, TokenAuthenticationFilter.class);\r\n\r\n\r\n        /**\r\n         * 인증 실패 시 처리할 핸들러를 설정\r\n         * - 권한이 없는 페이지에 접근 시 처리할 핸들러를 설정\r\n         * - 인증 실패 시 401 Unauthorized 에러를 반환\r\n         */\r\n        http.exceptionHandling(exception -> exception\r\n                .authenticationEntryPoint(new CustomAuthenticationEntryPoint())\r\n        );\r\n\r\n        // http.csrf(csrf -> csrf.disable()); // CSRF 보안 설정을 비활성화\r\n        http.csrf(csrf -> csrf.disable());  // 프론트 엔드를 리액트로 할경우 CSRF 보안 설정을 비활성화\r\n        http.cors(Customizer.withDefaults());   // 이 설정은 출처가 다른 도메인에서 요청을 허용하기 위한 설정, 스프링은 8080포트에서 실행되고 있고, 리액트는 3000포트에서 실행되고 있기 때문에 스프링은 3000 포트에서 오는 요청을 허용하지 않는다. 이를 해결하기 위해 CORS 설정을 추가한다.\r\n\r\n        /*\r\n         * 소셜 로그인 설정\r\n         *  - oauth2Login() 메소드 : 소셜(OAuth2) 로그인을 활성화하는 설정의 시작점.\r\n         *  - 이 메서드를 호출함으로써, 애플리케이션은 OAuth2 공급자(Google, Kakao 등)를\r\n         *    통해 사용자 인증을 수행할 수 있게 된다.\r\n         *  - loginPage() : 사용자가 인증되지 않은 상태에서 보호된 리소스에 접근시 여기로 리디렉트\r\n         *    loginPage()를 설정하지 않으면 스프링 시큐리티는 기본 로그인 페이지(/login)를 사용.\r\n         *  - userInfoEndpoint() : OAuth2 공급자로부터 사용자 정보를 가져오는 엔드포인트를 구성\r\n         *  - userService() : 사용자 정보를 가져오는 서비스를 구현한 객체를 지정\r\n         * - customOAuth2UserService : OAuth2 공급자로부터 사용자 정보를 가져오는 엔드포인트를 구성하는 실제 서비스 클래스\r\n         */\r\n        http.oauth2Login(oauth2 -> oauth2\r\n                .loginPage(\"/members/login\")\r\n                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))\r\n        );\r\n\r\n        // 지금까지 설정한 내용을 빌드하여 반환, 반환 객체는 SecurityFilterChain 객체\r\n        return http.build();\r\n    }\r\n\r\n    /**\r\n     * AuthenticationManager 빈 등록\r\n     * - AuthenticationManagerBuilder를 사용하여 인증 객체를 생성하고 반환\r\n     * - 이렇게 생성된 빈은 누구에 의해서 사용되는가? -> TokenAuthenticationFilter\r\n     * - TokenAuthenticationFilter에서 인증 객체를 SecurityContext에 저장하기 위해 사용\r\n     * @param http\r\n     * @return\r\n     * @throws Exception\r\n     */\r\n    @Bean\r\n    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {\r\n        return http.getSharedObject(AuthenticationManagerBuilder.class)\r\n                .userDetailsService(customUserDetailsService)\r\n                .passwordEncoder(passwordEncoder())\r\n                .and()\r\n                .build();\r\n    }\r\n\r\n\r\n    /**\r\n     * 비밀번호 암호화를 위한 PasswordEncoder 빈 등록\r\n     * - BCryptPasswordEncoder : BCrypt 해시 함수를 사용하여 비밀번호를 암호화\r\n     */\r\n    @Bean\r\n    public PasswordEncoder passwordEncoder() {\r\n        return new BCryptPasswordEncoder();\r\n    }\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/config/SecurityConfig.java b/withme_backend/src/main/java/com/javalab/student/config/SecurityConfig.java
+--- a/withme_backend/src/main/java/com/javalab/student/config/SecurityConfig.java	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/java/com/javalab/student/config/SecurityConfig.java	(date 1739503157660)
+@@ -1,6 +1,5 @@
+ package com.javalab.student.config;
+ 
+-
+ import com.javalab.student.config.jwt.RefreshTokenCheckFilter;
+ import com.javalab.student.config.jwt.TokenAuthenticationFilter;
+ import com.javalab.student.config.jwt.TokenProvider;
+@@ -18,13 +17,17 @@
+ import org.springframework.security.authentication.AuthenticationManager;
+ import org.springframework.security.config.Customizer;
+ import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+ import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+ import org.springframework.security.crypto.password.PasswordEncoder;
+ import org.springframework.security.web.SecurityFilterChain;
+ import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
++import org.springframework.web.cors.CorsConfiguration;
++import org.springframework.web.cors.CorsConfigurationSource;
++import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
++
++
+ 
+ /**
+  * Spring Security 설정 파일
+@@ -43,17 +46,34 @@
+ @RequiredArgsConstructor
+ public class SecurityConfig {
+ 
+-    private final CustomUserDetailsService customUserDetailsService; // 사용자 정보를 가져오는 역할
+-    private final CustomOAuth2UserService customOAuth2UserService;  // 소셜 로그인
+-    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler; // 로그인 성공 핸들러
+-    private final TokenAuthenticationFilter tokenAuthenticationFilter; // 토큰을 검증하고 인증 객체를 SecurityContext에 저장하는 역할
+-    private final TokenProvider tokenProvider;  // 토큰 생성 및 검증
+-    private final RefreshTokenCheckFilter refreshTokenCheckFilter; // 추가된 필터
+-    private final CustomLogoutSuccessHandler customLogoutSuccessHandler; // 로그아웃 성공 핸들러
+-
++    private final CustomUserDetailsService customUserDetailsService;
++    private final CustomOAuth2UserService customOAuth2UserService;
++    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
++    private final TokenAuthenticationFilter tokenAuthenticationFilter;
++    private final TokenProvider tokenProvider;
++    private final RefreshTokenCheckFilter refreshTokenCheckFilter;
++    private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
++
++    @Bean
++    public CorsConfigurationSource corsConfigurationSource() {
++        CorsConfiguration configuration = new CorsConfiguration();
++        configuration.setAllowCredentials(true);
++        configuration.addAllowedOriginPattern("http://localhost:[*]"); // 로컬 React 개발 환경 허용
++        configuration.addAllowedHeader("*");
++        configuration.addAllowedMethod("*");
++
++        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
++        source.registerCorsConfiguration("/**", configuration);
++        return source;
++    }
+ 
+     @Bean
+     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
++        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
++        http.csrf(csrf -> csrf.disable());
++
++
++
+ 
+         http.formLogin(form -> form
+                 .loginPage("/api/auth/login")   // 인증되지 않은 사용자가 보호된 리소스에 접근하면 /api/auth/login으로 리다이렉트됩니다.
+@@ -95,16 +115,15 @@
+                 .requestMatchers("/topic/**").permitAll()
+ 
+                 // ✅ 문진(Questionnaire) 관련 API 허용
+-                .requestMatchers("/api/questionnaires/free").permitAll()
+-                .requestMatchers("/api/questionnaires/{questionnaireId}").permitAll()
+-                .requestMatchers("/api/questionnaires/user/{userId}").permitAll()
+-                .requestMatchers("/api/questionnaires/free/latest/{userId}").permitAll()
+-                .requestMatchers("/api/questionnaires/paid/latest/{userId}").permitAll()
++                // ✅ 무료 문진 관련 API는 ROLE_USER 허용
++                .requestMatchers("/api/questions/free/**").hasAuthority("ROLE_USER")   // 무료 문진 전용
++                .requestMatchers("/api/questions/paid/**").hasAuthority("ROLE_VIP")    // 유료 문진 전용
++                .requestMatchers("/api/questions/{questionId}").hasAnyAuthority("ROLE_USER", "ROLE_VIP")  // 공통 엔드포인트
++                .requestMatchers("/api/questions/user/{userId}").hasAnyAuthority("ROLE_USER", "ROLE_VIP")  // 공통 엔드포인트
++                .requestMatchers("/api/questions/free/latest/{userId}").hasAuthority("ROLE_USER")
++                .requestMatchers("/api/questions/paid/latest/{userId}").hasAuthority("ROLE_VIP")
+ 
+-                // ✅ 유료 문진 관련 API (ROLE_VIP만 접근 가능)
+-                .requestMatchers("/api/survey-topics/paid/**").hasAuthority("ROLE_VIP")
+-                .requestMatchers("/api/user-selected-topics/**").hasAuthority("ROLE_VIP")
+-                .requestMatchers("/survey/paid/**").hasAuthority("ROLE_VIP")
++
+ 
+                 // ✅ 인증 및 회원 관련 API
+                 .requestMatchers("/", "/api/auth/login", "/api/auth/logout", "/api/members/register", "/api/members/checkEmail").permitAll()
+@@ -208,6 +227,8 @@
+         return http.build();
+     }
+ 
++
++
+     /**
+      * AuthenticationManager 빈 등록
+      * - AuthenticationManagerBuilder를 사용하여 인증 객체를 생성하고 반환
+@@ -236,4 +257,5 @@
+         return new BCryptPasswordEncoder();
+     }
+ 
++
+ }
+\ No newline at end of file
+Index: withme_backend/src/main/java/com/javalab/student/config/WebConfig.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.config;\r\n\r\nimport org.springframework.beans.factory.annotation.Value;\r\nimport org.springframework.context.annotation.Configuration;\r\nimport org.springframework.web.servlet.config.annotation.CorsRegistry;\r\nimport org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;\r\nimport org.springframework.web.servlet.config.annotation.ViewControllerRegistry;\r\nimport org.springframework.web.servlet.config.annotation.WebMvcConfigurer;\r\n\r\n@Configuration\r\npublic class WebConfig implements WebMvcConfigurer {\r\n\r\n    // application.properties 파일에 설정된 값을 가져옵니다.\r\n    @Value(\"${uploadPath}\")\r\n    String uploadPath;  // file:///c:/shop/\r\n\r\n    /**\r\n     * Cross Origin Resource Sharing (CORS) 설정\r\n     * - addMapping : CORS를 적용할 URL 패턴, 모든 URL에 대해 적용하려면 /**로 설정\r\n     * - allowedOrigins : 허용할 오리진, 여기서는 3000 포트로 들어오는 요청만 허용\r\n     * - allowedMethods : 허용할 HTTP 메서드\r\n     * - allowedHeaders : 허용할 HTTP 헤더\r\n     * - allowCredentials : 쿠키를 주고 받을 수 있게 설정\r\n     * @param registry\r\n     */\r\n    @Override\r\n    public void addCorsMappings(CorsRegistry registry) {\r\n        registry.addMapping(\"/**\")\r\n                .allowedOrigins(\"http://localhost:3000\")\r\n                .allowedMethods(\"GET\", \"POST\", \"PUT\", \"DELETE\", \"OPTIONS\")\r\n                .allowedHeaders(\"*\")    // 모든 헤더를 허용\r\n                .allowCredentials(true);    // 쿠키를 주고 받을 수 있게 설정, 세션을 사용할 때는 true로 설정, 왜? 세션은 쿠키를 사용하기 때문, 쿠키에는 사용자의 정보가 담겨있음\r\n    }\r\n\r\n    @Override\r\n    public void addResourceHandlers(ResourceHandlerRegistry registry) {\r\n\r\n        registry.addResourceHandler(\"/images/**\")   // /images/** 요청이 오면 uploadPath로 매핑\r\n                .addResourceLocations(uploadPath);  // 로컬 컴퓨터에 저장된 파일을 읽어올 root 경로를 설정합니다.\r\n\r\n        // aws\r\n        //registry.addResourceHandler(\"/images/**\")\r\n        //    .addResourceLocations(\"file:///home/ec2-user/shop/chap05_shop_social/build/libs/upload/\");\r\n\r\n        registry.addResourceHandler(\"/static-images/**\")\r\n                .addResourceLocations(\"classpath:/static/images/\");  // 정적 리소스\r\n\r\n        // [스웨거] Swagger UI 설정\r\n        // /swagger-ui/**로 시작하는 URL 요청은 서버의 /META-INF/resources/webjars/swagger-ui/ 디렉토리에서 파일을 찾습니다.\r\n        // 이 경로는 Swagger UI의 HTML, CSS, JavaScript 파일들을 포함하고 있습니다.\r\n        // Spring은 이 리소스들을 classpath:/META-INF/resources/webjars/swagger-ui/ 경로에서 찾아 제공하게 됩니다.\r\n        // 이로 인해 사용자가 브라우저에서 Swagger UI에 접근할 수 있게 됩니다.\r\n        // /META-INF/resources/webjars/swagger-ui/ : 어느 라이브러리에 있나? 스웨거 UI 라이브러리에 있음.\r\n        registry.addResourceHandler(\"/swagger-ui/**\")   // 어떤 URL 패턴이 정적 리소스로 처리되어야 하는지를 정의합니다.\r\n                .addResourceLocations(\"classpath:/META-INF/resources/webjars/swagger-ui/\")\r\n                .resourceChain(false); // 주로 디버깅이나 개발 중에 파일 변경 사항을 바로 반영하기 위해 사용됩니다.   쉽게 말해서, 리소스 체인은 정적 파일을 더 빠르고 효율적으로 제공하려는 \"비서\" 같은 역할을 하고, resourceChain(false)는 그 비서를 쉬게 하고 직접 파일을 제공하는 방식입니다.\r\n\r\n        // 모든 URL 요청을 리액트의 index.html로 매핑하기 위한 설정[수정]\r\n        registry.addResourceHandler(\"/**\")\r\n                .addResourceLocations(\"classpath:/student_frontend/public/\");\r\n    }\r\n\r\n    /**\r\n     * 뷰 컨트롤러 설정[수정]\r\n     * - React의 index.html을 기본 뷰로 설정\r\n     * - /로 요청이 오면 index.html로 포워딩\r\n     * -\r\n     * @param registry\r\n     */\r\n    @Override\r\n    public void addViewControllers(ViewControllerRegistry registry) {\r\n        // React의 index.html을 기본 뷰로 매핑\r\n        registry.addViewController(\"/{spring:[^\\\\.]*}\")\r\n                .setViewName(\"forward:/student_frontend/public/index.html\");\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/config/WebConfig.java b/withme_backend/src/main/java/com/javalab/student/config/WebConfig.java
+--- a/withme_backend/src/main/java/com/javalab/student/config/WebConfig.java	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/java/com/javalab/student/config/WebConfig.java	(date 1739504812307)
+@@ -25,7 +25,7 @@
+      */
+     @Override
+     public void addCorsMappings(CorsRegistry registry) {
+-        registry.addMapping("/**")
++        registry.addMapping("/api/**")
+                 .allowedOrigins("http://localhost:3000")
+                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                 .allowedHeaders("*")    // 모든 헤더를 허용
+Index: withme_backend/src/main/java/com/javalab/student/controller/QuestionController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.controller;\r\n\r\nimport com.javalab.student.dto.QuestionDTO;\r\nimport com.javalab.student.entity.Question;\r\nimport com.javalab.student.service.QuestionService;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.web.bind.annotation.*;\r\n\r\nimport java.util.List;\r\nimport java.util.Optional;\r\nimport java.util.stream.Collectors;\r\n\r\n/**\r\n * 질문(Question) 컨트롤러\r\n * 설문에 포함된 질문에 대한 요청을 처리하는 REST API 컨트롤러\r\n */\r\n@RestController\r\n@RequestMapping(\"/api/questions\")\r\npublic class QuestionController {\r\n\r\n    private final QuestionService questionService;\r\n\r\n    @Autowired\r\n    public QuestionController(QuestionService questionService) {\r\n        this.questionService = questionService;\r\n    }\r\n\r\n    /**\r\n     * ✅ 모든 질문 조회\r\n     */\r\n    @GetMapping\r\n    public ResponseEntity<List<QuestionDTO>> getAllQuestions() {\r\n        List<QuestionDTO> questionDTOs = questionService.getAllQuestions();\r\n        return ResponseEntity.ok(questionDTOs);\r\n    }\r\n\r\n\r\n\r\n    /**\r\n     * ✅ 질문 ID로 질문 조회\r\n     */\r\n    @GetMapping(\"/{questionId}\")\r\n    public ResponseEntity<QuestionDTO> getQuestionById(@PathVariable Long questionId) {\r\n        Optional<QuestionDTO> question = questionService.getQuestionById(questionId);\r\n        return question.map(ResponseEntity::ok)\r\n                .orElseGet(() -> ResponseEntity.notFound().build());\r\n    }\r\n\r\n\r\n    /**\r\n     * 특정 문진 설문의 질문 목록 조회 (선택지 포함)\r\n     */\r\n    @GetMapping(\"/free/{surveyId}\")\r\n    public ResponseEntity<List<QuestionDTO>> getFreeQuestionsBySurveyId(@PathVariable(\"surveyId\") Long surveyId) {\r\n        List<QuestionDTO> questionDTOs = questionService.getFreeSurveyQuestions(surveyId);\r\n        return ResponseEntity.ok(questionDTOs);\r\n    }\r\n\r\n    /**\r\n     * ✅ 특정 유저 ID(userId)에 해당하는 질문 조회 (유료 회원 문진 진행)\r\n     */\r\n    @GetMapping(\"/paid/{userId}\")\r\n    public ResponseEntity<List<QuestionDTO>> getPaidQuestionsByUserId(@PathVariable Long userId) {\r\n        List<QuestionDTO> questionDTOs = questionService.getPaidQuestionsByUserId(userId);\r\n        return ResponseEntity.ok(questionDTOs);\r\n    }\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/controller/QuestionController.java b/withme_backend/src/main/java/com/javalab/student/controller/QuestionController.java
+--- a/withme_backend/src/main/java/com/javalab/student/controller/QuestionController.java	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/java/com/javalab/student/controller/QuestionController.java	(date 1739504733577)
+@@ -1,24 +1,26 @@
+ package com.javalab.student.controller;
+ 
+ import com.javalab.student.dto.QuestionDTO;
+-import com.javalab.student.entity.Question;
+ import com.javalab.student.service.QuestionService;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.http.HttpStatus;
+ import org.springframework.http.ResponseEntity;
+ import org.springframework.web.bind.annotation.*;
+ 
+ import java.util.List;
+-import java.util.Optional;
+-import java.util.stream.Collectors;
+ 
+ /**
+  * 질문(Question) 컨트롤러
+- * 설문에 포함된 질문에 대한 요청을 처리하는 REST API 컨트롤러
++ * 설문 질문에 대한 요청을 처리하는 REST API 컨트롤러
+  */
+ @RestController
+ @RequestMapping("/api/questions")
++@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+ public class QuestionController {
+ 
++    private static final Logger logger = LoggerFactory.getLogger(QuestionController.class);
+     private final QuestionService questionService;
+ 
+     @Autowired
+@@ -26,44 +28,62 @@
+         this.questionService = questionService;
+     }
+ 
+-    /**
+-     * ✅ 모든 질문 조회
+-     */
+-    @GetMapping
+-    public ResponseEntity<List<QuestionDTO>> getAllQuestions() {
+-        List<QuestionDTO> questionDTOs = questionService.getAllQuestions();
+-        return ResponseEntity.ok(questionDTOs);
+-    }
++    /** ✅ 특정 주제 ID 리스트로 질문 조회 (무료/유료 문진 공통) */
++    @GetMapping("/topics")
++    public ResponseEntity<?> getQuestionsByTopics(@RequestParam List<Long> topicIds) {
++        try {
++            logger.info("질문 조회 요청 - 주제 IDs: {}", topicIds);
++            List<QuestionDTO> questions = questionService.getQuestionsByTopics(topicIds);
++
++            if (questions.isEmpty()) {
++                logger.warn("선택된 주제에 대한 질문이 없습니다.");
++                return ResponseEntity.status(HttpStatus.NOT_FOUND)
++                        .body("선택된 주제에 대한 질문을 찾을 수 없습니다.");
++            }
++            return ResponseEntity.ok(questions);
+ 
++        } catch (IllegalArgumentException e) {
++            logger.error("주제 선택 오류: {}", e.getMessage());
++            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
++                    .body("선택된 주제가 없습니다: " + e.getMessage());
++        } catch (Exception e) {
++            logger.error("서버 처리 중 오류 발생", e);
++            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
++                    .body("서버 처리 중 오류가 발생했습니다: " + e.getMessage());
++        }
++    }
+ 
++    /** ✅ 무료 문진 질문 조회 */
++    @GetMapping("/free/{id}")
++    public ResponseEntity<?> getFreeQuestions(@PathVariable Long id) {
++        try {
++            logger.info("무료 문진 질문 조회 요청 - ID: {}", id);
++            List<QuestionDTO> questions = questionService.getFreeQuestions(id);
++            if (questions.isEmpty()) {
++                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("무료 문진 질문이 없습니다.");
++            }
++            return ResponseEntity.ok(questions);
++        } catch (Exception e) {
++            logger.error("무료 문진 질문 조회 중 오류 발생", e);
++            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
++                    .body("무료 문진 질문 조회 중 오류가 발생했습니다.");
++        }
++    }
+ 
+-    /**
+-     * ✅ 질문 ID로 질문 조회
+-     */
+-    @GetMapping("/{questionId}")
+-    public ResponseEntity<QuestionDTO> getQuestionById(@PathVariable Long questionId) {
+-        Optional<QuestionDTO> question = questionService.getQuestionById(questionId);
+-        return question.map(ResponseEntity::ok)
+-                .orElseGet(() -> ResponseEntity.notFound().build());
+-    }
+-
+-
+-    /**
+-     * 특정 문진 설문의 질문 목록 조회 (선택지 포함)
+-     */
+-    @GetMapping("/free/{surveyId}")
+-    public ResponseEntity<List<QuestionDTO>> getFreeQuestionsBySurveyId(@PathVariable("surveyId") Long surveyId) {
+-        List<QuestionDTO> questionDTOs = questionService.getFreeSurveyQuestions(surveyId);
+-        return ResponseEntity.ok(questionDTOs);
+-    }
+-
+-    /**
+-     * ✅ 특정 유저 ID(userId)에 해당하는 질문 조회 (유료 회원 문진 진행)
+-     */
+-    @GetMapping("/paid/{userId}")
+-    public ResponseEntity<List<QuestionDTO>> getPaidQuestionsByUserId(@PathVariable Long userId) {
+-        List<QuestionDTO> questionDTOs = questionService.getPaidQuestionsByUserId(userId);
+-        return ResponseEntity.ok(questionDTOs);
++    /** ✅ 유료 문진 질문 조회 */
++    @GetMapping("/paid/{id}")
++    public ResponseEntity<?> getPaidQuestions(@PathVariable Long id) {
++        try {
++            logger.info("유료 문진 질문 조회 요청 - ID: {}", id);
++            List<QuestionDTO> questions = questionService.getPaidQuestions(id);
++            if (questions.isEmpty()) {
++                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("유료 문진 질문이 없습니다.");
++            }
++            return ResponseEntity.ok(questions);
++        } catch (Exception e) {
++            logger.error("유료 문진 질문 조회 중 오류 발생", e);
++            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
++                    .body("유료 문진 질문 조회 중 오류가 발생했습니다.");
++        }
+     }
+-
+-}
+\ No newline at end of file
++}
+Index: withme_backend/src/main/java/com/javalab/student/repository/QuestionRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.repository;\r\n\r\nimport com.javalab.student.entity.Question;\r\nimport org.springframework.data.jpa.repository.EntityGraph;\r\nimport org.springframework.data.jpa.repository.JpaRepository;\r\nimport org.springframework.data.jpa.repository.Query;\r\nimport org.springframework.stereotype.Repository;\r\n\r\nimport java.util.List;\r\n\r\n/**\r\n * 질문 Repository\r\n * Question 엔티티에 대한 CRUD 작업을 처리하는 리포지토리\r\n */\r\n@Repository\r\npublic interface QuestionRepository extends JpaRepository<Question, Long> {\r\n\r\n    /**\r\n     * ✅ 특정 설문 ID와 설문 타입으로 질문 조회 (무료 문진)\r\n     * 선택지(choices)도 함께 가져오도록 LEFT JOIN FETCH 적용\r\n     */\r\n    @Query(\"SELECT DISTINCT q FROM Question q LEFT JOIN FETCH q.choices WHERE q.survey.surveyId = :surveyId AND q.survey.type = :surveyType\")\r\n    List<Question> findBySurvey_SurveyIdAndSurvey_Type(Long surveyId, String surveyType);\r\n\r\n    /**\r\n     * ✅ 특정 주제(SurveyTopic)에 해당하는 질문 조회 (유료 회원 문진)\r\n     * 선택지(choices)도 함께 가져오도록 LEFT JOIN FETCH 적용\r\n     */\r\n    @Query(\"SELECT DISTINCT q FROM Question q LEFT JOIN FETCH q.choices WHERE q.surveyTopic.topicId IN :topicIds\")\r\n    List<Question> findBySurveyTopic_TopicIdIn(List<Long> topicIds);\r\n\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/repository/QuestionRepository.java b/withme_backend/src/main/java/com/javalab/student/repository/QuestionRepository.java
+--- a/withme_backend/src/main/java/com/javalab/student/repository/QuestionRepository.java	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/java/com/javalab/student/repository/QuestionRepository.java	(date 1739505200315)
+@@ -1,11 +1,10 @@
+ package com.javalab.student.repository;
+ 
+ import com.javalab.student.entity.Question;
+-import org.springframework.data.jpa.repository.EntityGraph;
+ import org.springframework.data.jpa.repository.JpaRepository;
+ import org.springframework.data.jpa.repository.Query;
++import org.springframework.data.repository.query.Param;
+ import org.springframework.stereotype.Repository;
+-
+ import java.util.List;
+ 
+ /**
+@@ -16,18 +15,17 @@
+ public interface QuestionRepository extends JpaRepository<Question, Long> {
+ 
+     /**
+-     * ✅ 특정 설문 ID와 설문 타입으로 질문 조회 (무료 문진)
+-     * 선택지(choices)도 함께 가져오도록 LEFT JOIN FETCH 적용
++     * 특정 주제(SurveyTopic)에 해당하는 질문 조회 (무료/유료 문진 공통)
+      */
+-    @Query("SELECT DISTINCT q FROM Question q LEFT JOIN FETCH q.choices WHERE q.survey.surveyId = :surveyId AND q.survey.type = :surveyType")
+-    List<Question> findBySurvey_SurveyIdAndSurvey_Type(Long surveyId, String surveyType);
+-
+-    /**
+-     * ✅ 특정 주제(SurveyTopic)에 해당하는 질문 조회 (유료 회원 문진)
+-     * 선택지(choices)도 함께 가져오도록 LEFT JOIN FETCH 적용
+-     */
+-    @Query("SELECT DISTINCT q FROM Question q LEFT JOIN FETCH q.choices WHERE q.surveyTopic.topicId IN :topicIds")
+     List<Question> findBySurveyTopic_TopicIdIn(List<Long> topicIds);
+ 
++    /**
++     * 특정 토픽 ID에 해당하는 질문 조회 (단일 주제)
++     */
++    @Query("SELECT DISTINCT q FROM Question q " +
++            "LEFT JOIN FETCH q.choices " +
++            "WHERE q.surveyTopic.topicId = :topicId " +
++            "ORDER BY q.seq")
++    List<Question> findBySurveyTopic_TopicId(@Param("topicId") Long topicId);
+ 
+-}
+\ No newline at end of file
++}
+Index: withme_frontend/src/component/survey/FreeSurvey.jsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import React, { useState, useEffect } from \"react\";\r\nimport { useNavigate } from \"react-router-dom\";\r\nimport { useSelector } from \"react-redux\";\r\nimport { API_URL } from \"../../constant\";\r\nimport { fetchWithAuth } from \"../../common/fetchWithAuth.js\";\r\nimport { DataGrid } from \"@mui/x-data-grid\";\r\nimport { Box } from \"@mui/material\";\r\nimport img1 from \"../../image/img1.png\"; // 투명 배경 이미지\r\n\r\nfunction FreeSurveyPage() {\r\n  const [questions, setQuestions] = useState([]);\r\n  const [answers, setAnswers] = useState({});\r\n  const [loading, setLoading] = useState(true);\r\n  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 });\r\n  const navigate = useNavigate();\r\n  const { isLoggedIn } = useSelector((state) => state.auth);\r\n\r\n  useEffect(() => {\r\n    if (!isLoggedIn) {\r\n      alert(\"문진을 진행하려면 로그인이 필요합니다.\");\r\n      navigate(\"/login\");\r\n    }\r\n  }, [isLoggedIn, navigate]);\r\n\r\n  const fetchQuestions = async () => {\r\n    try {\r\n      setLoading(true);\r\n      const response = await fetchWithAuth(`${API_URL}questions/free/1`, { method: \"GET\" });\r\n\r\n      if (response.ok) {\r\n        const data = await response.json();\r\n        const formattedData = data.map((q) => ({\r\n          id: q.questionId,\r\n          questionText: q.questionText,\r\n          seq: q.seq,\r\n          choices: q.choices,\r\n        }));\r\n        setQuestions(formattedData);\r\n      } else {\r\n        console.error(\"❌ 문진 데이터를 불러오지 못했습니다.\", response.status);\r\n      }\r\n    } catch (error) {\r\n      console.error(\"❌ 문진 데이터 요청 중 오류 발생:\", error.message);\r\n    } finally {\r\n      setLoading(false);\r\n    }\r\n  };\r\n\r\n  useEffect(() => {\r\n    if (isLoggedIn) {\r\n      fetchQuestions();\r\n    }\r\n  }, [isLoggedIn]);\r\n\r\n  const handleAnswerChange = (questionId, choiceId, score) => {\r\n    setAnswers((prev) => ({\r\n      ...prev,\r\n      [questionId]: { choiceId, score },\r\n    }));\r\n  };\r\n\r\n  const handleSubmit = () => {\r\n    if (Object.keys(answers).length !== questions.length) {\r\n      alert(\"모든 질문에 답변을 선택해야 합니다!\");\r\n      return;\r\n    }\r\n    const totalScore = Object.values(answers).reduce((sum, answer) => sum + answer.score, 0);\r\n    navigate(\"/survey/free/result\", { state: { answers, totalScore } });\r\n  };\r\n\r\n  const columns = [\r\n    { field: \"seq\", headerName: \"번호\", flex: 0.5, headerAlign: \"center\", align: \"center\" },\r\n    { field: \"questionText\", headerName: \"질문\", flex: 2, headerAlign: \"center\" },\r\n    {\r\n      field: \"choices\",\r\n      headerName: \"선택지\",\r\n      flex: 3,\r\n      headerAlign: \"center\",\r\n      renderCell: (params) => (\r\n        <div style={{\r\n          display: \"flex\",\r\n          flexDirection: \"row\",\r\n          flexWrap: \"wrap\",\r\n          alignItems: \"center\",\r\n          justifyContent: \"center\",\r\n          gap: \"10px\",\r\n          width: \"100%\",\r\n          padding: \"3px\"\r\n        }}>\r\n          {params.row.choices.map((choice) => (\r\n            <label key={choice.choiceId} style={{\r\n              display: \"flex\",\r\n              alignItems: \"center\",\r\n              gap: \"3px\",\r\n              whiteSpace: \"nowrap\",\r\n              fontSize: \"1.1rem\",\r\n            }}>\r\n              <input\r\n                type=\"radio\"\r\n                name={`question-${params.row.id}`}\r\n                value={choice.choiceId}\r\n                onChange={() => handleAnswerChange(params.row.id, choice.choiceId, choice.score)}\r\n                checked={answers[params.row.id]?.choiceId === choice.choiceId}\r\n                style={{\r\n                  transform: \"scale(1.1)\",\r\n                  marginRight: \"3px\",\r\n                }}\r\n              />\r\n              {choice.choiceText}\r\n            </label>\r\n          ))}\r\n        </div>\r\n      ),\r\n    },\r\n  ];\r\n\r\n  return (\r\n    <div className=\"p-4\" style={{ textAlign: \"center\" }}>\r\n      {/* ✅ 이미지와 제목을 가로로 나열 */}\r\n      <div style={{\r\n        display: \"flex\",\r\n        flexDirection: \"row\", // ✅ 가로 정렬\r\n        alignItems: \"center\",\r\n        justifyContent: \"center\",\r\n        gap: \"10px\", // ✅ 이미지와 텍스트 간 간격\r\n        marginBottom: \"10px\"\r\n      }}>\r\n        <img src={img1} alt=\"Survey\" style={{ height: \"60px\" }} /> {/* 이미지 */}\r\n        <h2 style={{\r\n          fontSize: \"2rem\",\r\n          fontWeight: \"bold\",\r\n          color: \"#D67D00\",\r\n          backgroundColor: \"#FFF3E0\",\r\n          padding: \"8px 16px\",\r\n          borderRadius: \"8px\",\r\n        }}>\r\n          무료 문진 검사\r\n        </h2> {/* 제목 */}\r\n      </div>\r\n\r\n      <div style={{ height: 600, width: \"100%\", marginTop: \"10px\" }}>\r\n        <DataGrid\r\n          rows={questions}\r\n          columns={columns}\r\n          getRowId={(row) => row.id}\r\n          disableRowSelectionOnClick\r\n          loading={loading}\r\n          rowHeight={70}\r\n          pagination\r\n          pageSizeOptions={[5, 10, 15]}\r\n          paginationModel={paginationModel}\r\n          onPaginationModelChange={(newModel) => setPaginationModel(newModel)}\r\n          sx={{\r\n            \"& .MuiDataGrid-footerContainer\": {\r\n              display: \"flex\",\r\n              justifyContent: \"center\",\r\n              alignItems: \"center\",\r\n              backgroundColor: \"#FFF3E0\",\r\n              padding: \"8px 0\",\r\n            },\r\n            \"& .MuiTablePagination-root\": {\r\n              display: \"flex\",\r\n              justifyContent: \"center\",\r\n              alignItems: \"center\",\r\n              fontSize: \"1.2rem\",\r\n              fontWeight: \"bold\",\r\n              color: \"#D67D00\",\r\n            },\r\n            \"& .MuiTablePagination-toolbar\": {\r\n              display: \"flex\",\r\n              justifyContent: \"center\",\r\n              alignItems: \"center\",\r\n            },\r\n            \"& .MuiTablePagination-actions\": {\r\n              display: \"flex\",\r\n              justifyContent: \"center\",\r\n              alignItems: \"center\",\r\n              gap: \"8px\",\r\n            }\r\n          }}\r\n        />\r\n      </div>\r\n\r\n      <Box sx={{\r\n        display: \"flex\",\r\n        justifyContent: \"center\",\r\n        alignItems: \"center\",\r\n        padding: \"10px 0\",\r\n        fontSize: \"1.1rem\",\r\n        fontWeight: \"bold\",\r\n        color: \"#D67D00\",\r\n        backgroundColor: \"#FFF3E0\",\r\n        borderRadius: \"8px\",\r\n        marginTop: \"10px\"\r\n      }}>\r\n        <span style={{ marginRight: \"10px\" }}>\uD83D\uDCCB Rows per page: {paginationModel.pageSize}</span>\r\n        <span>\r\n          {paginationModel.page * paginationModel.pageSize + 1} - {Math.min((paginationModel.page + 1) * paginationModel.pageSize, questions.length)} of {questions.length}\r\n        </span>\r\n      </Box>\r\n\r\n      {!loading && (\r\n        <button\r\n          onClick={handleSubmit}\r\n          style={{\r\n            width: \"60%\",\r\n            backgroundColor: \"#FF8C00\",\r\n            color: \"white\",\r\n            padding: \"10px 18px\",\r\n            fontSize: \"1.1rem\",\r\n            borderRadius: \"8px\",\r\n            border: \"none\",\r\n            cursor: \"pointer\",\r\n            transition: \"transform 0.2s ease-in-out\",\r\n            marginTop: \"15px\"\r\n          }}\r\n          onMouseEnter={(e) => e.target.style.transform = \"scale(1.05)\"}\r\n          onMouseLeave={(e) => e.target.style.transform = \"scale(1.0)\"}\r\n        >\r\n          \uD83D\uDE80 문진 완료 & 결과 보기\r\n        </button>\r\n      )}\r\n    </div>\r\n  );\r\n}\r\n\r\nexport default FreeSurveyPage;\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_frontend/src/component/survey/FreeSurvey.jsx b/withme_frontend/src/component/survey/FreeSurvey.jsx
+--- a/withme_frontend/src/component/survey/FreeSurvey.jsx	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_frontend/src/component/survey/FreeSurvey.jsx	(date 1739505532683)
+@@ -5,53 +5,61 @@
+ import { fetchWithAuth } from "../../common/fetchWithAuth.js";
+ import { DataGrid } from "@mui/x-data-grid";
+ import { Box } from "@mui/material";
+-import img1 from "../../image/img1.png"; // 투명 배경 이미지
++import img1 from "../../image/img1.png";
+ 
+ function FreeSurveyPage() {
+   const [questions, setQuestions] = useState([]);
+   const [answers, setAnswers] = useState({});
+   const [loading, setLoading] = useState(true);
+-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 });
+   const navigate = useNavigate();
+   const { isLoggedIn } = useSelector((state) => state.auth);
+ 
+   useEffect(() => {
+-    if (!isLoggedIn) {
+-      alert("문진을 진행하려면 로그인이 필요합니다.");
+-      navigate("/login");
+-    }
+-  }, [isLoggedIn, navigate]);
+-
+-  const fetchQuestions = async () => {
+-    try {
+-      setLoading(true);
+-      const response = await fetchWithAuth(`${API_URL}questions/free/1`, { method: "GET" });
++    const fetchQuestions = async () => {
++      try {
++        const response = await fetchWithAuth(`${API_URL}questions/free/1`, {
++          method: "GET",
++          headers: { "Content-Type": "application/json" },
++          credentials: "include",
++        });
+ 
+-      if (response.ok) {
+-        const data = await response.json();
+-        const formattedData = data.map((q) => ({
+-          id: q.questionId,
+-          questionText: q.questionText,
+-          seq: q.seq,
+-          choices: q.choices,
+-        }));
+-        setQuestions(formattedData);
+-      } else {
+-        console.error("❌ 문진 데이터를 불러오지 못했습니다.", response.status);
+-      }
+-    } catch (error) {
+-      console.error("❌ 문진 데이터 요청 중 오류 발생:", error.message);
+-    } finally {
+-      setLoading(false);
+-    }
+-  };
++        if (response.ok) {
++          const data = await response.json();
++
++          // ✅ 프론트엔드에서 질문 중복 제거
++          const uniqueQuestions = [];
++          const seen = new Set();
++
++          data.forEach((q) => {
++            const key = `${q.seq}-${q.questionText}`;
++            if (!seen.has(key)) {
++              seen.add(key);
++              uniqueQuestions.push({
++                id: q.questionId,
++                questionText: q.questionText,
++                seq: q.seq,
++                choices: q.choices,
++              });
++            }
++          });
++
++          setQuestions(uniqueQuestions);
++        } else {
++          console.error("❌ 문진 데이터를 불러오지 못했습니다.", response.status);
++        }
++      } catch (error) {
++        console.error("❌ 문진 데이터 요청 중 오류 발생:", error.message);
++      } finally {
++        setLoading(false);
++      }
++    };
+ 
+-  useEffect(() => {
+     if (isLoggedIn) {
+       fetchQuestions();
+     }
+   }, [isLoggedIn]);
+ 
++
+   const handleAnswerChange = (questionId, choiceId, score) => {
+     setAnswers((prev) => ({
+       ...prev,
+@@ -77,34 +85,15 @@
+       flex: 3,
+       headerAlign: "center",
+       renderCell: (params) => (
+-        <div style={{
+-          display: "flex",
+-          flexDirection: "row",
+-          flexWrap: "wrap",
+-          alignItems: "center",
+-          justifyContent: "center",
+-          gap: "10px",
+-          width: "100%",
+-          padding: "3px"
+-        }}>
++        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center" }}>
+           {params.row.choices.map((choice) => (
+-            <label key={choice.choiceId} style={{
+-              display: "flex",
+-              alignItems: "center",
+-              gap: "3px",
+-              whiteSpace: "nowrap",
+-              fontSize: "1.1rem",
+-            }}>
++            <label key={`${params.row.id}-${choice.choiceId}`} style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+               <input
+                 type="radio"
+                 name={`question-${params.row.id}`}
+                 value={choice.choiceId}
+                 onChange={() => handleAnswerChange(params.row.id, choice.choiceId, choice.score)}
+                 checked={answers[params.row.id]?.choiceId === choice.choiceId}
+-                style={{
+-                  transform: "scale(1.1)",
+-                  marginRight: "3px",
+-                }}
+               />
+               {choice.choiceText}
+             </label>
+@@ -115,111 +104,13 @@
+   ];
+ 
+   return (
+-    <div className="p-4" style={{ textAlign: "center" }}>
+-      {/* ✅ 이미지와 제목을 가로로 나열 */}
+-      <div style={{
+-        display: "flex",
+-        flexDirection: "row", // ✅ 가로 정렬
+-        alignItems: "center",
+-        justifyContent: "center",
+-        gap: "10px", // ✅ 이미지와 텍스트 간 간격
+-        marginBottom: "10px"
+-      }}>
+-        <img src={img1} alt="Survey" style={{ height: "60px" }} /> {/* 이미지 */}
+-        <h2 style={{
+-          fontSize: "2rem",
+-          fontWeight: "bold",
+-          color: "#D67D00",
+-          backgroundColor: "#FFF3E0",
+-          padding: "8px 16px",
+-          borderRadius: "8px",
+-        }}>
+-          무료 문진 검사
+-        </h2> {/* 제목 */}
++    <div style={{ textAlign: "center" }}>
++      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "10px" }}>
++        <img src={img1} alt="Survey" style={{ height: "60px" }} />
++        <h2 style={{ fontSize: "2rem", fontWeight: "bold", color: "#D67D00", backgroundColor: "#FFF3E0", padding: "8px 16px", borderRadius: "8px" }}>무료 문진 검사</h2>
+       </div>
+-
+-      <div style={{ height: 600, width: "100%", marginTop: "10px" }}>
+-        <DataGrid
+-          rows={questions}
+-          columns={columns}
+-          getRowId={(row) => row.id}
+-          disableRowSelectionOnClick
+-          loading={loading}
+-          rowHeight={70}
+-          pagination
+-          pageSizeOptions={[5, 10, 15]}
+-          paginationModel={paginationModel}
+-          onPaginationModelChange={(newModel) => setPaginationModel(newModel)}
+-          sx={{
+-            "& .MuiDataGrid-footerContainer": {
+-              display: "flex",
+-              justifyContent: "center",
+-              alignItems: "center",
+-              backgroundColor: "#FFF3E0",
+-              padding: "8px 0",
+-            },
+-            "& .MuiTablePagination-root": {
+-              display: "flex",
+-              justifyContent: "center",
+-              alignItems: "center",
+-              fontSize: "1.2rem",
+-              fontWeight: "bold",
+-              color: "#D67D00",
+-            },
+-            "& .MuiTablePagination-toolbar": {
+-              display: "flex",
+-              justifyContent: "center",
+-              alignItems: "center",
+-            },
+-            "& .MuiTablePagination-actions": {
+-              display: "flex",
+-              justifyContent: "center",
+-              alignItems: "center",
+-              gap: "8px",
+-            }
+-          }}
+-        />
+-      </div>
+-
+-      <Box sx={{
+-        display: "flex",
+-        justifyContent: "center",
+-        alignItems: "center",
+-        padding: "10px 0",
+-        fontSize: "1.1rem",
+-        fontWeight: "bold",
+-        color: "#D67D00",
+-        backgroundColor: "#FFF3E0",
+-        borderRadius: "8px",
+-        marginTop: "10px"
+-      }}>
+-        <span style={{ marginRight: "10px" }}>📋 Rows per page: {paginationModel.pageSize}</span>
+-        <span>
+-          {paginationModel.page * paginationModel.pageSize + 1} - {Math.min((paginationModel.page + 1) * paginationModel.pageSize, questions.length)} of {questions.length}
+-        </span>
+-      </Box>
+-
+-      {!loading && (
+-        <button
+-          onClick={handleSubmit}
+-          style={{
+-            width: "60%",
+-            backgroundColor: "#FF8C00",
+-            color: "white",
+-            padding: "10px 18px",
+-            fontSize: "1.1rem",
+-            borderRadius: "8px",
+-            border: "none",
+-            cursor: "pointer",
+-            transition: "transform 0.2s ease-in-out",
+-            marginTop: "15px"
+-          }}
+-          onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
+-          onMouseLeave={(e) => e.target.style.transform = "scale(1.0)"}
+-        >
+-          🚀 문진 완료 & 결과 보기
+-        </button>
+-      )}
++      <DataGrid rows={questions} columns={columns} loading={loading} pagination autoHeight />
++      <button onClick={handleSubmit} style={{ marginTop: "15px", backgroundColor: "#FF8C00", color: "white", padding: "10px 18px", borderRadius: "8px" }}>🚀 문진 완료 & 결과 보기</button>
+     </div>
+   );
+ }
+Index: withme_backend/src/main/java/com/javalab/student/service/QuestionService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.service;\r\n\r\nimport com.javalab.student.dto.QuestionDTO;\r\nimport com.javalab.student.entity.Question;\r\nimport com.javalab.student.entity.UserSelectedTopics;\r\nimport com.javalab.student.repository.QuestionRepository;\r\nimport com.javalab.student.repository.UserSelectedTopicsRepository;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.stereotype.Service;\r\nimport org.springframework.transaction.annotation.Transactional;\r\n\r\nimport java.util.List;\r\nimport java.util.Optional;\r\nimport java.util.stream.Collectors;\r\n\r\n/**\r\n * \uD83D\uDCCC 질문 서비스\r\n * 설문에 포함된 각 질문에 대한 비즈니스 로직을 처리하는 서비스 클래스\r\n */\r\n@Service\r\n@RequiredArgsConstructor  // ✅ 생성자 주입 자동 생성\r\npublic class QuestionService {\r\n\r\n    private final QuestionRepository questionRepository;\r\n    private final UserSelectedTopicsRepository userSelectedTopicsRepository; // ✅ 유료 문진을 위한 Repository 추가\r\n\r\n    /**\r\n     * ✅ 모든 질문 조회 (선택지 포함)\r\n     */\r\n    @Transactional(readOnly = true)\r\n    public List<QuestionDTO> getAllQuestions() {\r\n        return questionRepository.findAll().stream()\r\n                .map(QuestionDTO::fromEntity)\r\n                .collect(Collectors.toList());\r\n    }\r\n\r\n    /**\r\n     * ✅ 질문 ID로 질문 조회 (선택지 포함)\r\n     */\r\n    @Transactional(readOnly = true)\r\n    public Optional<QuestionDTO> getQuestionById(Long questionId) {\r\n        return questionRepository.findById(questionId)\r\n                .map(QuestionDTO::fromEntity);\r\n    }\r\n\r\n    /**\r\n     * ✅ 특정 설문 ID에 해당하는 질문 조회 (무료 문진)\r\n     * 질문과 선택지를 함께 반환하도록 수정\r\n     */\r\n    @Transactional(readOnly = true)\r\n    public List<QuestionDTO> getFreeSurveyQuestions(Long surveyId) {\r\n        return questionRepository.findBySurvey_SurveyIdAndSurvey_Type(surveyId, \"FREE\").stream()\r\n                .map(QuestionDTO::fromEntity)\r\n                .collect(Collectors.toList());\r\n    }\r\n\r\n    /**\r\n     * ✅ 특정 userId에 해당하는 유료 문진 질문 리스트 반환 (선택지 포함)\r\n     */\r\n    @Transactional(readOnly = true)\r\n    public List<QuestionDTO> getPaidQuestionsByUserId(Long userId) {\r\n        // ✅ 유저가 선택한 주제 목록 조회\r\n        List<UserSelectedTopics> selectedTopics = userSelectedTopicsRepository.findAllByMember_Id(userId);\r\n\r\n        // ✅ 선택한 주제의 ID 목록 추출\r\n        List<Long> topicIds = selectedTopics.stream()\r\n                .map(topic -> topic.getSurveyTopic().getTopicId())\r\n                .collect(Collectors.toList());\r\n\r\n        // ✅ 선택한 주제에 해당하는 질문 목록 조회\r\n        return questionRepository.findBySurveyTopic_TopicIdIn(topicIds).stream()\r\n                .map(QuestionDTO::fromEntity)\r\n                .collect(Collectors.toList());\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/service/QuestionService.java b/withme_backend/src/main/java/com/javalab/student/service/QuestionService.java
+--- a/withme_backend/src/main/java/com/javalab/student/service/QuestionService.java	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/java/com/javalab/student/service/QuestionService.java	(date 1739504564092)
+@@ -2,10 +2,10 @@
+ 
+ import com.javalab.student.dto.QuestionDTO;
+ import com.javalab.student.entity.Question;
+-import com.javalab.student.entity.UserSelectedTopics;
+ import com.javalab.student.repository.QuestionRepository;
+-import com.javalab.student.repository.UserSelectedTopicsRepository;
+ import lombok.RequiredArgsConstructor;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
+ 
+@@ -18,15 +18,14 @@
+  * 설문에 포함된 각 질문에 대한 비즈니스 로직을 처리하는 서비스 클래스
+  */
+ @Service
+-@RequiredArgsConstructor  // ✅ 생성자 주입 자동 생성
++@RequiredArgsConstructor
+ public class QuestionService {
+ 
++    private static final Logger logger = LoggerFactory.getLogger(QuestionService.class);
++
+     private final QuestionRepository questionRepository;
+-    private final UserSelectedTopicsRepository userSelectedTopicsRepository; // ✅ 유료 문진을 위한 Repository 추가
+ 
+-    /**
+-     * ✅ 모든 질문 조회 (선택지 포함)
+-     */
++    /** ✅ 모든 질문 조회 */
+     @Transactional(readOnly = true)
+     public List<QuestionDTO> getAllQuestions() {
+         return questionRepository.findAll().stream()
+@@ -34,42 +33,45 @@
+                 .collect(Collectors.toList());
+     }
+ 
+-    /**
+-     * ✅ 질문 ID로 질문 조회 (선택지 포함)
+-     */
++    /** ✅ 질문 ID로 질문 조회 */
+     @Transactional(readOnly = true)
+     public Optional<QuestionDTO> getQuestionById(Long questionId) {
+         return questionRepository.findById(questionId)
+                 .map(QuestionDTO::fromEntity);
+     }
+ 
+-    /**
+-     * ✅ 특정 설문 ID에 해당하는 질문 조회 (무료 문진)
+-     * 질문과 선택지를 함께 반환하도록 수정
+-     */
++    /** ✅ 특정 주제(들) 기반 질문 조회 */
+     @Transactional(readOnly = true)
+-    public List<QuestionDTO> getFreeSurveyQuestions(Long surveyId) {
+-        return questionRepository.findBySurvey_SurveyIdAndSurvey_Type(surveyId, "FREE").stream()
++    public List<QuestionDTO> getQuestionsByTopics(List<Long> topicIds) {
++        if (topicIds == null || topicIds.isEmpty()) {
++            throw new IllegalArgumentException("선택된 주제가 없습니다.");
++        }
++        List<QuestionDTO> questions = questionRepository.findBySurveyTopic_TopicIdIn(topicIds).stream()
+                 .map(QuestionDTO::fromEntity)
+                 .collect(Collectors.toList());
++        logger.info("조회된 질문 수: {}", questions.size());
++        return questions;
+     }
+ 
+-    /**
+-     * ✅ 특정 userId에 해당하는 유료 문진 질문 리스트 반환 (선택지 포함)
+-     */
++    /** ✅ 무료 문진 질문 조회 */
+     @Transactional(readOnly = true)
+-    public List<QuestionDTO> getPaidQuestionsByUserId(Long userId) {
+-        // ✅ 유저가 선택한 주제 목록 조회
+-        List<UserSelectedTopics> selectedTopics = userSelectedTopicsRepository.findAllByMember_Id(userId);
+-
+-        // ✅ 선택한 주제의 ID 목록 추출
+-        List<Long> topicIds = selectedTopics.stream()
+-                .map(topic -> topic.getSurveyTopic().getTopicId())
++    public List<QuestionDTO> getFreeQuestions(Long topicId) {
++        logger.info("무료 문진 질문 조회 - Topic ID: {}", topicId);
++        List<QuestionDTO> questions = questionRepository.findBySurveyTopic_TopicId(topicId).stream()
++                .map(QuestionDTO::fromEntity)
+                 .collect(Collectors.toList());
++        logger.info("무료 문진 질문 수: {}", questions.size());
++        return questions;
++    }
+ 
+-        // ✅ 선택한 주제에 해당하는 질문 목록 조회
+-        return questionRepository.findBySurveyTopic_TopicIdIn(topicIds).stream()
++    /** ✅ 유료 문진 질문 조회 */
++    @Transactional(readOnly = true)
++    public List<QuestionDTO> getPaidQuestions(Long topicId) {
++        logger.info("유료 문진 질문 조회 - Topic ID: {}", topicId);
++        List<QuestionDTO> questions = questionRepository.findBySurveyTopic_TopicId(topicId).stream()
+                 .map(QuestionDTO::fromEntity)
+                 .collect(Collectors.toList());
++        logger.info("유료 문진 질문 수: {}", questions.size());
++        return questions;
+     }
+-}
+\ No newline at end of file
++}
+Index: withme_backend/src/main/java/com/javalab/student/entity/Question.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.entity;\r\n\r\nimport jakarta.persistence.*;\r\nimport lombok.*;\r\nimport com.fasterxml.jackson.annotation.JsonIgnoreProperties;\r\nimport java.util.List;\r\n\r\n/**\r\n * 질문 엔티티\r\n * 설문에 포함된 각 질문에 대한 정보를 저장하는 테이블과 매핑\r\n * 질문 내용, 순서, 질문 유형 및 필수 응답 여부를 포함\r\n */\r\n\r\n@Entity\r\n@Getter\r\n@Setter\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\n@Builder\r\n@Table(name = \"question\")\r\npublic class Question {\r\n\r\n    @Id\r\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\r\n    @Column(name = \"question_id\")\r\n    private Long questionId;\r\n\r\n    @Column(name = \"seq\", nullable = false)\r\n    private Integer seq;\r\n\r\n    @Lob\r\n    @Column(name = \"question_text\", nullable = false)\r\n    private String questionText;\r\n\r\n    @Enumerated(EnumType.STRING)\r\n    @Column(name = \"question_type\", nullable = false)\r\n    private QuestionType questionType;\r\n\r\n    @Column(name = \"is_required\", nullable = false)\r\n    private Boolean isRequired;\r\n\r\n    @ManyToOne(fetch = FetchType.LAZY)\r\n    @JoinColumn(name = \"survey_id\", nullable = false) // ✅ Survey 엔티티와 관계 설정\r\n    private Survey survey; // ✅ 추가\r\n\r\n    @ManyToOne(fetch = FetchType.LAZY)\r\n    @JoinColumn(name = \"topic_id\", nullable = false)\r\n    private SurveyTopic surveyTopic;\r\n\r\n    /** ✅ 질문과 선택지를 연결하는 @OneToMany 관계 추가 */\r\n    @OneToMany(mappedBy = \"question\", cascade = CascadeType.ALL, fetch = FetchType.LAZY)\r\n    @JsonIgnoreProperties(\"question\") // 무한 루프 방지\r\n    @OrderBy(\"seq ASC\") // 선택지 순서 유지\r\n    private List<Choice> choices; // ✅ 추가\r\n\r\n    public enum QuestionType {\r\n        SINGLE_CHOICE, MULTIPLE_CHOICE, TEXT, RATING\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/entity/Question.java b/withme_backend/src/main/java/com/javalab/student/entity/Question.java
+--- a/withme_backend/src/main/java/com/javalab/student/entity/Question.java	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/java/com/javalab/student/entity/Question.java	(date 1739502164688)
+@@ -10,7 +10,6 @@
+  * 설문에 포함된 각 질문에 대한 정보를 저장하는 테이블과 매핑
+  * 질문 내용, 순서, 질문 유형 및 필수 응답 여부를 포함
+  */
+-
+ @Entity
+ @Getter
+ @Setter
+@@ -40,20 +39,20 @@
+     private Boolean isRequired;
+ 
+     @ManyToOne(fetch = FetchType.LAZY)
+-    @JoinColumn(name = "survey_id", nullable = false) // ✅ Survey 엔티티와 관계 설정
+-    private Survey survey; // ✅ 추가
++    @JoinColumn(name = "survey_id", nullable = false)
++    private Survey survey;
+ 
+     @ManyToOne(fetch = FetchType.LAZY)
+     @JoinColumn(name = "topic_id", nullable = false)
+     private SurveyTopic surveyTopic;
+ 
+-    /** ✅ 질문과 선택지를 연결하는 @OneToMany 관계 추가 */
++    /** ✅ 질문과 선택지를 연결하는 @OneToMany 관계 */
+     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+-    @JsonIgnoreProperties("question") // 무한 루프 방지
+-    @OrderBy("seq ASC") // 선택지 순서 유지
+-    private List<Choice> choices; // ✅ 추가
++    @JsonIgnoreProperties("question")
++    @OrderBy("seq ASC")
++    private List<Choice> choices;
+ 
+     public enum QuestionType {
+         SINGLE_CHOICE, MULTIPLE_CHOICE, TEXT, RATING
+     }
+-}
+\ No newline at end of file
++}
+Index: withme_frontend/src/component/Home.jsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import React, { useEffect } from 'react';\r\nimport { useSelector } from \"react-redux\";\r\nimport { Link, useNavigate } from \"react-router-dom\";\r\nimport MainNotice from \"./notice/MainNotice\";\r\nimport './Home.css';\r\nimport { FontAwesomeIcon } from '@fortawesome/react-fontawesome';\r\nimport { faSearch } from '@fortawesome/free-solid-svg-icons';\r\n\r\nfunction Home() {\r\n  const { user, isLoggedIn } = useSelector((state) => state.auth);\r\n  const navigate = useNavigate();\r\n\r\n  const handleSurveyNavigation = (e) => {\r\n    e.preventDefault();\r\n\r\n    if (!isLoggedIn || !user) {\r\n      navigate(\"/login\");\r\n      return;\r\n    }\r\n\r\n    if (user.role === \"PAID\" || user.role === \"VIP\") {\r\n      navigate(\"/survey/paid\");\r\n    } else {\r\n      navigate(\"/survey/free\");\r\n    }\r\n  };\r\n\r\n    useEffect(() => {\r\n    document.body.style.backgroundColor = \"#FEF9F6\";\r\n    return () => {\r\n      document.body.style.backgroundColor = \"\";\r\n    };\r\n    }, []);\r\n\r\n  return (\r\n    <>\r\n      <div className=\"Home\">\r\n        <nav>\r\n          <ul>\r\n            <li><Link to=\"/\">홈</Link></li>\r\n            <li><Link to=\"#\">전체상품</Link></li>\r\n            <li><Link to=\"/notice\">공지사항</Link></li>\r\n            <li><Link to=\"/posts\">커뮤니티</Link></li>\r\n            <li className=\"search-box\">\r\n              <input type=\"text\" placeholder=\"어떤 상품을 찾아볼까요?\" className=\"search-input\" />\r\n              <FontAwesomeIcon icon={faSearch} className=\"search-icon\" />\r\n            </li>\r\n            <li><img src=\"/assets/images/logo.png\" alt=\"로고 이미지\" className=\"footer-logo\" /></li>\r\n          </ul>\r\n        </nav>\r\n\r\n        <div className=\"container\">\r\n          <div className=\"banner\">\r\n            <img src=\"/assets/images/banner.png\" alt=\"배너 이미지\" />\r\n\r\n            <Link to=\"#\" onClick={handleSurveyNavigation} className=\"survey-link\">\r\n              문진하러 가기 &gt;\r\n            </Link>\r\n          </div>\r\n\r\n          <div className=\"item-wrap\">\r\n            <div className=\"notice\">\r\n              <span className=\"red\" style={{ color: \"red\" }}>공지사항</span> \uD83D\uDCE2 <span className=\"line\">|</span> \" 폭설이 내릴 예정이에요 ⛄❄ 눈길 조심! \"\r\n            </div>\r\n\r\n            <div className=\"product-list all-product-list\">\r\n              <p>전체 상품</p>\r\n              <hr />\r\n              <div className=\"products\">\r\n                <ul>\r\n                  {/* 하드코딩된 상품 리스트 */}\r\n                  <li className=\"product-item\">\r\n                    <Link to=\"#\" className=\"productLink\">\r\n                      <img src=\"/assets/images/product/product1.png\" alt=\"상품이미지1\" />\r\n                      <div className=\"product-info\">\r\n                        <h3 className=\"productName\">로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>\r\n                        <p className=\"price\">34,500원</p>\r\n                        <button type=\"button\" className=\"product-btn\">구매하기</button>\r\n                      </div>\r\n                    </Link>\r\n                  </li>\r\n                  <li className=\"product-item\">\r\n                    <Link to=\"#\" className=\"productLink\">\r\n                      <img src=\"/assets/images/product/product2.jpg\" alt=\"상품이미지2\" />\r\n                      <div className=\"product-info\">\r\n                        <h3 className=\"productName\">힐스 다이어트 체중관리 어덜트 스몰포 라이트 (스몰앤미니) 1.5kg</h3>\r\n                        <p className=\"price\">27,800원</p>\r\n                        <button type=\"button\" className=\"product-btn\">구매하기</button>\r\n                      </div>\r\n                    </Link>\r\n                  </li>\r\n                  <li className=\"product-item\">\r\n                    <Link to=\"#\" className=\"productLink\">\r\n                      <img src=\"/assets/images/product/product3.jpg\" alt=\"상품이미지3\" />\r\n                      <div className=\"product-info\">\r\n                        <h3 className=\"productName\">NOW 그레인프리 스몰브리드 어덜트 1.4kg</h3>\r\n                        <p className=\"price\">19,900원</p>\r\n                        <button type=\"button\" className=\"product-btn\">구매하기</button>\r\n                      </div>\r\n                    </Link>\r\n                  </li>\r\n                  <li className=\"product-item\">\r\n                    <Link to=\"#\" className=\"productLink\">\r\n                      <img src=\"/assets/images/product/product4.png\" alt=\"상품이미지4\" />\r\n                      <div className=\"product-info\">\r\n                        <h3 className=\"productName\">로얄캐닌 미니 인도어 어덜트 3kg</h3>\r\n                        <p className=\"price\">44,800원</p>\r\n                        <button type=\"button\" className=\"product-btn\">구매하기</button>\r\n                      </div>\r\n                    </Link>\r\n                  </li>\r\n                </ul>\r\n                <button type=\"button\" className=\"moreBtn\">더 구경하기</button>\r\n              </div>\r\n            </div>\r\n\r\n            {/* 필터링된 상품 리스트 */}\r\n            <div className=\"product-list filtered-product-list\">\r\n              <p>필터링 적용 상품</p>\r\n              <hr />\r\n              <div className=\"membership-overlay\" id=\"membershipOverlay\">\r\n                회원 전용 컨텐츠입니다.<br />\r\n                로그인 후 이용해주세요.\r\n              </div>\r\n              <div className=\"products filtered-products blur\" id=\"productSection\">\r\n                <ul>\r\n                  <li className=\"product-item\">\r\n                    <Link to=\"#\" className=\"productLink\">\r\n                      <img src=\"/assets/images/product/product1.png\" alt=\"상품이미지1\" />\r\n                      <div className=\"product-info\">\r\n                        <h3>로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>\r\n                        <p className=\"price\">34,500원</p>\r\n                        <button type=\"button\" className=\"product-btn\">구매하기</button>\r\n                      </div>\r\n                    </Link>\r\n                  </li>\r\n                  <li className=\"product-item\">\r\n                    <Link to=\"#\" className=\"productLink\">\r\n                      <img src=\"/assets/images/product/product1.png\" alt=\"상품이미지1\" />\r\n                      <div className=\"product-info\">\r\n                        <h3>로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>\r\n                        <p className=\"price\">34,500원</p>\r\n                        <button type=\"button\" className=\"product-btn\">구매하기</button>\r\n                      </div>\r\n                    </Link>\r\n                  </li>\r\n                  <li className=\"product-item\">\r\n                    <Link to=\"#\" className=\"productLink\">\r\n                      <img src=\"/assets/images/product/product1.png\" alt=\"상품이미지1\" />\r\n                      <div className=\"product-info\">\r\n                        <h3>로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>\r\n                        <p className=\"price\">34,500원</p>\r\n                        <button type=\"button\" className=\"product-btn\">구매하기</button>\r\n                      </div>\r\n                    </Link>\r\n                  </li>\r\n                  <li className=\"product-item\">\r\n                    <Link to=\"#\" className=\"productLink\">\r\n                      <img src=\"/assets/images/product/product1.png\" alt=\"상품이미지1\" />\r\n                      <div className=\"product-info\">\r\n                        <h3>로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>\r\n                        <p className=\"price\">34,500원</p>\r\n                        <button type=\"button\" className=\"product-btn\">구매하기</button>\r\n                      </div>\r\n                    </Link>\r\n                  </li>\r\n                </ul>\r\n                <button type=\"button\" className=\"moreBtn\">더 구경하기</button>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </>\r\n  );\r\n}\r\n\r\nexport default Home; // 명시적 default export 추가
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_frontend/src/component/Home.jsx b/withme_frontend/src/component/Home.jsx
+--- a/withme_frontend/src/component/Home.jsx	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_frontend/src/component/Home.jsx	(date 1739500643328)
+@@ -1,36 +1,42 @@
+-import React, { useEffect } from 'react';
++import React from "react";
++import { Box, Card, CardContent, Typography, Button } from "@mui/material";
+ import { useSelector } from "react-redux";
+ import { Link, useNavigate } from "react-router-dom";
+ import MainNotice from "./notice/MainNotice";
+-import './Home.css';
+-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+-import { faSearch } from '@fortawesome/free-solid-svg-icons';
++import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
++import { faSearch } from "@fortawesome/free-solid-svg-icons";
++import "./Home.css";
+ 
+ function Home() {
+-  const { user, isLoggedIn } = useSelector((state) => state.auth);
+-  const navigate = useNavigate();
++  const { user, isLoggedIn } = useSelector((state) => state.auth); // 🔹 로그인 상태 가져오기
++  const navigate = useNavigate(); // 🔹 페이지 이동을 위한 useNavigate 훅
+ 
+-  const handleSurveyNavigation = (e) => {
+-    e.preventDefault();
++  /**
++   * 🚀 "문진하러 가기" 클릭 시 회원 상태에 따라 자동 이동
++   * - 비로그인 상태 → 로그인 페이지 이동
++   * - 무료 회원 → 무료 문진 페이지 이동
++   * - 유료 회원 → 유료 문진 페이지 이동
++   */
++ const handleSurveyNavigation = (e) => {
++   e.preventDefault(); // 기본 링크 동작 방지
+ 
+-    if (!isLoggedIn || !user) {
+-      navigate("/login");
+-      return;
+-    }
++   if (!isLoggedIn || !user) {
++     alert("로그인이 필요합니다.");
++     navigate("/login");
++     return;
++   }
+ 
+-    if (user.role === "PAID" || user.role === "VIP") {
+-      navigate("/survey/paid");
+-    } else {
+-      navigate("/survey/free");
+-    }
+-  };
++   // 🔹 role 값을 대소문자 구분 없이 확인하도록 수정
++   const userRole = user.role?.toUpperCase(); // role 값을 대문자로 변환
++   console.log("확인된 role:", userRole); // 콘솔에서 role 확인
++
++   if (userRole === "VIP" || userRole === "PAID") {
++     navigate("/survey/paid"); // 유료 문진 페이지로 이동
++   } else {
++     navigate("/survey/free"); // 무료 문진 페이지로 이동
++   }
++ };
+ 
+-    useEffect(() => {
+-    document.body.style.backgroundColor = "#FEF9F6";
+-    return () => {
+-      document.body.style.backgroundColor = "";
+-    };
+-    }, []);
+ 
+   return (
+     <>
+@@ -43,7 +49,7 @@
+             <li><Link to="/posts">커뮤니티</Link></li>
+             <li className="search-box">
+               <input type="text" placeholder="어떤 상품을 찾아볼까요?" className="search-input" />
+-              <FontAwesomeIcon icon={faSearch} className="search-icon" />
++              <FontAwesomeIcon icon={faSearch} className="fas fa-search" />
+             </li>
+             <li><img src="/assets/images/logo.png" alt="로고 이미지" className="footer-logo" /></li>
+           </ul>
+@@ -53,6 +59,7 @@
+           <div className="banner">
+             <img src="/assets/images/banner.png" alt="배너 이미지" />
+ 
++            {/* ✅ 기존 디자인 유지: 텍스트 링크 클릭 시 자동 이동 */}
+             <Link to="#" onClick={handleSurveyNavigation} className="survey-link">
+               문진하러 가기 &gt;
+             </Link>
+@@ -63,12 +70,12 @@
+               <span className="red" style={{ color: "red" }}>공지사항</span> 📢 <span className="line">|</span> " 폭설이 내릴 예정이에요 ⛄❄ 눈길 조심! "
+             </div>
+ 
++            {/* 상품 리스트 */}
+             <div className="product-list all-product-list">
+               <p>전체 상품</p>
+               <hr />
+               <div className="products">
+                 <ul>
+-                  {/* 하드코딩된 상품 리스트 */}
+                   <li className="product-item">
+                     <Link to="#" className="productLink">
+                       <img src="/assets/images/product/product1.png" alt="상품이미지1" />
+@@ -85,81 +92,6 @@
+                       <div className="product-info">
+                         <h3 className="productName">힐스 다이어트 체중관리 어덜트 스몰포 라이트 (스몰앤미니) 1.5kg</h3>
+                         <p className="price">27,800원</p>
+-                        <button type="button" className="product-btn">구매하기</button>
+-                      </div>
+-                    </Link>
+-                  </li>
+-                  <li className="product-item">
+-                    <Link to="#" className="productLink">
+-                      <img src="/assets/images/product/product3.jpg" alt="상품이미지3" />
+-                      <div className="product-info">
+-                        <h3 className="productName">NOW 그레인프리 스몰브리드 어덜트 1.4kg</h3>
+-                        <p className="price">19,900원</p>
+-                        <button type="button" className="product-btn">구매하기</button>
+-                      </div>
+-                    </Link>
+-                  </li>
+-                  <li className="product-item">
+-                    <Link to="#" className="productLink">
+-                      <img src="/assets/images/product/product4.png" alt="상품이미지4" />
+-                      <div className="product-info">
+-                        <h3 className="productName">로얄캐닌 미니 인도어 어덜트 3kg</h3>
+-                        <p className="price">44,800원</p>
+-                        <button type="button" className="product-btn">구매하기</button>
+-                      </div>
+-                    </Link>
+-                  </li>
+-                </ul>
+-                <button type="button" className="moreBtn">더 구경하기</button>
+-              </div>
+-            </div>
+-
+-            {/* 필터링된 상품 리스트 */}
+-            <div className="product-list filtered-product-list">
+-              <p>필터링 적용 상품</p>
+-              <hr />
+-              <div className="membership-overlay" id="membershipOverlay">
+-                회원 전용 컨텐츠입니다.<br />
+-                로그인 후 이용해주세요.
+-              </div>
+-              <div className="products filtered-products blur" id="productSection">
+-                <ul>
+-                  <li className="product-item">
+-                    <Link to="#" className="productLink">
+-                      <img src="/assets/images/product/product1.png" alt="상품이미지1" />
+-                      <div className="product-info">
+-                        <h3>로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>
+-                        <p className="price">34,500원</p>
+-                        <button type="button" className="product-btn">구매하기</button>
+-                      </div>
+-                    </Link>
+-                  </li>
+-                  <li className="product-item">
+-                    <Link to="#" className="productLink">
+-                      <img src="/assets/images/product/product1.png" alt="상품이미지1" />
+-                      <div className="product-info">
+-                        <h3>로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>
+-                        <p className="price">34,500원</p>
+-                        <button type="button" className="product-btn">구매하기</button>
+-                      </div>
+-                    </Link>
+-                  </li>
+-                  <li className="product-item">
+-                    <Link to="#" className="productLink">
+-                      <img src="/assets/images/product/product1.png" alt="상품이미지1" />
+-                      <div className="product-info">
+-                        <h3>로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>
+-                        <p className="price">34,500원</p>
+-                        <button type="button" className="product-btn">구매하기</button>
+-                      </div>
+-                    </Link>
+-                  </li>
+-                  <li className="product-item">
+-                    <Link to="#" className="productLink">
+-                      <img src="/assets/images/product/product1.png" alt="상품이미지1" />
+-                      <div className="product-info">
+-                        <h3>로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>
+-                        <p className="price">34,500원</p>
+                         <button type="button" className="product-btn">구매하기</button>
+                       </div>
+                     </Link>
+@@ -175,4 +107,4 @@
+   );
+ }
+ 
+-export default Home; // 명시적 default export 추가
+\ No newline at end of file
++export default Home;
+\ No newline at end of file
+Index: withme_backend/src/main/java/com/javalab/student/dto/QuestionDTO.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.dto;\r\n\r\nimport com.javalab.student.entity.Choice;\r\nimport com.javalab.student.entity.Question;\r\nimport lombok.*;\r\n\r\nimport java.util.List;\r\nimport java.util.stream.Collectors;\r\n\r\n/**\r\n * 질문 DTO\r\n * 설문 질문 정보를 클라이언트와 주고받을 때 사용하는 객체\r\n */\r\n@Getter\r\n@Setter\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\n@Builder\r\npublic class QuestionDTO {\r\n    private Long questionId;  // 질문 ID\r\n    private Integer seq;  // 문항 순서\r\n    private String questionText;  // 질문 내용\r\n    private String questionType;  // ✅ 질문 유형 (ENUM → String 변환)\r\n    private Long topicId; // ✅ 주제 ID (SurveyTopic을 참조)\r\n    private List<ChoiceDTO> choices; // ✅ 선택지 리스트 추가\r\n\r\n    /**\r\n     * ✅ Question 엔티티 → QuestionDTO 변환 메서드\r\n     */\r\n    public static QuestionDTO fromEntity(Question question) {\r\n        return QuestionDTO.builder()\r\n                .questionId(question.getQuestionId())\r\n                .seq(question.getSeq())\r\n                .questionText(question.getQuestionText())\r\n                .questionType(question.getQuestionType().name()) // ENUM → String 변환\r\n                .topicId(question.getSurveyTopic().getTopicId()) // 주제 ID\r\n                .choices(question.getChoices().stream()\r\n                        .map(ChoiceDTO::fromEntity)\r\n                        .collect(Collectors.toList())) // ✅ 선택지 변환\r\n                .build();\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/dto/QuestionDTO.java b/withme_backend/src/main/java/com/javalab/student/dto/QuestionDTO.java
+--- a/withme_backend/src/main/java/com/javalab/student/dto/QuestionDTO.java	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/java/com/javalab/student/dto/QuestionDTO.java	(date 1739501588648)
+@@ -1,6 +1,5 @@
+ package com.javalab.student.dto;
+ 
+-import com.javalab.student.entity.Choice;
+ import com.javalab.student.entity.Question;
+ import lombok.*;
+ 
+@@ -20,23 +19,23 @@
+     private Long questionId;  // 질문 ID
+     private Integer seq;  // 문항 순서
+     private String questionText;  // 질문 내용
+-    private String questionType;  // ✅ 질문 유형 (ENUM → String 변환)
+-    private Long topicId; // ✅ 주제 ID (SurveyTopic을 참조)
+-    private List<ChoiceDTO> choices; // ✅ 선택지 리스트 추가
++    private String questionType;  // 질문 유형 (ENUM → String 변환)
++    private Long topicId; // 주제 ID (SurveyTopic을 참조)
++    private List<ChoiceDTO> choices; // 선택지 리스트
+ 
+     /**
+-     * ✅ Question 엔티티 → QuestionDTO 변환 메서드
++     * Question 엔티티 → QuestionDTO 변환 메서드
+      */
+     public static QuestionDTO fromEntity(Question question) {
+         return QuestionDTO.builder()
+                 .questionId(question.getQuestionId())
+                 .seq(question.getSeq())
+                 .questionText(question.getQuestionText())
+-                .questionType(question.getQuestionType().name()) // ENUM → String 변환
+-                .topicId(question.getSurveyTopic().getTopicId()) // 주제 ID
++                .questionType(question.getQuestionType().name())
++                .topicId(question.getSurveyTopic().getTopicId())
+                 .choices(question.getChoices().stream()
+                         .map(ChoiceDTO::fromEntity)
+-                        .collect(Collectors.toList())) // ✅ 선택지 변환
++                        .collect(Collectors.toList()))
+                 .build();
+     }
+-}
+\ No newline at end of file
++}
+Index: withme_backend/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>spring.application.name=withme\r\nserver.port=8080\r\n\r\nspring.datasource.driver-class-name=net.sf.log4jdbc.sql.jdbcapi.DriverSpy\r\nspring.datasource.url=jdbc:log4jdbc:mariadb://localhost:3306/withme?serverTimezone=UTC&characterEncoding=UTF-8\r\n#spring.datasource.url=jdbc:log4jdbc:mariadb://shop-database.c5kusk0eqd5l.ap-northeast-2.rds.amazonaws.com:3306/shop_social?serverTimezone=UTC&characterEncoding=UTF-8\r\nspring.datasource.username=root\r\nspring.datasource.password=1234\r\n\r\n# HikariCP는 최대 10개의 데이터베이스 연결을 관리\r\nspring.datasource.hikari.maximum-pool-size=10\r\nspring.datasource.hikari.minimum-idle=5\r\nspring.datasource.hikari.connection-timeout=30000\r\nspring.datasource.hikari.idle-timeout=600000\r\nspring.datasource.hikari.max-lifetime=1800000\r\nspring.datasource.hikari.validation-timeout=5000\r\n\r\n#### JPA\r\n#Hibernate는 MariaDB 데이터베이스에 최적화된 데이터베이스 작업을 수행\r\nspring.jpa.database-platform=org.hibernate.dialect.MariaDBDialect\r\n# Entity create mode\r\nspring.jpa.hibernate.ddl-auto=update\r\n\r\n# Hibernate sql show\r\nspring.jpa.show-sql=true\r\nspring.jpa.properties.hibernate.format_sql=true\r\nspring.jpa.properties.hibernate.use_sql_comments=true\r\nlogging.level.org.hibernate.SQL=DEBUG\r\nlogging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE\r\n\r\n# log display format\r\n# 로그 패턴 설정[수정]\r\nspring.output.ansi.enabled=ALWAYS\r\n#logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %msg%n%ex\r\n\r\n# SQL debug\r\n# SQL\r\nlogging.level.jdbc.resultset=error\r\nlogging.level.jdbc.audit=info\r\n# 시큐리티 로그\r\nlogging.level.org.springframework.security=DEBUG\r\n\r\nspring.servlet.multipart.enabled=true\r\n#spring.servlet.multipart.location=C:\\\\upload\r\n\r\n# 프로젝트 내부에 만든 upload 폴더에 파일이 업로드 됨.\r\nspring.servlet.multipart.location=upload/\r\n\r\n# 클라우드타입 배포시 업로드 폴더\r\n#spring.servlet.multipart.location=/app/build/libs/upload\r\n\r\nspring.servlet.multipart.max-request-size=100MB\r\nspring.servlet.multipart.max-file-size=20MB\r\n\r\n## 파일 업로드 경로\r\n# 1. 로컬 서버 파일이 업로드 되어 있는 경로\r\nitemImgLocation=c:/shop/item\r\nuploadPath=file:///c:/shop/\r\n# 2. AWS File Upload Path\r\n#com.javalab.boot.upload.path=/home/ec2-user/shop/upload\r\n# 3. 클라우드 배포시 업로드 경로 변수\r\n#com.javalab.boot.upload.path=/app/build/libs/upload\r\n\r\n# 어플리케이션의 url 요청과 매핑되어 있는 핸들러 정보 display\r\nlogging.level.org.springframework.web=DEBUG\r\n# logging.level.org.springframework.security=trace\r\nlogging.level.org.springframework.web.servlet.mvc.method.annotation=TRACE\r\n\r\n# 기본 batch size 설정, 주문이 5건이면 일반적으로 5번의 주문 아이템에 대한 조회 쿼리가 발생합니다.\r\n# 이때 batch size를 1000으로 설정하면 5번의 조회 쿼리 대신 1번의 조회 쿼리로 처리할 수 있습니다.\r\n# 이렇게 설정하면 성능이 향상됩니다. 예를들면 in 쿼리로 처리됩니다. in (1,2,3,4,5)\r\nspring.jpa.properties.hibernate.default_batch_fetch_size=10\r\n\r\n# Redis 설정\r\n# Redis 서버의 호스트 주소 (로컬에서 실행 중인 Redis 사용)\r\nspring.data.redis.host=localhost\r\n# Redis 서버의 포트 번호 (기본값: 6379)\r\nspring.data.redis.port=6379\r\n# Redis 서버 접속 시 필요한 비밀번호 (설정되지 않은 경우 빈 값)\r\nspring.data.redis.password=\r\n# Redis 연결 타임아웃 (밀리초 단위, 6000ms = 6초)\r\nspring.data.redis.timeout=6000\r\n\r\n\r\n\r\n## kakao social login 사용자를 카카오 인증 서버로 리다이렉트하기 위한 초기 단계를 구성 ##\r\n# 1. 사용자가 우리 로그인 페이지에서 <a href=\"/oauth2/authorization/kakao\">KAKAO</a> 클릭\r\n# 2. 스프링 시큐리티 OAuth2 가 1.번 요청을 가로채서 사용자를 카카오의 인증 URI로 설정된\r\n#   https://kauth.kakao.com/oauth/authorize로 리디렉트 시킨다.\r\n# 3. 카카오는 다시 사용자의 카카오 소셜 로그인 인증 여부에 따라서 사용자를\r\n#    https://accounts.kakao.com/login 페이지로 리디렉트 시킨다. 만약 카카오 소셜로그인 인증이\r\n#    이미 있는 경우에는 바로 인가코드를 우리 서버로 전달한다.\r\n# 4. 사용자가 카카오 소셜로그인 화면에서 아이디와 비밀번호를 입력하고 로그인 버튼을 누르면\r\n#   우리 서버와 카카오 서버간의 인증 절차가 시작된다.\r\n# 4.1. 카카오 인증 서버는 우리 앱에 설정한 client-id를 확인하고 인가코드를 전달해준다.\r\n#   인가코드는 우리가 설정해놓은 Redirect Url(http://localhost:8080/login/oauth2/code/kakao)로 전달된다.\r\n# 4.2. 4.1.에서 받은 인가코드와 우리가 설정해놓은 client-secret 키를 카카오의 인증서버인\r\n#   https://kauth.kakao.com/oauth/token 에 액세스 토큰을 요청하고 카카오 인증 서버가 액세스 토큰을 반환.\r\n# 5. Spring Security가 액세스 토큰을 사용해 https://kapi.kakao.com/v2/user/me에서 사용자 정보를 요청.\r\n# 6. 사용자 정보를 가져와 인증 객체 생성 및 스프링 컨텍스트에 저장.\r\n# 7. 사용자가 로그인 후 리디렉션 설정에 따라 적절한 페이지로 이동\r\n# 카카오는 스프링 시큐리티에게 인증 코드를 전달한다.\r\nspring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize\r\nspring.security.oauth2.client.provider.kakao.user-name-attribute=id\r\nspring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token\r\nspring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me\r\nspring.security.oauth2.client.registration.kakao.client-name=kakao\r\nspring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code\r\n\r\n## 카카오 소셜 로그인\r\n# 1. 소셜 로그인 로컬 서버 - 로그인 성공후 \"인가코드\"가 리디렉션될 주소(카카오 소셜 로그인을 로컬에서 사용)\r\n#spring.security.oauth2.client.registration.kakao.redirect_uri=http://localhost:8080/login/oauth2/code/kakao\r\n# 2. 소셜 로그인(클라우드타입 배포시 사용)\r\n#spring.security.oauth2.client.registration.kakao.redirect_uri=https://port-0-chap10-shopping-static-7xwyjq992lliwmu004.sel4.cloudtype.app/login/oauth2/code/kakao\r\n#3. 소셜 로그인(AWS 배포시 사용)\r\nspring.security.oauth2.client.registration.kakao.redirect_uri=http://ec2-54-180-123-29.ap-northeast-2.compute.amazonaws.com:8080/login/oauth2/code/kakao\r\n\r\n# REST API 키(인가 코드 발급시 필요)\r\n#spring.security.oauth2.client.registration.kakao.client-id=590e7a5908a3d8be922470b69386d10d\r\nspring.security.oauth2.client.registration.kakao.client-id=77d58adc16668d3dc863b6b599b46c70\r\n# 인가코드와 이 비밀키를 이옹해서 액세스 토큰을 발급받는다. 액세스 토큰이 있어야 카카오 사용자 정보 조회 가능\r\nspring.security.oauth2.client.registration.kakao.client-secret=Gz2jzrL7wFcbYyIexuWd1Fd2h1lrUDxL\r\nspring.security.oauth2.client.registration.kakao.client-authentication-method=client_secret_post\r\nspring.security.oauth2.client.registration.kakao.scope=profile_nickname,account_email\r\n\r\n# JWT 설정\r\njwt.issuer=ajufresh@gmail.com\r\n# jwt 만들고/파싱할때 사용할 키로 사용자가 임의로 설정할 수 있다. 이 키를 설정함으로 인해서 암/복호화시 해킹을 방지할 수 있다.\r\njwt.secret_key=study-springboot\r\n#jwt.expiration_time=86400000\r\n\r\n\r\nspring.mvc.throw-exception-if-no-handler-found=true\r\nspring.web.resources.add-mappings=false\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>NATIVE_TO_ASCII_UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/resources/application.properties b/withme_backend/src/main/resources/application.properties
+--- a/withme_backend/src/main/resources/application.properties	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/resources/application.properties	(date 1739496965139)
+@@ -132,3 +132,4 @@
+ 
+ spring.mvc.throw-exception-if-no-handler-found=true
+ spring.web.resources.add-mappings=false
++spring.jackson.serialization.fail-on-empty-beans=false
+Index: withme_frontend/src/component/survey/PaidSurvey.jsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import React, { useEffect, useState } from \"react\";\r\nimport { useLocation, useNavigate } from \"react-router-dom\";\r\nimport { useSelector } from \"react-redux\";\r\nimport { API_URL } from \"../../constant\";\r\nimport { fetchWithAuth } from \"../../common/fetchWithAuth.js\";\r\nimport { DataGrid } from \"@mui/x-data-grid\";\r\nimport { LinearProgress, Button } from \"@mui/material\";\r\n\r\nconst PaidSurveyPage = () => {\r\n  const location = useLocation();\r\n  const navigate = useNavigate();\r\n  const user = useSelector((state) => state.auth.user);\r\n  const selectedTopics = location.state?.selectedTopics || [];\r\n  const [questions, setQuestions] = useState([]);\r\n  const [answers, setAnswers] = useState({});\r\n  const [currentTopicIndex, setCurrentTopicIndex] = useState(0);\r\n  const [currentQuestions, setCurrentQuestions] = useState([]);\r\n  const [groupedQuestions, setGroupedQuestions] = useState({});\r\n  const [loading, setLoading] = useState(true);\r\n  const [error, setError] = useState(null);\r\n\r\n  useEffect(() => {\r\n    if (!location.state?.selectedTopics) {\r\n      navigate(\"/survey/paid/selection\");\r\n      return;\r\n    }\r\n    if (!user || selectedTopics.length === 0) {\r\n      alert(\"문진을 진행하려면 주제를 선택해야 합니다.\");\r\n      navigate(\"/survey/paid/selection\");\r\n      return;\r\n    }\r\n    const fetchQuestions = async () => {\r\n      setLoading(true);\r\n      try {\r\n        const response = await fetchWithAuth(`${API_URL}questions/paid?topics=${selectedTopics.join(',')}`);\r\n        if (!response.ok) throw new Error(\"질문을 불러오는데 실패했습니다.\");\r\n        const data = await response.json();\r\n        if (!Array.isArray(data)) throw new Error(\"데이터 형식이 올바르지 않습니다.\");\r\n        const grouped = selectedTopics.reduce((acc, topic) => {\r\n          acc[topic] = data.filter(q => String(q.topicId) === String(topic));\r\n          return acc;\r\n        }, {});\r\n        setGroupedQuestions(grouped);\r\n        setQuestions(data);\r\n        setCurrentQuestions(grouped[selectedTopics[0]] || []);\r\n      } catch (error) {\r\n        console.error(\"질문 로딩 오류:\", error);\r\n        setError(error.message);\r\n      } finally {\r\n        setLoading(false);\r\n      }\r\n    };\r\n    fetchQuestions();\r\n  }, [user, selectedTopics, navigate, location.state]);\r\n\r\n  const handleAnswerChange = (questionId, choiceId, index) => {\r\n    const score = 5 - index;\r\n    setAnswers(prev => ({ ...prev, [questionId]: { choiceId, score } }));\r\n  };\r\n\r\n  const handleSubmit = () => {\r\n    if (!user) {\r\n      alert(\"로그인이 필요합니다.\");\r\n      navigate(\"/login\");\r\n      return;\r\n    }\r\n    const allAnswered = questions.every(q => answers[q.questionId]);\r\n    if (!allAnswered) {\r\n      alert(\"모든 문제에 답해주세요.\");\r\n      return;\r\n    }\r\n    const topicScores = selectedTopics.map(topic => {\r\n      const topicQuestions = groupedQuestions[topic];\r\n      const topicScore = topicQuestions.reduce((sum, q) => sum + (answers[q.questionId]?.score || 0), 0);\r\n      return { topic, score: topicScore };\r\n    });\r\n    navigate(\"/survey/paid/result\", { state: { topicScores } });\r\n  };\r\n\r\n  const handleNext = () => {\r\n    const unansweredQuestion = currentQuestions.find(q => !answers[q.questionId]);\r\n    if (unansweredQuestion) {\r\n      alert(\"현재 주제의 모든 문제에 답해주세요.\");\r\n      return;\r\n    }\r\n    if (currentTopicIndex < selectedTopics.length - 1) {\r\n      const nextTopic = selectedTopics[currentTopicIndex + 1];\r\n      setCurrentTopicIndex(prev => prev + 1);\r\n      setCurrentQuestions(groupedQuestions[nextTopic] || []);\r\n    }\r\n  };\r\n\r\n  const handlePrev = () => {\r\n    if (currentTopicIndex > 0) {\r\n      const prevTopic = selectedTopics[currentTopicIndex - 1];\r\n      setCurrentTopicIndex(prev => prev - 1);\r\n      setCurrentQuestions(groupedQuestions[prevTopic] || []);\r\n    }\r\n  };\r\n\r\n  const columns = [\r\n    { field: \"seq\", headerName: \"번호\", flex: 0.5, headerAlign: \"center\", align: \"center\" },\r\n    { field: \"questionText\", headerName: \"질문\", flex: 2, headerAlign: \"center\", align: \"center\" },\r\n    {\r\n      field: \"choices\",\r\n      headerName: \"선택지\",\r\n      flex: 3,\r\n      headerAlign: \"center\", align: \"center\",\r\n      renderCell: (params) => (\r\n        <div style={{ display: \"flex\", flexDirection: \"row\", gap: \"10px\" }}>\r\n          {params.row.choices.map((choice, index) => (\r\n            <label key={choice.choiceId} style={{ display: \"flex\", alignItems: \"center\" }}>\r\n              <input\r\n                type=\"radio\"\r\n                name={`question-${params.row.questionId}`}\r\n                value={choice.choiceId}\r\n                onChange={() => handleAnswerChange(params.row.questionId, choice.choiceId, index)}\r\n                checked={answers[params.row.questionId]?.choiceId === choice.choiceId}\r\n              />\r\n              {choice.choiceText}\r\n            </label>\r\n          ))}\r\n        </div>\r\n      ),\r\n    },\r\n  ];\r\n\r\n  if (loading) {\r\n    return (\r\n      <div className=\"p-6\" style={{ textAlign: \"center\" }}>\r\n        <h2>데이터를 불러오는 중...</h2>\r\n        <LinearProgress />\r\n      </div>\r\n    );\r\n  }\r\n  if (error) {\r\n    return (\r\n      <div className=\"p-6\" style={{ textAlign: \"center\" }}>\r\n        <h2>오류가 발생했습니다</h2>\r\n        <p>{error}</p>\r\n        <Button onClick={() => window.location.reload()} variant=\"contained\">다시 시도</Button>\r\n      </div>\r\n    );\r\n  }\r\n\r\n  const numberedQuestions = currentQuestions.map((q, index) => ({\r\n    ...q,\r\n    seq: index + 1,\r\n    id: q.questionId\r\n  }));\r\n\r\n  return (\r\n    <div className=\"p-4\" style={{ textAlign: \"center\", maxWidth: \"1200px\", margin: \"0 auto\" }}>\r\n      <h2 style={{\r\n        fontSize: \"2.5rem\",\r\n        fontWeight: \"bold\",\r\n        color: \"#D67D00\",\r\n        backgroundColor: \"#FFF3E0\",\r\n        padding: \"10px 20px\",\r\n        borderRadius: \"10px\",\r\n        display: \"inline-block\",\r\n        marginBottom: \"20px\"\r\n      }}>\r\n        \uD83D\uDCDD 유료 문진 검사\r\n      </h2>\r\n      <div style={{ marginBottom: \"20px\" }}>\r\n        <div style={{ marginBottom: \"15px\", fontSize: \"1.2rem\", fontWeight: \"bold\" }}>\r\n          현재 주제: {selectedTopics[currentTopicIndex]} ({currentTopicIndex + 1} / {selectedTopics.length})\r\n        </div>\r\n        <LinearProgress\r\n          variant=\"determinate\"\r\n          value={((currentTopicIndex + 1) / selectedTopics.length) * 100}\r\n          sx={{\r\n            height: \"16px\",\r\n            borderRadius: \"8px\",\r\n            backgroundColor: \"#FFE0B2\",\r\n            '& .MuiLinearProgress-bar': {\r\n              backgroundColor: \"#FF8C00\"\r\n            }\r\n          }}\r\n        />\r\n      </div>\r\n      <div style={{ height: 700, width: \"100%\", marginTop: \"20px\" }}>\r\n        {currentQuestions.length > 0 ? (\r\n          <DataGrid\r\n            rows={numberedQuestions}\r\n            columns={columns}\r\n            hideFooter={true}\r\n            disableRowSelectionOnClick\r\n            sx={{\r\n              \"& .MuiDataGrid-columnHeaders\": {\r\n                fontSize: \"1.2rem\",\r\n                fontWeight: \"bold\",\r\n                backgroundColor: \"#FFB74D\", // ✅ 주황색 배경\r\n                color: \"#fff\",\r\n                textAlign: \"center\"\r\n              },\r\n              \"& .MuiDataGrid-cell\": {\r\n                fontSize: \"1rem\",\r\n                textAlign: \"center\"\r\n              },\r\n              \"@media (max-width: 768px)\": {\r\n                \"& .MuiDataGrid-columnHeaders\": { fontSize: \"1rem\" },\r\n                \"& .MuiDataGrid-cell\": { fontSize: \"0.9rem\" }\r\n              }\r\n            }}\r\n          />\r\n        ) : (\r\n          <div>이 주제에 대한 문제가 없습니다.</div>\r\n        )}\r\n      </div>\r\n      <div style={{ marginTop: \"20px\", display: \"flex\", justifyContent: \"space-between\", flexWrap: \"wrap\" }}>\r\n        <Button\r\n          onClick={handlePrev}\r\n          disabled={currentTopicIndex === 0}\r\n          sx={{\r\n            backgroundColor: \"#FFE0B2\", // ✅ 연한 주황색\r\n            color: \"#D67D00\",\r\n            fontSize: \"1.1rem\",\r\n            width: \"48%\",  // ✅ 반씩 자리 차지\r\n            \"&:hover\": { backgroundColor: \"#FFB74D\" }, // ✅ 호버 시 진한 주황색\r\n            margin: \"5px\"\r\n          }}\r\n        >\r\n          이전 주제\r\n        </Button>\r\n        {currentTopicIndex < selectedTopics.length - 1 ? (\r\n          <Button\r\n            onClick={handleNext}\r\n            sx={{\r\n              backgroundColor: \"#FF8C00\", // ✅ 진한 주황색\r\n              color: \"white\",\r\n              fontSize: \"1.1rem\",\r\n              width: \"48%\",  // ✅ 반씩 자리 차지\r\n              \"&:hover\": { backgroundColor: \"#FF7043\" }, // ✅ 호버 시 더 진하게\r\n              margin: \"5px\"\r\n            }}\r\n          >\r\n            다음 주제\r\n          </Button>\r\n        ) : (\r\n          <Button\r\n            onClick={handleSubmit}\r\n            sx={{\r\n              backgroundColor: \"#FF8C00\",\r\n              color: \"white\",\r\n              fontSize: \"1.1rem\",\r\n              width: \"48%\",\r\n              \"&:hover\": { backgroundColor: \"#FF7043\" },\r\n              margin: \"5px\"\r\n            }}\r\n          >\r\n            제출하기\r\n          </Button>\r\n        )}\r\n      </div>\r\n    </div>\r\n  );\r\n};\r\n\r\nexport default PaidSurveyPage;\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_frontend/src/component/survey/PaidSurvey.jsx b/withme_frontend/src/component/survey/PaidSurvey.jsx
+--- a/withme_frontend/src/component/survey/PaidSurvey.jsx	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_frontend/src/component/survey/PaidSurvey.jsx	(date 1739497128657)
+@@ -1,10 +1,8 @@
+-import React, { useEffect, useState } from "react";
++import { useState, useEffect } from "react";
+ import { useLocation, useNavigate } from "react-router-dom";
+ import { useSelector } from "react-redux";
+ import { API_URL } from "../../constant";
+ import { fetchWithAuth } from "../../common/fetchWithAuth.js";
+-import { DataGrid } from "@mui/x-data-grid";
+-import { LinearProgress, Button } from "@mui/material";
+ 
+ const PaidSurveyPage = () => {
+   const location = useLocation();
+@@ -13,245 +11,111 @@
+   const selectedTopics = location.state?.selectedTopics || [];
+   const [questions, setQuestions] = useState([]);
+   const [answers, setAnswers] = useState({});
+-  const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
+-  const [currentQuestions, setCurrentQuestions] = useState([]);
+-  const [groupedQuestions, setGroupedQuestions] = useState({});
+-  const [loading, setLoading] = useState(true);
+-  const [error, setError] = useState(null);
++  const [currentIndex, setCurrentIndex] = useState(0);
+ 
+   useEffect(() => {
+-    if (!location.state?.selectedTopics) {
+-      navigate("/survey/paid/selection");
+-      return;
+-    }
+     if (!user || selectedTopics.length === 0) {
+       alert("문진을 진행하려면 주제를 선택해야 합니다.");
+-      navigate("/survey/paid/selection");
++      navigate("/survey/paid");
+       return;
+     }
++
+     const fetchQuestions = async () => {
+-      setLoading(true);
+       try {
+-        const response = await fetchWithAuth(`${API_URL}questions/paid?topics=${selectedTopics.join(',')}`);
+-        if (!response.ok) throw new Error("질문을 불러오는데 실패했습니다.");
+-        const data = await response.json();
+-        if (!Array.isArray(data)) throw new Error("데이터 형식이 올바르지 않습니다.");
+-        const grouped = selectedTopics.reduce((acc, topic) => {
+-          acc[topic] = data.filter(q => String(q.topicId) === String(topic));
+-          return acc;
+-        }, {});
+-        setGroupedQuestions(grouped);
+-        setQuestions(data);
+-        setCurrentQuestions(grouped[selectedTopics[0]] || []);
++        const response = await fetchWithAuth(
++          `${API_URL}questions/paid?topics=${selectedTopics.join(',')}`,
++          { method: "GET" }
++        );
++
++        if (response.ok) {
++          const data = await response.json();
++          const sortedData = data.sort((a, b) => a.seq - b.seq);
++          setQuestions(sortedData);
++        } else {
++          console.error("❌ 질문 데이터를 불러오지 못했습니다.", response.status);
++        }
+       } catch (error) {
+-        console.error("질문 로딩 오류:", error);
+-        setError(error.message);
+-      } finally {
+-        setLoading(false);
++        console.error("❌ 질문 데이터 요청 중 오류 발생:", error.message);
+       }
+     };
++
+     fetchQuestions();
+-  }, [user, selectedTopics, navigate, location.state]);
++  }, [selectedTopics, user, navigate]);
++
++  const handleAnswerChange = (questionId, score) => {
++    setAnswers((prev) => ({ ...prev, [questionId]: score }));
++  };
+ 
+-  const handleAnswerChange = (questionId, choiceId, index) => {
+-    const score = 5 - index;
+-    setAnswers(prev => ({ ...prev, [questionId]: { choiceId, score } }));
++  const handleNext = () => {
++    if (!answers[questions[currentIndex]?.questionId]) {
++      alert("응답을 선택해주세요.");
++      return;
++    }
++    setCurrentIndex((prev) => prev + 1);
+   };
+ 
+-  const handleSubmit = () => {
++  const handlePrev = () => setCurrentIndex((prev) => prev - 1);
++
++  const handleSubmit = async () => {
+     if (!user) {
+       alert("로그인이 필요합니다.");
+       navigate("/login");
+       return;
+     }
+-    const allAnswered = questions.every(q => answers[q.questionId]);
+-    if (!allAnswered) {
+-      alert("모든 문제에 답해주세요.");
+-      return;
+-    }
+-    const topicScores = selectedTopics.map(topic => {
+-      const topicQuestions = groupedQuestions[topic];
+-      const topicScore = topicQuestions.reduce((sum, q) => sum + (answers[q.questionId]?.score || 0), 0);
+-      return { topic, score: topicScore };
+-    });
+-    navigate("/survey/paid/result", { state: { topicScores } });
+-  };
+ 
+-  const handleNext = () => {
+-    const unansweredQuestion = currentQuestions.find(q => !answers[q.questionId]);
+-    if (unansweredQuestion) {
+-      alert("현재 주제의 모든 문제에 답해주세요.");
+-      return;
+-    }
+-    if (currentTopicIndex < selectedTopics.length - 1) {
+-      const nextTopic = selectedTopics[currentTopicIndex + 1];
+-      setCurrentTopicIndex(prev => prev + 1);
+-      setCurrentQuestions(groupedQuestions[nextTopic] || []);
+-    }
+-  };
++    const requestBody = { userId: user.id, answers };
++
++    try {
++      const response = await fetchWithAuth(`${API_URL}responses/paid`, {
++        method: "POST",
++        body: JSON.stringify(requestBody),
++      });
+ 
+-  const handlePrev = () => {
+-    if (currentTopicIndex > 0) {
+-      const prevTopic = selectedTopics[currentTopicIndex - 1];
+-      setCurrentTopicIndex(prev => prev - 1);
+-      setCurrentQuestions(groupedQuestions[prevTopic] || []);
++      if (response.ok) navigate("/survey/paid/result", { state: { answers } });
++      else console.error("❌ 응답 제출 실패:", response.status);
++    } catch (error) {
++      console.error("❌ 응답 제출 중 오류 발생:", error.message);
+     }
+   };
+ 
+-  const columns = [
+-    { field: "seq", headerName: "번호", flex: 0.5, headerAlign: "center", align: "center" },
+-    { field: "questionText", headerName: "질문", flex: 2, headerAlign: "center", align: "center" },
+-    {
+-      field: "choices",
+-      headerName: "선택지",
+-      flex: 3,
+-      headerAlign: "center", align: "center",
+-      renderCell: (params) => (
+-        <div style={{ display: "flex", flexDirection: "row", gap: "10px" }}>
+-          {params.row.choices.map((choice, index) => (
+-            <label key={choice.choiceId} style={{ display: "flex", alignItems: "center" }}>
+-              <input
+-                type="radio"
+-                name={`question-${params.row.questionId}`}
+-                value={choice.choiceId}
+-                onChange={() => handleAnswerChange(params.row.questionId, choice.choiceId, index)}
+-                checked={answers[params.row.questionId]?.choiceId === choice.choiceId}
+-              />
+-              {choice.choiceText}
+-            </label>
+-          ))}
+-        </div>
+-      ),
+-    },
+-  ];
+-
+-  if (loading) {
+-    return (
+-      <div className="p-6" style={{ textAlign: "center" }}>
+-        <h2>데이터를 불러오는 중...</h2>
+-        <LinearProgress />
+-      </div>
+-    );
+-  }
+-  if (error) {
+-    return (
+-      <div className="p-6" style={{ textAlign: "center" }}>
+-        <h2>오류가 발생했습니다</h2>
+-        <p>{error}</p>
+-        <Button onClick={() => window.location.reload()} variant="contained">다시 시도</Button>
+-      </div>
+-    );
+-  }
+-
+-  const numberedQuestions = currentQuestions.map((q, index) => ({
+-    ...q,
+-    seq: index + 1,
+-    id: q.questionId
+-  }));
+-
+-  return (
+-    <div className="p-4" style={{ textAlign: "center", maxWidth: "1200px", margin: "0 auto" }}>
+-      <h2 style={{
+-        fontSize: "2.5rem",
+-        fontWeight: "bold",
+-        color: "#D67D00",
+-        backgroundColor: "#FFF3E0",
+-        padding: "10px 20px",
+-        borderRadius: "10px",
+-        display: "inline-block",
+-        marginBottom: "20px"
+-      }}>
+-        📝 유료 문진 검사
+-      </h2>
+-      <div style={{ marginBottom: "20px" }}>
+-        <div style={{ marginBottom: "15px", fontSize: "1.2rem", fontWeight: "bold" }}>
+-          현재 주제: {selectedTopics[currentTopicIndex]} ({currentTopicIndex + 1} / {selectedTopics.length})
++  return (
++    <div className="p-6">
++      <h2 className="text-2xl font-bold mb-4 text-center text-blue-600">📝 유료 문진 검사</h2>
++      <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
++        <div
++          className="bg-blue-500 h-3 rounded-full transition-all"
++          style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
++        ></div>
++      </div>
++      <p className="mb-4 text-gray-600 text-center">질문 순서 {currentIndex + 1} / {questions.length}</p>
++      {questions.length > 0 ? (
++        <div key={questions[currentIndex].questionId} className="mb-6 p-4 bg-gray-100 rounded-md shadow-sm">
++          <p className="font-semibold text-lg mb-3">{questions[currentIndex].questionText}</p>
++          <div className="flex flex-col gap-2">
++            {questions[currentIndex].choices.map((choice) => (
++              <label key={choice.choiceId} className="cursor-pointer">
++                <input
++                  type="radio"
++                  name={`question-${questions[currentIndex].questionId}`}
++                  value={choice.score}
++                  onChange={() => handleAnswerChange(questions[currentIndex].questionId, choice.score)}
++                  className="mr-2"
++                  checked={answers[questions[currentIndex].questionId] === choice.score}
++                />
++                {choice.choiceText}
++              </label>
++            ))}
++          </div>
+         </div>
+-        <LinearProgress
+-          variant="determinate"
+-          value={((currentTopicIndex + 1) / selectedTopics.length) * 100}
+-          sx={{
+-            height: "16px",
+-            borderRadius: "8px",
+-            backgroundColor: "#FFE0B2",
+-            '& .MuiLinearProgress-bar': {
+-              backgroundColor: "#FF8C00"
+-            }
+-          }}
+-        />
+-      </div>
+-      <div style={{ height: 700, width: "100%", marginTop: "20px" }}>
+-        {currentQuestions.length > 0 ? (
+-          <DataGrid
+-            rows={numberedQuestions}
+-            columns={columns}
+-            hideFooter={true}
+-            disableRowSelectionOnClick
+-            sx={{
+-              "& .MuiDataGrid-columnHeaders": {
+-                fontSize: "1.2rem",
+-                fontWeight: "bold",
+-                backgroundColor: "#FFB74D", // ✅ 주황색 배경
+-                color: "#fff",
+-                textAlign: "center"
+-              },
+-              "& .MuiDataGrid-cell": {
+-                fontSize: "1rem",
+-                textAlign: "center"
+-              },
+-              "@media (max-width: 768px)": {
+-                "& .MuiDataGrid-columnHeaders": { fontSize: "1rem" },
+-                "& .MuiDataGrid-cell": { fontSize: "0.9rem" }
+-              }
+-            }}
+-          />
+-        ) : (
+-          <div>이 주제에 대한 문제가 없습니다.</div>
+-        )}
+-      </div>
+-      <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
+-        <Button
+-          onClick={handlePrev}
+-          disabled={currentTopicIndex === 0}
+-          sx={{
+-            backgroundColor: "#FFE0B2", // ✅ 연한 주황색
+-            color: "#D67D00",
+-            fontSize: "1.1rem",
+-            width: "48%",  // ✅ 반씩 자리 차지
+-            "&:hover": { backgroundColor: "#FFB74D" }, // ✅ 호버 시 진한 주황색
+-            margin: "5px"
+-          }}
+-        >
+-          이전 주제
+-        </Button>
+-        {currentTopicIndex < selectedTopics.length - 1 ? (
+-          <Button
+-            onClick={handleNext}
+-            sx={{
+-              backgroundColor: "#FF8C00", // ✅ 진한 주황색
+-              color: "white",
+-              fontSize: "1.1rem",
+-              width: "48%",  // ✅ 반씩 자리 차지
+-              "&:hover": { backgroundColor: "#FF7043" }, // ✅ 호버 시 더 진하게
+-              margin: "5px"
+-            }}
+-          >
+-            다음 주제
+-          </Button>
++      ) : (
++        <p className="text-center text-gray-600">문진 질문을 불러오는 중...</p>
++      )}
++      <div className="flex justify-between mt-6">
++        <button onClick={handlePrev} className={`bg-gray-500 text-white px-6 py-3 rounded ${currentIndex === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-600"}`} disabled={currentIndex === 0}>이전</button>
++        {currentIndex < questions.length - 1 ? (
++          <button onClick={handleNext} className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600">다음</button>
+         ) : (
+-          <Button
+-            onClick={handleSubmit}
+-            sx={{
+-              backgroundColor: "#FF8C00",
+-              color: "white",
+-              fontSize: "1.1rem",
+-              width: "48%",
+-              "&:hover": { backgroundColor: "#FF7043" },
+-              margin: "5px"
+-            }}
+-          >
+-            제출하기
+-          </Button>
++          <button onClick={handleSubmit} className="bg-green-500 text-white px-6 py-3 rounded hover:bg-green-600">마침</button>
+         )}
+       </div>
+     </div>
+Index: withme_backend/src/main/java/com/javalab/student/repository/UserSelectedTopicsRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.repository;\r\n\r\nimport com.javalab.student.entity.UserSelectedTopics;\r\nimport org.springframework.data.jpa.repository.JpaRepository;\r\nimport org.springframework.stereotype.Repository;\r\n\r\nimport java.util.List;\r\n\r\n@Repository\r\npublic interface UserSelectedTopicsRepository extends JpaRepository<UserSelectedTopics, Long> {\r\n\r\n    /**\r\n     * ✅ 특정 회원(userId)이 선택한 모든 주제 조회\r\n     */\r\n    List<UserSelectedTopics> findAllByMember_Id(Long userId); // ✅ userId → id 로 변경\r\n\r\n    /**\r\n     * ✅ 특정 회원(userId)이 특정 주제(topicId)를 선택했는지 확인\r\n     */\r\n    boolean existsByMember_IdAndSurveyTopic_TopicId(Long userId, Long topicId);\r\n\r\n    /**\r\n     * ✅ 특정 회원(userId)의 특정 주제(topicId) 선택 삭제\r\n     */\r\n    void deleteByMember_IdAndSurveyTopic_TopicId(Long userId, Long topicId); // ✅ userId → id 로 변경\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/repository/UserSelectedTopicsRepository.java b/withme_backend/src/main/java/com/javalab/student/repository/UserSelectedTopicsRepository.java
+--- a/withme_backend/src/main/java/com/javalab/student/repository/UserSelectedTopicsRepository.java	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/java/com/javalab/student/repository/UserSelectedTopicsRepository.java	(date 1739496419221)
+@@ -2,6 +2,8 @@
+ 
+ import com.javalab.student.entity.UserSelectedTopics;
+ import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.data.jpa.repository.Query;
++import org.springframework.data.repository.query.Param;
+ import org.springframework.stereotype.Repository;
+ 
+ import java.util.List;
+@@ -10,17 +12,23 @@
+ public interface UserSelectedTopicsRepository extends JpaRepository<UserSelectedTopics, Long> {
+ 
+     /**
+-     * ✅ 특정 회원(userId)이 선택한 모든 주제 조회
++     * 특정 회원(userId)이 선택한 모든 주제 조회
+      */
+-    List<UserSelectedTopics> findAllByMember_Id(Long userId); // ✅ userId → id 로 변경
++    List<UserSelectedTopics> findAllByMember_Id(Long userId);
+ 
+     /**
+-     * ✅ 특정 회원(userId)이 특정 주제(topicId)를 선택했는지 확인
++     * 특정 회원(userId)이 특정 주제(topicId)를 선택했는지 확인
+      */
+     boolean existsByMember_IdAndSurveyTopic_TopicId(Long userId, Long topicId);
+ 
+     /**
+-     * ✅ 특정 회원(userId)의 특정 주제(topicId) 선택 삭제
++     * 특정 회원(userId)의 특정 주제(topicId) 선택 삭제
+      */
+-    void deleteByMember_IdAndSurveyTopic_TopicId(Long userId, Long topicId); // ✅ userId → id 로 변경
++    void deleteByMember_IdAndSurveyTopic_TopicId(Long userId, Long topicId);
++
++    /**
++     * 특정 사용자의 선택된 토픽 ID 목록 조회
++     */
++    @Query("SELECT ust.surveyTopic.topicId FROM UserSelectedTopics ust WHERE ust.member.id = :userId")
++    List<Long> findTopicIdsByUserId(@Param("userId") Long userId);
+ }
+\ No newline at end of file
+Index: withme_backend/src/main/java/com/javalab/student/entity/Choice.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.entity;\r\n\r\nimport jakarta.persistence.*;\r\nimport lombok.*;\r\n\r\n/**\r\n * 선택지 엔티티\r\n * 각 질문에 대한 선택지를 저장하는 테이블과 매핑\r\n * 선택지 텍스트와 점수 등을 포함\r\n */\r\n@Entity\r\n@Getter\r\n@Setter\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\n@Builder\r\n@Table(name = \"choice\")\r\npublic class Choice {\r\n\r\n    @Id\r\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\r\n    @Column(name = \"choice_id\")\r\n    private Long choiceId; // 선택지 ID\r\n\r\n    @ManyToOne(fetch = FetchType.LAZY)\r\n    @JoinColumn(name = \"question_id\", nullable = false)\r\n    private Question question; // 해당 선택지가 속한 질문\r\n\r\n    @Column(name = \"choice_text\", nullable = false, length = 255)\r\n    private String choiceText; // 선택지 텍스트\r\n\r\n    @Column(name = \"score\", nullable = false)\r\n    private Integer score; // 선택지 점수\r\n\r\n    @Column(name = \"seq\", nullable = false)\r\n    private Integer seq; // 선택지 순서\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/entity/Choice.java b/withme_backend/src/main/java/com/javalab/student/entity/Choice.java
+--- a/withme_backend/src/main/java/com/javalab/student/entity/Choice.java	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/java/com/javalab/student/entity/Choice.java	(date 1739502206478)
+@@ -2,6 +2,7 @@
+ 
+ import jakarta.persistence.*;
+ import lombok.*;
++import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+ 
+ /**
+  * 선택지 엔티티
+@@ -24,6 +25,7 @@
+ 
+     @ManyToOne(fetch = FetchType.LAZY)
+     @JoinColumn(name = "question_id", nullable = false)
++    @JsonIgnoreProperties("choices")  // Question 엔티티와의 무한 루프 방지
+     private Question question; // 해당 선택지가 속한 질문
+ 
+     @Column(name = "choice_text", nullable = false, length = 255)
+@@ -34,4 +36,4 @@
+ 
+     @Column(name = "seq", nullable = false)
+     private Integer seq; // 선택지 순서
+-}
+\ No newline at end of file
++}
+Index: withme_backend/src/main/java/com/javalab/student/entity/SurveyTopic.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.entity;\r\n\r\nimport jakarta.persistence.*;\r\nimport lombok.*;\r\n\r\n@Entity\r\n@Getter\r\n@Setter\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\n@Builder\r\n@Table(name = \"survey_topic\")\r\npublic class SurveyTopic {\r\n\r\n    @Id\r\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\r\n    @Column(name = \"topic_id\")\r\n    private Long topicId;\r\n\r\n    @ManyToOne(fetch = FetchType.LAZY)\r\n    @JoinColumn(name = \"survey_id\", nullable = false)  // survey_id와 연결\r\n    private Survey survey;  // 연관된 설문\r\n\r\n    @Column(name = \"topic_name\", nullable = false, length = 255)\r\n    private String topicName;  // 주제명\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/entity/SurveyTopic.java b/withme_backend/src/main/java/com/javalab/student/entity/SurveyTopic.java
+--- a/withme_backend/src/main/java/com/javalab/student/entity/SurveyTopic.java	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/java/com/javalab/student/entity/SurveyTopic.java	(date 1739497067967)
+@@ -1,5 +1,6 @@
+ package com.javalab.student.entity;
+ 
++import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+ import jakarta.persistence.*;
+ import lombok.*;
+ 
+@@ -10,6 +11,7 @@
+ @AllArgsConstructor
+ @Builder
+ @Table(name = "survey_topic")
++@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+ public class SurveyTopic {
+ 
+     @Id
+Index: withme_frontend/src/component/survey/PaidSurveySelection.jsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { useState, useEffect } from \"react\";\r\nimport { useNavigate } from \"react-router-dom\";\r\nimport axios from \"axios\";\r\nimport { useSelector } from \"react-redux\";\r\nimport { API_URL } from \"../../constant\";\r\n\r\nconst PaidSurveySelectionPage = () => {\r\n  const [topics, setTopics] = useState([]); // ✅ 문진 주제 목록\r\n  const [selectedTopics, setSelectedTopics] = useState([]); // ✅ 선택된 주제 목록\r\n  const navigate = useNavigate();\r\n  const user = useSelector((state) => state.auth.user);\r\n\r\n  const token = localStorage.getItem(\"token\");\r\n  const config = {\r\n    headers: {\r\n      Authorization: token ? `Bearer ${token}` : \"\", // ✅ JWT 포함\r\n    },\r\n    withCredentials: true,\r\n  };\r\n\r\n  useEffect(() => {\r\n    if (!user || !user.id) {\r\n      console.error(\"\uD83D\uDEA8 유저 정보 없음! 로그인 필요!\");\r\n      navigate(\"/login\");\r\n      return;\r\n    }\r\n\r\n    console.log(\"\uD83D\uDD0D 로그인된 사용자 정보:\", user);\r\n    fetchSurveyTopics();\r\n    fetchSelectedTopics(user.id);\r\n  }, [user]);\r\n\r\n  const fetchSurveyTopics = () => {\r\n    axios\r\n      .get(`${API_URL}survey-topics/paid/2`, config)\r\n      .then((response) => {\r\n        console.log(\"유료 문진 주제 목록:\", response.data);\r\n        setTopics(response.data);\r\n      })\r\n      .catch((error) => {\r\n        console.error(\"❌ 문진 주제를 불러오지 못했습니다.\", error);\r\n        if (error.response && error.response.status === 401) {\r\n          console.error(\"\uD83D\uDD12 인증 문제! 다시 로그인 필요\");\r\n          navigate(\"/login\");\r\n        }\r\n      });\r\n  };\r\n\r\n  const fetchSelectedTopics = (userId) => {\r\n    axios\r\n      .get(`${API_URL}user-selected-topics/${userId}`, config)\r\n      .then((response) => {\r\n        console.log(\"✅ 사용자 선택 주제:\", response.data);\r\n        setSelectedTopics(response.data.map((item) => item.topicId));\r\n      })\r\n      .catch((error) => console.error(\"❌ 사용자 선택 주제 불러오기 실패:\", error));\r\n  };\r\n\r\n  /**\r\n   * ✅ 개별 체크박스 선택/해제\r\n   */\r\n  const handleTopicChange = (topicId) => {\r\n    setSelectedTopics((prevSelected) =>\r\n      prevSelected.includes(topicId)\r\n        ? prevSelected.filter((id) => id !== topicId)\r\n        : [...prevSelected, topicId]\r\n    );\r\n  };\r\n\r\n  /**\r\n   * ✅ 전체 선택/해제 기능\r\n   */\r\n  const handleSelectAll = () => {\r\n    if (selectedTopics.length === topics.length) {\r\n      setSelectedTopics([]);\r\n    } else {\r\n      setSelectedTopics(topics.map((topic) => topic.topicId));\r\n    }\r\n  };\r\n\r\n  return (\r\n    <div className=\"p-6\">\r\n      <h2 className=\"text-xl font-bold mb-4\">유료 문진 검사 주제 선택</h2>\r\n      <p className=\"mb-2 text-gray-600\">문진을 진행할 주제를 선택하세요.</p>\r\n\r\n      {/* ✅ 전체 선택 체크박스 */}\r\n      <label className=\"flex items-center space-x-2 font-bold mb-3\">\r\n        <input\r\n          type=\"checkbox\"\r\n          checked={selectedTopics.length === topics.length}\r\n          onChange={handleSelectAll}\r\n        />\r\n        <span>전체 선택</span>\r\n      </label>\r\n\r\n      {/* ✅ 주제 선택 목록 */}\r\n      {topics.length === 0 ? (\r\n        <p>❗ 문진 주제를 불러오지 못했습니다.</p>\r\n      ) : (\r\n        <ul>\r\n          {topics.map((topic) => (\r\n            <li key={topic.topicId} className=\"flex items-center space-x-2\">\r\n              <input\r\n                type=\"checkbox\"\r\n                value={topic.topicId}\r\n                checked={selectedTopics.includes(topic.topicId)}\r\n                onChange={() => handleTopicChange(topic.topicId)}\r\n              />\r\n              <span>{topic.topicName}</span>\r\n            </li>\r\n          ))}\r\n        </ul>\r\n      )}\r\n\r\n      {/* ✅ 선택한 주제 목록 */}\r\n      {selectedTopics.length > 0 && (\r\n        <div className=\"mt-4 p-4 border border-gray-300 rounded\">\r\n          <h3 className=\"text-lg font-semibold mb-2\">선택한 주제:</h3>\r\n          <ul className=\"list-disc pl-5\">\r\n            {topics\r\n              .filter((topic) => selectedTopics.includes(topic.topicId))\r\n              .map((topic) => (\r\n                <li key={topic.topicId} className=\"text-blue-600\">\r\n                  {topic.topicName}\r\n                </li>\r\n              ))}\r\n          </ul>\r\n        </div>\r\n      )}\r\n    </div>\r\n  );\r\n};\r\n\r\nexport default PaidSurveySelectionPage;\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_frontend/src/component/survey/PaidSurveySelection.jsx b/withme_frontend/src/component/survey/PaidSurveySelection.jsx
+--- a/withme_frontend/src/component/survey/PaidSurveySelection.jsx	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_frontend/src/component/survey/PaidSurveySelection.jsx	(date 1739492926270)
+@@ -5,130 +5,176 @@
+ import { API_URL } from "../../constant";
+ 
+ const PaidSurveySelectionPage = () => {
+-  const [topics, setTopics] = useState([]); // ✅ 문진 주제 목록
+-  const [selectedTopics, setSelectedTopics] = useState([]); // ✅ 선택된 주제 목록
+-  const navigate = useNavigate();
+-  const user = useSelector((state) => state.auth.user);
++ const [topics, setTopics] = useState([]);
++ const [selectedTopics, setSelectedTopics] = useState([]);
++ const navigate = useNavigate();
++
++ // Redux store에서 올바른 이름으로 상태 가져오기
++ const { user, isLoggedIn } = useSelector((state) => state.auth);
+ 
+-  const token = localStorage.getItem("token");
+-  const config = {
+-    headers: {
+-      Authorization: token ? `Bearer ${token}` : "", // ✅ JWT 포함
+-    },
+-    withCredentials: true,
+-  };
++ const token = localStorage.getItem("token");
++ const config = {
++   headers: {
++     Authorization: token ? `Bearer ${token}` : "",
++     'Content-Type': 'application/json'
++   },
++   withCredentials: true,
++ };
+ 
+-  useEffect(() => {
+-    if (!user || !user.id) {
+-      console.error("🚨 유저 정보 없음! 로그인 필요!");
+-      navigate("/login");
+-      return;
+-    }
++ useEffect(() => {
++   // 로그인 상태 체크
++   if (!isLoggedIn || !user || !token) {
++     console.error("🚨 유저 정보 없음! 로그인 필요!");
++     navigate("/login");
++     return;
++   }
+ 
+-    console.log("🔍 로그인된 사용자 정보:", user);
+-    fetchSurveyTopics();
+-    fetchSelectedTopics(user.id);
+-  }, [user]);
++   console.log("🔍 로그인된 사용자 정보:", user);
++   console.log("🔑 토큰:", token);
++
++   fetchSurveyTopics();
++   fetchSelectedTopics(user.id); // user.id 사용
++ }, [user, isLoggedIn]);
+ 
+-  const fetchSurveyTopics = () => {
+-    axios
+-      .get(`${API_URL}survey-topics/paid/2`, config)
+-      .then((response) => {
+-        console.log("유료 문진 주제 목록:", response.data);
+-        setTopics(response.data);
+-      })
+-      .catch((error) => {
+-        console.error("❌ 문진 주제를 불러오지 못했습니다.", error);
+-        if (error.response && error.response.status === 401) {
+-          console.error("🔒 인증 문제! 다시 로그인 필요");
+-          navigate("/login");
+-        }
+-      });
+-  };
++ const fetchSurveyTopics = () => {
++   axios
++     .get(`${API_URL}survey-topics/paid/2`, config)
++     .then((response) => {
++       console.log("유료 문진 주제 목록:", response.data);
++       if (Array.isArray(response.data)) {
++         setTopics(response.data.map(topic => ({
++           topicId: topic.topicId,
++           topicName: topic.topicName,
++           surveyId: topic.surveyId
++         })));
++       }
++     })
++     .catch((error) => {
++       console.error("❌ 문진 주제를 불러오지 못했습니다.", error);
++       if (error.response) {
++         console.log("서버 응답:", error.response.data);
++         if (error.response.status === 401) {
++           console.error("🔒 인증 문제! 다시 로그인 필요");
++           navigate("/login");
++         }
++       }
++     });
++ };
+ 
+-  const fetchSelectedTopics = (userId) => {
+-    axios
+-      .get(`${API_URL}user-selected-topics/${userId}`, config)
+-      .then((response) => {
+-        console.log("✅ 사용자 선택 주제:", response.data);
+-        setSelectedTopics(response.data.map((item) => item.topicId));
+-      })
+-      .catch((error) => console.error("❌ 사용자 선택 주제 불러오기 실패:", error));
+-  };
++ const fetchSelectedTopics = (userId) => {
++   axios
++     .get(`${API_URL}user-selected-topics/${userId}`, config)
++     .then((response) => {
++       console.log("✅ 사용자 선택 주제:", response.data);
++       if (Array.isArray(response.data)) {
++         setSelectedTopics(response.data.map((item) => item.topicId));
++       }
++     })
++     .catch((error) => {
++       console.error("❌ 사용자 선택 주제 불러오기 실패:", error);
++       if (error.response && error.response.status === 401) {
++         navigate("/login");
++       }
++     });
++ };
+ 
+-  /**
+-   * ✅ 개별 체크박스 선택/해제
+-   */
+-  const handleTopicChange = (topicId) => {
+-    setSelectedTopics((prevSelected) =>
+-      prevSelected.includes(topicId)
+-        ? prevSelected.filter((id) => id !== topicId)
+-        : [...prevSelected, topicId]
+-    );
+-  };
++ /**
++  * ✅ 개별 체크박스 선택/해제
++  */
++ const handleTopicChange = (topicId) => {
++   setSelectedTopics((prevSelected) =>
++     prevSelected.includes(topicId)
++       ? prevSelected.filter((id) => id !== topicId)
++       : [...prevSelected, topicId]
++   );
++ };
+ 
+-  /**
+-   * ✅ 전체 선택/해제 기능
+-   */
+-  const handleSelectAll = () => {
+-    if (selectedTopics.length === topics.length) {
+-      setSelectedTopics([]);
+-    } else {
+-      setSelectedTopics(topics.map((topic) => topic.topicId));
+-    }
+-  };
++ /**
++  * ✅ 전체 선택/해제 기능
++  */
++ const handleSelectAll = () => {
++   if (selectedTopics.length === topics.length) {
++     setSelectedTopics([]);
++   } else {
++     setSelectedTopics(topics.map((topic) => topic.topicId));
++   }
++ };
+ 
+-  return (
+-    <div className="p-6">
+-      <h2 className="text-xl font-bold mb-4">유료 문진 검사 주제 선택</h2>
+-      <p className="mb-2 text-gray-600">문진을 진행할 주제를 선택하세요.</p>
++ /**
++  * ✅ 문진 시작 처리
++  */
++ const handleStartSurvey = () => {
++   if (selectedTopics.length === 0) {
++     alert("최소 한 개 이상의 주제를 선택해야 합니다.");
++     return;
++   }
++   navigate("/survey/paid", { state: { selectedTopics } });
++ };
++
++ return (
++   <div className="p-6">
++     <h2 className="text-xl font-bold mb-4">유료 문진 검사 주제 선택</h2>
++     <p className="mb-2 text-gray-600">문진을 진행할 주제를 선택하세요.</p>
+ 
+-      {/* ✅ 전체 선택 체크박스 */}
+-      <label className="flex items-center space-x-2 font-bold mb-3">
+-        <input
+-          type="checkbox"
+-          checked={selectedTopics.length === topics.length}
+-          onChange={handleSelectAll}
+-        />
+-        <span>전체 선택</span>
+-      </label>
++     {/* ✅ 전체 선택 체크박스 */}
++     <label className="flex items-center space-x-2 font-bold mb-3">
++       <input
++         type="checkbox"
++         checked={selectedTopics.length === topics.length}
++         onChange={handleSelectAll}
++       />
++       <span>전체 선택</span>
++     </label>
+ 
+-      {/* ✅ 주제 선택 목록 */}
+-      {topics.length === 0 ? (
+-        <p>❗ 문진 주제를 불러오지 못했습니다.</p>
+-      ) : (
+-        <ul>
+-          {topics.map((topic) => (
+-            <li key={topic.topicId} className="flex items-center space-x-2">
+-              <input
+-                type="checkbox"
+-                value={topic.topicId}
+-                checked={selectedTopics.includes(topic.topicId)}
+-                onChange={() => handleTopicChange(topic.topicId)}
+-              />
+-              <span>{topic.topicName}</span>
+-            </li>
+-          ))}
+-        </ul>
+-      )}
++     {/* ✅ 주제 선택 목록 */}
++     {topics.length === 0 ? (
++       <p>❗ 문진 주제를 불러오지 못했습니다.</p>
++     ) : (
++       <ul>
++         {topics.map((topic) => (
++           <li key={topic.topicId} className="flex items-center space-x-2">
++             <input
++               type="checkbox"
++               value={topic.topicId}
++               checked={selectedTopics.includes(topic.topicId)}
++               onChange={() => handleTopicChange(topic.topicId)}
++             />
++             <span>{topic.topicName}</span>
++           </li>
++         ))}
++       </ul>
++     )}
+ 
+-      {/* ✅ 선택한 주제 목록 */}
+-      {selectedTopics.length > 0 && (
+-        <div className="mt-4 p-4 border border-gray-300 rounded">
+-          <h3 className="text-lg font-semibold mb-2">선택한 주제:</h3>
+-          <ul className="list-disc pl-5">
+-            {topics
+-              .filter((topic) => selectedTopics.includes(topic.topicId))
+-              .map((topic) => (
+-                <li key={topic.topicId} className="text-blue-600">
+-                  {topic.topicName}
+-                </li>
+-              ))}
+-          </ul>
+-        </div>
+-      )}
+-    </div>
+-  );
++     {/* ✅ 선택한 주제 목록 */}
++     {selectedTopics.length > 0 && (
++       <div className="mt-4 p-4 border border-gray-300 rounded">
++         <h3 className="text-lg font-semibold mb-2">선택한 주제:</h3>
++         <ul className="list-disc pl-5">
++           {topics
++             .filter((topic) => selectedTopics.includes(topic.topicId))
++             .map((topic) => (
++               <li key={topic.topicId} className="text-blue-600">
++                 {topic.topicName}
++               </li>
++             ))}
++         </ul>
++       </div>
++     )}
++
++     {/* ✅ 문진 시작 버튼 */}
++     <button
++       onClick={handleStartSurvey}
++       disabled={selectedTopics.length === 0}
++       className={`mt-4 px-6 py-2 rounded ${
++         selectedTopics.length === 0
++           ? 'bg-gray-400 cursor-not-allowed'
++           : 'bg-blue-500 hover:bg-blue-600'
++       } text-white transition`}
++     >
++       문진 시작
++     </button>
++   </div>
++ );
+ };
+ 
+-export default PaidSurveySelectionPage;
++export default PaidSurveySelectionPage;
+\ No newline at end of file
+Index: withme_backend/src/main/java/com/javalab/student/entity/UserSelectedTopics.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.entity;\r\n\r\nimport jakarta.persistence.*;\r\nimport lombok.*;\r\n\r\nimport java.io.Serializable;\r\n\r\n/**\r\n * \uD83D\uDCCC 사용자 선택 주제 엔티티 (UserSelectedTopics)\r\n * - 특정 사용자가 선택한 설문 주제를 저장\r\n * - 복합 키(user_id, topic_id)를 사용\r\n */\r\n@Getter\r\n@Setter\r\n@NoArgsConstructor\r\n@Entity\r\n@Table(name = \"user_selected_topics\")\r\npublic class UserSelectedTopics {\r\n\r\n    @Embeddable\r\n    @EqualsAndHashCode\r\n    @NoArgsConstructor\r\n    @AllArgsConstructor\r\n    public static class UserSelectedTopicsId implements Serializable {\r\n        @Column(name = \"user_id\")\r\n        private Long userId;\r\n\r\n        @Column(name = \"topic_id\")\r\n        private Long topicId;\r\n    }\r\n\r\n    @EmbeddedId\r\n    private UserSelectedTopicsId id; // 복합 키 사용\r\n\r\n    @ManyToOne\r\n    @MapsId(\"userId\")  // 복합 키의 userId와 매핑\r\n    @JoinColumn(name = \"user_id\", nullable = false)\r\n    private Member member;  // 기존 user → member로 변경\r\n\r\n    @ManyToOne\r\n    @MapsId(\"topicId\")  // 복합 키의 topicId와 매핑\r\n    @JoinColumn(name = \"topic_id\", nullable = false)\r\n    private SurveyTopic surveyTopic;\r\n\r\n    public UserSelectedTopics(Member member, SurveyTopic surveyTopic) {\r\n        this.id = new UserSelectedTopicsId(member.getId(), surveyTopic.getTopicId());\r\n        this.member = member;\r\n        this.surveyTopic = surveyTopic;\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/entity/UserSelectedTopics.java b/withme_backend/src/main/java/com/javalab/student/entity/UserSelectedTopics.java
+--- a/withme_backend/src/main/java/com/javalab/student/entity/UserSelectedTopics.java	(revision 58eb450aadbe3ce2875de9e5fcd983e5c04e051b)
++++ b/withme_backend/src/main/java/com/javalab/student/entity/UserSelectedTopics.java	(date 1739502703655)
+@@ -2,11 +2,10 @@
+ 
+ import jakarta.persistence.*;
+ import lombok.*;
+-
+ import java.io.Serializable;
+ 
+ /**
+- * 📌 사용자 선택 주제 엔티티 (UserSelectedTopics)
++ * 사용자 선택 주제 엔티티 (UserSelectedTopics)
+  * - 특정 사용자가 선택한 설문 주제를 저장
+  * - 복합 키(user_id, topic_id)를 사용
+  */
+@@ -15,36 +14,37 @@
+ @NoArgsConstructor
+ @Entity
+ @Table(name = "user_selected_topics")
++@IdClass(UserSelectedTopics.UserSelectedTopicsId.class) // 복합 키 매핑
+ public class UserSelectedTopics {
+ 
+-    @Embeddable
+-    @EqualsAndHashCode
+-    @NoArgsConstructor
+-    @AllArgsConstructor
+-    public static class UserSelectedTopicsId implements Serializable {
+-        @Column(name = "user_id")
+-        private Long userId;
++    @Id
++    @Column(name = "user_id")
++    private Long userId;
+ 
+-        @Column(name = "topic_id")
+-        private Long topicId;
+-    }
++    @Id
++    @Column(name = "topic_id")
++    private Long topicId;
+ 
+-    @EmbeddedId
+-    private UserSelectedTopicsId id; // 복합 키 사용
++    @ManyToOne(fetch = FetchType.LAZY)
++    @JoinColumn(name = "user_id", insertable = false, updatable = false)
++    private Member member;
+ 
+-    @ManyToOne
+-    @MapsId("userId")  // 복합 키의 userId와 매핑
+-    @JoinColumn(name = "user_id", nullable = false)
+-    private Member member;  // 기존 user → member로 변경
+-
+-    @ManyToOne
+-    @MapsId("topicId")  // 복합 키의 topicId와 매핑
+-    @JoinColumn(name = "topic_id", nullable = false)
++    @ManyToOne(fetch = FetchType.LAZY)
++    @JoinColumn(name = "topic_id", insertable = false, updatable = false)
+     private SurveyTopic surveyTopic;
+ 
++    @NoArgsConstructor
++    @AllArgsConstructor
++    @EqualsAndHashCode
++    public static class UserSelectedTopicsId implements Serializable {
++        private Long userId;
++        private Long topicId;
++    }
++
+     public UserSelectedTopics(Member member, SurveyTopic surveyTopic) {
+-        this.id = new UserSelectedTopicsId(member.getId(), surveyTopic.getTopicId());
++        this.userId = member.getId();
++        this.topicId = surveyTopic.getTopicId();
+         this.member = member;
+         this.surveyTopic = surveyTopic;
+     }
+-}
+\ No newline at end of file
++}

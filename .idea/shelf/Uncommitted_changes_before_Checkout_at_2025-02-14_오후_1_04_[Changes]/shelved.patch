@@ -1,0 +1,80 @@
+Index: .idea/GrepConsole.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/GrepConsole.xml b/.idea/GrepConsole.xml
+new file mode 100644
+--- /dev/null	(date 1739505845465)
++++ b/.idea/GrepConsole.xml	(date 1739505845465)
+@@ -0,0 +1,44 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="GrepConsole">
++    <option name="pinnedGrepConsolesState">
++      <PinnedGrepConsolesState>
++        <option name="map">
++          <map>
++            <entry>
++              <key>
++                <RunConfigurationRef>
++                  <option name="icon" value="gradle.svg)" />
++                  <option name="name" value="withme_backend [:WithmeBackendApplication.main()]" />
++                </RunConfigurationRef>
++              </key>
++              <value>
++                <Pins>
++                  <option name="pins">
++                    <list>
++                      <Pin>
++                        <option name="consoleUUID" value="dba54501-9260-4c6a-9d53-525420afc236" />
++                        <option name="contentType" value="ConsoleContent" />
++                        <option name="grepCompositeModel">
++                          <GrepCompositeModel>
++                            <option name="models">
++                              <list>
++                                <GrepModel>
++                                  <option name="expression" value="컨트롤러" />
++                                </GrepModel>
++                              </list>
++                            </option>
++                          </GrepCompositeModel>
++                        </option>
++                      </Pin>
++                    </list>
++                  </option>
++                </Pins>
++              </value>
++            </entry>
++          </map>
++        </option>
++      </PinnedGrepConsolesState>
++    </option>
++  </component>
++</project>
+\ No newline at end of file
+Index: withme_frontend/src/component/doctor/DoctorApplicationStatus.jsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import React, { useState, useEffect } from \"react\";\r\nimport { fetchWithAuth } from \"../../common/fetchWithAuth\"; // 인증된 fetch 함수\r\nimport { API_URL } from \"../../constant\"; // API 기본 URL\r\nimport { useSelector } from \"react-redux\";\r\n\r\n/**\r\n * 전문가 신청 상태 조회(사용자)\r\n */\r\nexport default function DoctorApplicationStatus() {\r\n    const [doctor, setDoctor] = useState(null);\r\n    const [error, setError] = useState(\"\");\r\n    const [loading, setLoading] = useState(true); // 로딩 상태 추가\r\n    // Redux에서 사용자 정보 가져오기\r\n    const { user } = useSelector((state) => state.auth);\r\n\r\n    useEffect(() => {\r\n        const fetchDoctorApplication = async () => {\r\n            try {\r\n                const response = await fetchWithAuth(`${API_URL}doctors/application/${user.id}`, {\r\n                    method: \"GET\",\r\n                });\r\n\r\n                if (response.ok) {\r\n                    const data = await response.json();\r\n                    setDoctor(data);\r\n                } else if (response.status === 404) {\r\n                    setError(\"현재 신청된 정보가 없습니다. 전문가 신청을 진행해주세요.\");\r\n                } else {\r\n                    setError(\"서버 오류로 신청 정보를 불러오지 못했습니다.\");\r\n                }\r\n            } catch (error) {\r\n                setError(\"네트워크 오류로 신청 정보를 가져오는데 실패했습니다.\");\r\n            } finally {\r\n                setLoading(false);\r\n            }\r\n        };\r\n\r\n        fetchDoctorApplication();\r\n    }, []);\r\n\r\n    // 상태값 한글 변환 함수\r\n    const getStatusText = (status) => {\r\n        switch (status) {\r\n            case \"APPROVED\":\r\n                return \"승인됨\";\r\n            case \"PENDING\":\r\n                return \"심사 중\";\r\n            case \"REJECTED\":\r\n                return \"거절됨\";\r\n            case \"ON_HOLD\":\r\n                return \"보류 중\";\r\n            default:\r\n                return status;\r\n        }\r\n    };\r\n\r\n    // 로딩 화면\r\n    if (loading) {\r\n        return <div>⏳ 로딩 중...</div>;\r\n    }\r\n\r\n    // 오류 발생 시\r\n    if (error) {\r\n        return <div style={{ color: \"red\" }}>{error}</div>;\r\n    }\r\n\r\n    return (\r\n        <div>\r\n            <h2>내 의사 신청 정보</h2>\r\n\r\n            {/* 거절/보류 사유 출력 (사유가 있을 경우에만) */}\r\n            {doctor.reason && (\r\n                <p>\r\n                    <strong>사유:</strong> {doctor.reason}\r\n                </p>\r\n            )}\r\n\r\n            <p><strong>이름:</strong> {doctor.name}</p>\r\n            <p><strong>병원명:</strong> {doctor.hospital}</p>\r\n            <p><strong>전문분야:</strong> {doctor.subject}</p>\r\n            <p><strong>신청 상태:</strong> {getStatusText(doctor.status)}</p>\r\n        </div>\r\n    );\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_frontend/src/component/doctor/DoctorApplicationStatus.jsx b/withme_frontend/src/component/doctor/DoctorApplicationStatus.jsx
+--- a/withme_frontend/src/component/doctor/DoctorApplicationStatus.jsx	(revision 0a6ac04e7fa5f0921b82c6dcf5101655e56a1f95)
++++ b/withme_frontend/src/component/doctor/DoctorApplicationStatus.jsx	(date 1739505845467)
+@@ -6,12 +6,11 @@
+ /**
+  * 전문가 신청 상태 조회(사용자)
+  */
+-export default function DoctorApplicationStatus() {
++export default function DoctorApplicationStatus({user}) {
+     const [doctor, setDoctor] = useState(null);
+     const [error, setError] = useState("");
+     const [loading, setLoading] = useState(true); // 로딩 상태 추가
+-    // Redux에서 사용자 정보 가져오기
+-    const { user } = useSelector((state) => state.auth);
++
+ 
+     useEffect(() => {
+         const fetchDoctorApplication = async () => {
