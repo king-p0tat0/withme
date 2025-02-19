@@ -18,10 +18,10 @@ function Home() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // VIP 역할 확인 함수 (수정)
-  const isVipUser = () => {
-    if (!user || !user.roles) return false;
-    return user.roles.includes("ROLE_VIP");
-  };
+    const isVipUser = () => {
+      if (!user || !user.roles) return false;
+      return user.roles.includes("ROLE_VIP");
+    };
 
   // WebSocket 연결
   const { lastMessage } = useWebSocket(user);
@@ -29,7 +29,7 @@ function Home() {
   // WebSocket 메시지 처리
   useEffect(() => {
     if (lastMessage && isVipUser()) {
-      if (lastMessage.messageType === 'answer' && lastMessage.senderRole === 'ROLE_DOCTOR') {
+      if (lastMessage.messageType === 'answer' && lastMessage.senderRole === 'DOCTOR') {
         if (lastMessage.msg_id !== lastMessageId) {
           setModalMessage({
             content: lastMessage.content,
@@ -67,14 +67,13 @@ function Home() {
     }
 
     const handleMessageReceived = (event) => {
-      const { content, senderName, senderRole, msg_id } = event.detail;
-      if (senderRole === 'ROLE_DOCTOR' && msg_id !== lastMessageId) {
-        setModalMessage({ content, senderName });
-        setModalOpen(true);
-        setLastMessageId(msg_id);
-        setNewConsultationCount(prevCount => prevCount + 1);
-      }
-    };
+          const { content, senderName, senderRole, msg_id } = event.detail;
+          if (senderRole === 'ROLE_DOCTOR' && msg_id !== lastMessageId) {
+            setModalMessage({ content, senderName });
+            setModalOpen(true);
+            setLastMessageId(msg_id);
+          }
+        };
 
     window.addEventListener('messageReceived', handleMessageReceived);
     return () => {
@@ -94,12 +93,17 @@ function Home() {
       return;
     }
 
-    if (user.role === "PAID" || user.role === "VIP") {
+    // roles 문자열을 배열로 변환
+    const userRoles = user.roles.replace(/[\[\]"]/g, '').split(',').map(role => role.trim());
+
+    if (userRoles.includes("ROLE_PAID") || userRoles.includes("ROLE_VIP")) {
       navigate("/survey/paid");
     } else {
       navigate("/survey/free");
     }
   };
+
+
 
   // ✅ 상담내역 페이지 이동
   const handleConsultationHistory = (e) => {
