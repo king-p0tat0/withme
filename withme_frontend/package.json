@@ -22,6 +22,7 @@
     "@mui/styled-engine-sc": "^6.4.3",
     "@mui/system": "^6.4.0",
     "@mui/x-data-grid": "^7.24.0",
+    "@notifee/react-native": "^9.1.8",
     "@reduxjs/toolkit": "^2.5.0",
     "@stomp/stompjs": "^7.0.0",
     "axios": "^1.7.9",

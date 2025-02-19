@@ -6,7 +6,7 @@ import './Home.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import useWebSocket from "../hook/useWebSocket";
-import { Modal, Box, Typography, Button } from "@mui/material";
+import { Modal, Box, Typography, Button, Badge } from "@mui/material";
 
 function Home() {
   const { user, isLoggedIn } = useSelector((state) => state.auth);
@@ -14,13 +14,13 @@ function Home() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState({ content: "", senderName: "" });
   const [lastMessageId, setLastMessageId] = useState(null);
+  const [newConsultationCount, setNewConsultationCount] = useState(0);
 
   // VIP 역할 확인 함수 (수정)
   const isVipUser = () => {
     if (!user || !user.roles) return false;
     return user.roles.includes("ROLE_VIP");
   };
-
 
   // WebSocket 연결
   const { lastMessage } = useWebSocket(user);
@@ -36,6 +36,7 @@ function Home() {
           });
           setModalOpen(true);
           setLastMessageId(lastMessage.msg_id);
+          setNewConsultationCount(prevCount => prevCount + 1);
         }
       }
     }
@@ -52,6 +53,7 @@ function Home() {
               setModalMessage({ content, senderName });
               setModalOpen(true);
               setLastMessageId(msg_id);
+              setNewConsultationCount(prevCount => prevCount + 1);
               console.log('🟢 팝업 표시:', content);
             } else {
               console.warn('⚠️ 메시지 내용이 비어 있습니다.');
@@ -69,6 +71,7 @@ function Home() {
         setModalMessage({ content, senderName });
         setModalOpen(true);
         setLastMessageId(msg_id);
+        setNewConsultationCount(prevCount => prevCount + 1);
       }
     };
 
@@ -77,7 +80,6 @@ function Home() {
       window.removeEventListener('messageReceived', handleMessageReceived);
     };
   }, [lastMessage, isVipUser, lastMessageId]);
-
 
   // 모달 닫기 핸들러
   const handleClose = () => setModalOpen(false);
@@ -100,6 +102,7 @@ function Home() {
   // ✅ 상담내역 페이지 이동
   const handleConsultationHistory = (e) => {
     e.preventDefault();
+    setNewConsultationCount(0);
     navigate("/doctor-messages");
   };
 
@@ -147,9 +150,11 @@ function Home() {
           <div className="banner">
             <img src="/assets/images/banner.png" alt="배너 이미지" />
             {isDoctor ? (
-              <Link to="#" onClick={handleConsultationHistory} className="survey-link">
-                상담내역 &gt;
-              </Link>
+              <Badge badgeContent={newConsultationCount} color="error">
+                <Link to="#" onClick={handleConsultationHistory} className="survey-link">
+                  상담내역 &gt;
+                </Link>
+              </Badge>
             ) : (
               <Link to="#" onClick={handleSurveyNavigation} className="survey-link">
                 문진하러 가기 &gt;

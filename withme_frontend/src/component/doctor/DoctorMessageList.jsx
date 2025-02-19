@@ -12,11 +12,16 @@ import {
   TextField,
   Paper,
   Snackbar,
-  Alert
-} from "@mui/material";
-import { Pagination } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import DeleteIcon from "@mui/icons-material/Delete";
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  IconButton,
+  Pagination
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import useWebSocket from "../../hook/useWebSocket";
 import img2 from "../../image/img2.png";
 
@@ -24,7 +29,8 @@ const DoctorMessageList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
-  const { messages, loading } = useSelector((state) => state.messages);
+  const { loading } = useSelector((state) => state.messages);
+  const [localMessages, setLocalMessages] = useState([]);
   const [replyContent, setReplyContent] = useState("");
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,7 +39,7 @@ const DoctorMessageList = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
-  // WebSocket 연결
+  // 웹소켓 연결
   const socket = useWebSocket(user);
 
   // 페이지별 메시지 가져오기
@@ -42,7 +48,7 @@ const DoctorMessageList = () => {
       const response = await fetchWithAuth(`${API_URL}messages/${user.id}?page=${page - 1}&size=8`);
       if (response.ok) {
         const data = await response.json();
-        dispatch(setMessages(data.content));
+        setLocalMessages(data.content);
         setTotalPages(data.totalPages);
       } else {
         showPopup("메시지를 불러오는데 실패했습니다.");
@@ -51,16 +57,21 @@ const DoctorMessageList = () => {
       console.error('메시지 로드 중 오류:', error);
       showPopup("네트워크 오류가 발생했습니다.");
     }
-  }, [user.id, dispatch]);
+  }, [user.id]);
 
+  // 컴포넌트 마운트 시 메시지 로드
   useEffect(() => {
     fetchMessagesByPage(currentPage);
   }, [fetchMessagesByPage, currentPage]);
 
-  const handleOpenMessage = (message) => {
+  // 메시지 열기 핸들러
+  const handleOpenMessage = useCallback((message) => {
+    if (!message) return;
+
     setSelectedMessage(message);
     setIsReplying(false);
-    if (message && message.id && !message.read) {
+
+    if (message.id && !message.read) {
       dispatch(markMessageAsRead(message.id));
       fetchWithAuth(`${API_URL}messages/read?messageId=${message.id}`, {
         method: "POST"
@@ -69,42 +80,65 @@ const DoctorMessageList = () => {
         showPopup("메시지 읽음 처리 중 오류 발생");
       });
     }
-  };
+  }, [dispatch]);
 
+  // 팝업 메시지 표시
   const showPopup = (msg) => {
     setSnackbarMessage(msg);
     setSnackbarOpen(true);
   };
 
+  // 스낵바 닫기
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
   };
 
+  // 메시지 삭제 핸들러
   const handleDelete = async (messageId) => {
-    try {
-      const response = await fetchWithAuth(
-        `${API_URL}messages/${messageId}?userId=${user.id}&isSender=false`,
-        {
-          method: "DELETE"
-        }
-      );
+      try {
+        // DELETE 요청 보내기
+        const response = await fetchWithAuth(
+          `${API_URL}messages/${messageId}?userId=${user.id}&isSender=false`,
+          {
+            method: "DELETE",
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        );
 
-      if (response.ok) {
-        showPopup("메시지가 삭제되었습니다.");
-        dispatch(setMessages(messages.filter(msg => msg.id !== messageId))); // 즉시 상태 업데이트
-        if (selectedMessage?.id === messageId) {
-          setSelectedMessage(null);
+        if (response.ok) {
+          // 성공적으로 삭제되었을 때
+          showPopup("메시지가 삭제되었습니다.");
+
+          // 현재 선택된 메시지가 삭제된 메시지인 경우 선택 해제
+          if (selectedMessage?.id === messageId) {
+            setSelectedMessage(null);
+          }
+
+          // 로컬 메시지 목록에서 삭제된 메시지 제거
+          setLocalMessages(prevMessages =>
+            prevMessages.filter(msg => msg.id !== messageId)
+          );
+
+          // 현재 페이지의 마지막 메시지를 삭제한 경우 이전 페이지로 이동
+          if (localMessages.length === 1 && currentPage > 1) {
+            setCurrentPage(prev => prev - 1);
+          } else {
+            // 현재 페이지 데이터 다시 로드
+            await fetchMessagesByPage(currentPage);
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          showPopup(errorData.message || "메시지 삭제에 실패했습니다.");
         }
-        fetchMessagesByPage(currentPage); // 서버에서 다시 데이터 가져오기
-      } else {
-        showPopup("메시지 삭제에 실패했습니다.");
+      } catch (error) {
+        console.error('삭제 중 오류:', error);
+        showPopup("메시지 삭제 중 오류가 발생했습니다.");
       }
-    } catch (error) {
-      console.error('삭제 중 오류:', error);
-      showPopup("메시지 삭제 중 오류가 발생했습니다.");
-    }
   };
 
+  // 답장 전송 핸들러
   const handleReply = async () => {
     if (!replyContent.trim()) {
       showPopup("답장 내용을 입력해주세요.");
@@ -133,12 +167,10 @@ const DoctorMessageList = () => {
       });
 
       if (response.ok) {
-        const newMessage = await response.json();
-        dispatch(addMessage(newMessage));
         showPopup("답변이 성공적으로 전송되었습니다.");
         setReplyContent("");
         setIsReplying(false);
-        fetchMessagesByPage(currentPage);
+        await fetchMessagesByPage(currentPage);
       } else {
         showPopup("답변 전송에 실패했습니다.");
       }
@@ -148,74 +180,19 @@ const DoctorMessageList = () => {
     }
   };
 
-  const columns = [
-    {
-      field: 'senderName',
-      headerName: '보낸 사람',
-      flex: 1,
-      headerAlign: 'center',
-      align: 'center'
-    },
-    {
-      field: 'content',
-      headerName: '내용',
-      flex: 2,
-      headerAlign: 'center',
-      align: 'left',
-      renderCell: (params) => (
-        <div style={{
-          cursor: 'pointer',
-          color: params.row.read ? '#666' : '#000',
-          fontWeight: params.row.read ? 'normal' : 'bold'
-        }}>
-          {params.value.substring(0, 50)}...
-        </div>
-      )
-    },
-    {
-      field: 'regTime',
-      headerName: '시간',
-      flex: 1,
-      headerAlign: 'center',
-      align: 'center',
-      valueFormatter: (params) => new Date(params.value).toLocaleString()
-    },
-    {
-      field: 'actions',
-      headerName: '삭제',
-      flex: 0.5,
-      headerAlign: 'center',
-      align: 'center',
-      renderCell: (params) => (
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDelete(params.row.id);
-          }}
-          sx={{
-            color: '#E75480',
-            '&:hover': {
-              backgroundColor: '#FFE4E8'
-            }
-          }}
-        >
-          <DeleteIcon />
-        </Button>
-      )
-    }
-  ];
-
-  if (loading) return (
-    <Box sx={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-      backgroundColor: '#FFFBF8'
-    }}>
-      <CircularProgress sx={{ color: '#E75480' }} />
-    </Box>
-  );
+  if (loading) {
+    return (
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: '#FFFBF8'
+      }}>
+        <CircularProgress sx={{ color: '#E75480' }} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{
@@ -228,6 +205,7 @@ const DoctorMessageList = () => {
       p: 3,
       borderRadius: 2
     }}>
+      {/* 헤더 */}
       <Box sx={{
         display: 'flex',
         alignItems: 'center',
@@ -249,67 +227,89 @@ const DoctorMessageList = () => {
         </Typography>
       </Box>
 
+      {/* 메인 컨텐츠 */}
       <Box sx={{ display: 'flex', flexGrow: 1, gap: 2, mb: 2 }}>
+        {/* 메시지 목록 */}
         <Paper sx={{
           width: '50%',
           backgroundColor: '#FFF5F0',
           borderRadius: 2,
-          overflow: 'hidden'
+          p: 2
         }}>
-          <DataGrid
-            rows={messages}
-            columns={columns}
-            pageSize={8}
-            pagination
-            paginationMode="server"
-            rowCount={totalPages * 8}
-            page={currentPage - 1}
-            onPageChange={(newPage) => setCurrentPage(newPage + 1)}
-            rowsPerPageOptions={[8]}
-            onRowClick={(params) => handleOpenMessage(params.row)}
-            disableSelectionOnClick
-            paginationModel={{
-              pageSize: 8,
-              page: currentPage - 1,
-            }}
-            pageSizeOptions={[8]}
-            components={{
-              Pagination: () => (
-                <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-                  <Pagination
-                    count={totalPages}
-                    page={currentPage}
-                    onChange={(e, value) => setCurrentPage(value)}
-                    color="primary"
-                    shape="rounded"
-                    sx={{
-                      '& .MuiPaginationItem-root': {
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell align="center" sx={{ fontWeight: 'bold', backgroundColor: '#FFE4E8' }}>보낸 사람</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', backgroundColor: '#FFE4E8' }}>내용</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', backgroundColor: '#FFE4E8' }}>시간</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', backgroundColor: '#FFE4E8' }}>삭제</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {localMessages.map((message) => (
+                <TableRow
+                  key={message.id}
+                  onClick={() => handleOpenMessage(message)}
+                  sx={{
+                    cursor: 'pointer',
+                    '&:hover': { backgroundColor: '#FFF0F0' }
+                  }}
+                >
+                  <TableCell align="center">{message.senderName}</TableCell>
+                  <TableCell align="left" sx={{
+                    color: message.read ? '#666' : '#000',
+                    fontWeight: message.read ? 'normal' : 'bold'
+                  }}>
+                    {message.content.substring(0, 50)}...
+                  </TableCell>
+                  <TableCell align="center">
+                    {new Date(message.regTime).toLocaleString()}
+                  </TableCell>
+                  <TableCell align="center">
+                    <IconButton
+                      onClick={(e) => {
+                        e.preventDefault();  // 기본 이벤트 방지
+                        e.stopPropagation(); // 이벤트 버블링 방지
+                        handleDelete(message.id);
+                      }}
+                      sx={{
                         color: '#E75480',
-                        '&.Mui-selected': {
-                          backgroundColor: '#FFE4E8'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-              ),
-            }}
-            sx={{
-              border: 'none',
-              '& .MuiDataGrid-cell': {
-                borderColor: '#FFE4E8'
-              },
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#FFE4E8',
-                borderBottom: 'none'
-              },
-              '& .MuiDataGrid-row:hover': {
-                backgroundColor: '#FFF0F0'
-              }
-            }}
-          />
+                        '&:hover': { backgroundColor: '#FFE4E8' }
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {/* 페이지네이션 */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={(e, value) => setCurrentPage(value)}
+              color="primary"
+              shape="rounded"
+              showFirstButton
+              showLastButton
+              siblingCount={2}
+              boundaryCount={2}
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  color: '#E75480',
+                  '&.Mui-selected': {
+                    backgroundColor: '#FFE4E8'
+                  }
+                }
+              }}
+            />
+          </Box>
         </Paper>
 
+        {/* 메시지 상세 보기 */}
         <Paper sx={{
           width: '50%',
           p: 3,
@@ -408,6 +408,7 @@ const DoctorMessageList = () => {
         </Paper>
       </Box>
 
+      {/* 스낵바 */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={5000}
