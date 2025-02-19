@@ -1,0 +1,97 @@
+Index: withme_backend/src/main/java/com/javalab/student/entity/SurveyTopic.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.entity;\r\n\r\nimport jakarta.persistence.*;\r\nimport lombok.*;\r\n\r\n@Entity\r\n@Getter\r\n@Setter\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\n@Builder\r\n@Table(name = \"survey_topic\")\r\npublic class SurveyTopic {\r\n\r\n    @Id\r\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\r\n    @Column(name = \"topic_id\")\r\n    private Long topicId;\r\n\r\n    @ManyToOne(fetch = FetchType.LAZY)\r\n    @JoinColumn(name = \"survey_id\", nullable = false)  // survey_id와 연결\r\n    private Survey survey;  // 연관된 설문\r\n\r\n    @Column(name = \"topic_name\", nullable = false, length = 255)\r\n    private String topicName;  // 주제명\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/entity/SurveyTopic.java b/withme_backend/src/main/java/com/javalab/student/entity/SurveyTopic.java
+--- a/withme_backend/src/main/java/com/javalab/student/entity/SurveyTopic.java	(revision 2acae64456ad9d9f08dfa13af81aca6d4a519d81)
++++ b/withme_backend/src/main/java/com/javalab/student/entity/SurveyTopic.java	(date 1739350709759)
+@@ -1,26 +1,40 @@
+ package com.javalab.student.entity;
+ 
+ import jakarta.persistence.*;
+-import lombok.*;
++import lombok.Getter;
++import lombok.NoArgsConstructor;
++import lombok.Setter;
+ 
++/**
++ * 📌 설문 주제(Survey Topic) 엔티티
++ */
+ @Entity
+ @Getter
+ @Setter
+ @NoArgsConstructor
+-@AllArgsConstructor
+-@Builder
+ @Table(name = "survey_topic")
+ public class SurveyTopic {
+ 
+     @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    @Column(name = "topic_id")
++    @GeneratedValue(strategy = GenerationType.IDENTITY) // ✅ topic_id 자동 증가
++    @Column(name = "topic_id", nullable = false)
+     private Long topicId;
+ 
++    @Column(name = "topic_name", length = 50, nullable = false)
++    private String topicName;
++
++    /**
++     * ✅ Survey (설문) 테이블과 Many-to-One 관계
++     * - FK: survey_id
++     * - `cascade = CascadeType.ALL` → 부모 삭제 시 자동 삭제 (ON DELETE CASCADE)
++     */
+     @ManyToOne(fetch = FetchType.LAZY)
+-    @JoinColumn(name = "survey_id", nullable = false)  // survey_id와 연결
+-    private Survey survey;  // 연관된 설문
++    @JoinColumn(name = "survey_id", nullable = false, foreignKey = @ForeignKey(name = "FK_survey_topic"))
++    private Survey survey;
+ 
+-    @Column(name = "topic_name", nullable = false, length = 255)
+-    private String topicName;  // 주제명
++    // ✅ 생성자 (설문과 주제를 연결)
++    public SurveyTopic(String topicName, Survey survey) {
++        this.topicName = topicName;
++        this.survey = survey;
++    }
+ }
+Index: withme_backend/src/test/java/com/javalab/student/repository/MemberRepositoryTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.repository;\r\n\r\nimport com.javalab.student.constant.Role;\r\nimport com.javalab.student.dto.MemberFormDto;\r\nimport com.javalab.student.entity.Member;\r\nimport org.junit.jupiter.api.DisplayName;\r\nimport org.junit.jupiter.api.Test;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;\r\nimport org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;\r\nimport org.springframework.boot.test.context.SpringBootTest;\r\nimport org.springframework.security.crypto.password.PasswordEncoder;\r\nimport org.springframework.test.annotation.Commit;\r\nimport org.springframework.transaction.annotation.Transactional;\r\n\r\nimport static org.junit.jupiter.api.Assertions.*;\r\n\r\n// @DataJpaTest // 이걸 사용하면 Spring Security 설정이 적용되지 않아서 테스트가 실패함\r\n@SpringBootTest\r\n@Transactional\r\n@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)\r\nclass MemberRepositoryTest {\r\n\r\n    @Autowired\r\n    private MemberRepository memberRepository;\r\n\r\n    @Autowired\r\n    private PasswordEncoder passwordEncoder;\r\n\r\n    /**\r\n     * 테스트에서 공통으로 사용할 회원 엔티티 생성 메서드\r\n     */\r\n    @Transactional\r\n    public Member createMember() {\r\n        MemberFormDto memberFormDto = MemberFormDto.builder()\r\n                .email(\"test2@example.com\")\r\n                .name(\"홍길동\")\r\n                .address(\"서울시 강남구\")\r\n                .password(\"1234\") // 평문 비밀번호 (암호화 필요)\r\n                .phone(\"010-1234-5678\")\r\n                .age(\"30\") // ✅ 나이 필드 추가\r\n                .role(Role.USER) // ✅ 기본 권한 USER\r\n                .build();\r\n\r\n        return Member.createMember(memberFormDto, passwordEncoder); // ✅ 비밀번호 암호화 포함\r\n    }\r\n\r\n\r\n\r\n\r\n    /**\r\n     * 회원 저장 테스트\r\n     * - 회원 정보를 저장하고 조회하는 테스트\r\n     */\r\n    @Test\r\n    @DisplayName(\"회원 저장 테스트\")\r\n    @Commit\r\n    void saveMemberTest() {\r\n        // Given : 회원 엔티티 생성\r\n        Member member = createMember();\r\n\r\n        // When : 회원 정보 저장\r\n        Member savedMember = memberRepository.save(member);\r\n\r\n        // Then : 저장된 회원 정보 확인\r\n        //assertNotNull(savedMember.getId()); // ✅ 자동 생성된 user_id 확인\r\n        assertEquals(member.getEmail(), savedMember.getEmail());\r\n        assertEquals(member.getName(), savedMember.getName()); // ✅ 엔티티에 맞춰 유지\r\n        assertEquals(member.getAddress(), savedMember.getAddress());\r\n        assertEquals(member.getPhone(), savedMember.getPhone());\r\n\r\n        // ✅ 비밀번호 암호화 검증\r\n        assertNotEquals(\"1234\", savedMember.getPassword()); // 암호화된 비밀번호는 원래 값과 달라야 함\r\n        assertTrue(passwordEncoder.matches(\"1234\", savedMember.getPassword())); // ✅ 비밀번호 매칭 확인\r\n    }\r\n\r\n\r\n    /**\r\n     * 중복 이메일 회원 저장 테스트\r\n     * - 중복된 이메일로 저장하려고 하면 예외 발생\r\n     */\r\n    /**\r\n     * 이메일 중복 여부 확인 테스트\r\n     */\r\n    @Test\r\n    @DisplayName(\"이메일 중복 여부 확인 테스트\")\r\n    void checkDuplicateEmail() {\r\n        // Given: 데이터베이스에 이미 저장되어 있는 이메일\r\n        String existingEmail = \"test@example.com\";\r\n\r\n        // When: 이메일을 조회\r\n        Member foundMember = memberRepository.findByEmail(existingEmail);\r\n\r\n        // Then: 중복 여부 확인 및 메시지 출력\r\n        if (foundMember != null) {\r\n            System.out.println(\"이미 존재하는 이메일입니다: \" + existingEmail);\r\n            assertEquals(existingEmail, foundMember.getEmail()); // 중복 이메일이 존재해야 함\r\n        } else {\r\n            System.out.println(\"사용 가능한 이메일입니다: \" + existingEmail);\r\n        }\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/test/java/com/javalab/student/repository/MemberRepositoryTest.java b/withme_backend/src/test/java/com/javalab/student/repository/MemberRepositoryTest.java
+--- a/withme_backend/src/test/java/com/javalab/student/repository/MemberRepositoryTest.java	(revision 2acae64456ad9d9f08dfa13af81aca6d4a519d81)
++++ b/withme_backend/src/test/java/com/javalab/student/repository/MemberRepositoryTest.java	(date 1739350709761)
+@@ -38,7 +38,6 @@
+                 .address("서울시 강남구")
+                 .password("1234") // 평문 비밀번호 (암호화 필요)
+                 .phone("010-1234-5678")
+-                .age("30") // ✅ 나이 필드 추가
+                 .role(Role.USER) // ✅ 기본 권한 USER
+                 .build();
+ 
+Index: withme_backend/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>spring.application.name=springboot_react_student\r\nserver.port=8080\r\n\r\nspring.datasource.driver-class-name=net.sf.log4jdbc.sql.jdbcapi.DriverSpy\r\nspring.datasource.url=jdbc:log4jdbc:mariadb://localhost:3306/withme?serverTimezone=UTC&characterEncoding=UTF-8\r\n#spring.datasource.url=jdbc:log4jdbc:mariadb://shop-database.c5kusk0eqd5l.ap-northeast-2.rds.amazonaws.com:3306/shop_social?serverTimezone=UTC&characterEncoding=UTF-8\r\nspring.datasource.username=root\r\nspring.datasource.password=1234\r\n\r\n# HikariCP는 최대 10개의 데이터베이스 연결을 관리\r\nspring.datasource.hikari.maximum-pool-size=10\r\nspring.datasource.hikari.minimum-idle=5\r\nspring.datasource.hikari.connection-timeout=30000\r\nspring.datasource.hikari.idle-timeout=600000\r\nspring.datasource.hikari.max-lifetime=1800000\r\nspring.datasource.hikari.validation-timeout=5000\r\n\r\n#### JPA\r\n#Hibernate는 MariaDB 데이터베이스에 최적화된 데이터베이스 작업을 수행\r\nspring.jpa.database-platform=org.hibernate.dialect.MariaDBDialect\r\n# Entity create mode\r\nspring.jpa.hibernate.ddl-auto=update\r\n\r\n# Hibernate sql show\r\nspring.jpa.show-sql=true\r\nspring.jpa.properties.hibernate.format_sql=true\r\nspring.jpa.properties.hibernate.use_sql_comments=true\r\nlogging.level.org.hibernate.SQL=DEBUG\r\nlogging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE\r\n\r\n# log display format\r\n# 로그 패턴 설정[수정]\r\nspring.output.ansi.enabled=ALWAYS\r\n#logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %msg%n%ex\r\n\r\n# SQL debug\r\n# SQL\r\nlogging.level.jdbc.resultset=error\r\nlogging.level.jdbc.audit=info\r\n# 시큐리티 로그\r\nlogging.level.org.springframework.security=DEBUG\r\n\r\nspring.servlet.multipart.enabled=true\r\n#spring.servlet.multipart.location=C:\\\\upload\r\n\r\n# 프로젝트 내부에 만든 upload 폴더에 파일이 업로드 됨.\r\nspring.servlet.multipart.location=upload/\r\n\r\n# 클라우드타입 배포시 업로드 폴더\r\n#spring.servlet.multipart.location=/app/build/libs/upload\r\n\r\nspring.servlet.multipart.max-request-size=100MB\r\nspring.servlet.multipart.max-file-size=20MB\r\n\r\n## 파일 업로드 경로\r\n# 1. 로컬 서버 파일이 업로드 되어 있는 경로\r\nitemImgLocation=c:/shop/item\r\nuploadPath=file:///c:/shop/\r\n# 2. AWS File Upload Path\r\n#com.javalab.boot.upload.path=/home/ec2-user/shop/upload\r\n# 3. 클라우드 배포시 업로드 경로 변수\r\n#com.javalab.boot.upload.path=/app/build/libs/upload\r\n\r\n# 어플리케이션의 url 요청과 매핑되어 있는 핸들러 정보 display\r\nlogging.level.org.springframework.web=DEBUG\r\n# logging.level.org.springframework.security=trace\r\nlogging.level.org.springframework.web.servlet.mvc.method.annotation=TRACE\r\n\r\n# 기본 batch size 설정, 주문이 5건이면 일반적으로 5번의 주문 아이템에 대한 조회 쿼리가 발생합니다.\r\n# 이때 batch size를 1000으로 설정하면 5번의 조회 쿼리 대신 1번의 조회 쿼리로 처리할 수 있습니다.\r\n# 이렇게 설정하면 성능이 향상됩니다. 예를들면 in 쿼리로 처리됩니다. in (1,2,3,4,5)\r\nspring.jpa.properties.hibernate.default_batch_fetch_size=10\r\n\r\n# Redis 설정\r\n# Redis 서버의 호스트 주소 (로컬에서 실행 중인 Redis 사용)\r\nspring.data.redis.host=localhost\r\n# Redis 서버의 포트 번호 (기본값: 6379)\r\nspring.data.redis.port=6379\r\n# Redis 서버 접속 시 필요한 비밀번호 (설정되지 않은 경우 빈 값)\r\nspring.data.redis.password=\r\n# Redis 연결 타임아웃 (밀리초 단위, 6000ms = 6초)\r\nspring.data.redis.timeout=6000\r\n\r\n\r\n\r\n## kakao social login 사용자를 카카오 인증 서버로 리다이렉트하기 위한 초기 단계를 구성 ##\r\n# 1. 사용자가 우리 로그인 페이지에서 <a href=\"/oauth2/authorization/kakao\">KAKAO</a> 클릭\r\n# 2. 스프링 시큐리티 OAuth2 가 1.번 요청을 가로채서 사용자를 카카오의 인증 URI로 설정된\r\n#   https://kauth.kakao.com/oauth/authorize로 리디렉트 시킨다.\r\n# 3. 카카오는 다시 사용자의 카카오 소셜 로그인 인증 여부에 따라서 사용자를\r\n#    https://accounts.kakao.com/login 페이지로 리디렉트 시킨다. 만약 카카오 소셜로그인 인증이\r\n#    이미 있는 경우에는 바로 인가코드를 우리 서버로 전달한다.\r\n# 4. 사용자가 카카오 소셜로그인 화면에서 아이디와 비밀번호를 입력하고 로그인 버튼을 누르면\r\n#   우리 서버와 카카오 서버간의 인증 절차가 시작된다.\r\n# 4.1. 카카오 인증 서버는 우리 앱에 설정한 client-id를 확인하고 인가코드를 전달해준다.\r\n#   인가코드는 우리가 설정해놓은 Redirect Url(http://localhost:8080/login/oauth2/code/kakao)로 전달된다.\r\n# 4.2. 4.1.에서 받은 인가코드와 우리가 설정해놓은 client-secret 키를 카카오의 인증서버인\r\n#   https://kauth.kakao.com/oauth/token 에 액세스 토큰을 요청하고 카카오 인증 서버가 액세스 토큰을 반환.\r\n# 5. Spring Security가 액세스 토큰을 사용해 https://kapi.kakao.com/v2/user/me에서 사용자 정보를 요청.\r\n# 6. 사용자 정보를 가져와 인증 객체 생성 및 스프링 컨텍스트에 저장.\r\n# 7. 사용자가 로그인 후 리디렉션 설정에 따라 적절한 페이지로 이동\r\n# 카카오는 스프링 시큐리티에게 인증 코드를 전달한다.\r\nspring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize\r\nspring.security.oauth2.client.provider.kakao.user-name-attribute=id\r\nspring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token\r\nspring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me\r\nspring.security.oauth2.client.registration.kakao.client-name=kakao\r\nspring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code\r\n\r\n## 카카오 소셜 로그인\r\n# 1. 소셜 로그인 로컬 서버 - 로그인 성공후 \"인가코드\"가 리디렉션될 주소(카카오 소셜 로그인을 로컬에서 사용)\r\n#spring.security.oauth2.client.registration.kakao.redirect_uri=http://localhost:8080/login/oauth2/code/kakao\r\n# 2. 소셜 로그인(클라우드타입 배포시 사용)\r\n#spring.security.oauth2.client.registration.kakao.redirect_uri=https://port-0-chap10-shopping-static-7xwyjq992lliwmu004.sel4.cloudtype.app/login/oauth2/code/kakao\r\n#3. 소셜 로그인(AWS 배포시 사용)\r\nspring.security.oauth2.client.registration.kakao.redirect_uri=http://ec2-54-180-123-29.ap-northeast-2.compute.amazonaws.com:8080/login/oauth2/code/kakao\r\n\r\n# REST API 키(인가 코드 발급시 필요)\r\n#spring.security.oauth2.client.registration.kakao.client-id=590e7a5908a3d8be922470b69386d10d\r\nspring.security.oauth2.client.registration.kakao.client-id=77d58adc16668d3dc863b6b599b46c70\r\n# 인가코드와 이 비밀키를 이옹해서 액세스 토큰을 발급받는다. 액세스 토큰이 있어야 카카오 사용자 정보 조회 가능\r\nspring.security.oauth2.client.registration.kakao.client-secret=Gz2jzrL7wFcbYyIexuWd1Fd2h1lrUDxL\r\nspring.security.oauth2.client.registration.kakao.client-authentication-method=client_secret_post\r\nspring.security.oauth2.client.registration.kakao.scope=profile_nickname,account_email\r\n\r\n# JWT 설정\r\njwt.issuer=ajufresh@gmail.com\r\n# jwt 만들고/파싱할때 사용할 키로 사용자가 임의로 설정할 수 있다. 이 키를 설정함으로 인해서 암/복호화시 해킹을 방지할 수 있다.\r\njwt.secret_key=study-springboot\r\n#jwt.expiration_time=86400000\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>NATIVE_TO_ASCII_UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/resources/application.properties b/withme_backend/src/main/resources/application.properties
+--- a/withme_backend/src/main/resources/application.properties	(revision 2acae64456ad9d9f08dfa13af81aca6d4a519d81)
++++ b/withme_backend/src/main/resources/application.properties	(date 1739350709760)
+@@ -2,7 +2,7 @@
+ server.port=8080
+ 
+ spring.datasource.driver-class-name=net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+-spring.datasource.url=jdbc:log4jdbc:mariadb://localhost:3306/withme?serverTimezone=UTC&characterEncoding=UTF-8
++spring.datasource.url=jdbc:log4jdbc:mariadb://localhost:3306/withme_test2?serverTimezone=UTC&characterEncoding=UTF-8
+ #spring.datasource.url=jdbc:log4jdbc:mariadb://shop-database.c5kusk0eqd5l.ap-northeast-2.rds.amazonaws.com:3306/shop_social?serverTimezone=UTC&characterEncoding=UTF-8
+ spring.datasource.username=root
+ spring.datasource.password=1234

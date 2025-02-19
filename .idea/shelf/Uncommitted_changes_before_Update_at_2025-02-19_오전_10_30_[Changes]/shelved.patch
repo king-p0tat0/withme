@@ -1,0 +1,746 @@
+Index: withme_frontend/src/assets/css/reset/common.css
+===================================================================
+diff --git a/withme_frontend/src/assets/css/reset/common.css b/withme_frontend/src/assets/css/reset/common.css
+--- a/withme_frontend/src/assets/css/reset/common.css	(revision 79aecfe138e442decd3b2bfda8d4ee2ac4efcdc1)
++++ b/withme_frontend/src/assets/css/reset/common.css	(date 1739870222763)
+@@ -1,7 +1,12 @@
++/*
+ @charset "utf-8";
+-/* 2012-05-07  CSS  2.1 CENTUMSOFT */
++*/
++/* 2012-05-07  CSS  2.1 CENTUMSOFT *//*
++
+ 
+-/* html5 호환 설정*/
++*/
++/* html5 호환 설정*//*
++
+ * {
+   margin: 0;
+   padding: 0;
+@@ -157,7 +162,9 @@
+ td {
+ }
+ 
+-/*body{font:13px/1.231 "돋움",arial,helvetica,clean,sans-serif; }*/
++*/
++/*body{font:13px/1.231 "돋움",arial,helvetica,clean,sans-serif; }*//*
++
+ body {
+   font-family: "Malgun Gothic", "맑은 고딕", "돋움", Dotum, Verdana, Arial,
+     helvetica, clean, sans-serif;
+@@ -191,7 +198,9 @@
+   display: inline;
+ }
+ 
+-/* 글자 속성 */
++*/
++/* 글자 속성 *//*
++
+ a {
+   color: #555;
+   text-decoration: none;
+@@ -200,12 +209,16 @@
+ }
+ a:focus {
+ }
++*/
+ /* a:visited, a:visited, a.visited, a.visited:visited {color:#555;text-decoration:none;}
+ 
+ a:hover,a:hover, a.visited:hover {color:#555;text-decoration:none;}
+- */
++ *//*
++
++
++*/
++/* LIST 요소 기본 *//*
+ 
+-/* LIST 요소 기본 */
+ li {
+   list-style: none;
+ }
+@@ -231,7 +244,9 @@
+   padding-left: 22px;
+ }
+ 
+-/* Form 요소들 기본 */
++*/
++/* Form 요소들 기본 *//*
++
+ fieldset {
+   padding: 0px;
+   margin: 0px;
+@@ -328,10 +343,12 @@
+   vertical-align: middle;
+ }
+ 
+-/* .isIE7 input[type='tel'],.isIE7 input[type='url'],.isIE7 input[type='number'], .isIE7 input[type='email'],.isIE7  input[type='text'],.isIE7  input[type='password'], 
++*/
++/* .isIE7 input[type='tel'],.isIE7 input[type='url'],.isIE7 input[type='number'], .isIE7 input[type='email'],.isIE7  input[type='text'],.isIE7  input[type='password'],
+ 
+ .isIE7 input.text,.isIE7 input.password {height:1.25em;}
+- */
++ *//*
++
+ 
+ .is-file-sfrm {
+   display: inline-block;
+@@ -372,7 +389,9 @@
+   vertical-align: middle;
+ }
+ 
+-/* 이미지 요소 기본 */
++*/
++/* 이미지 요소 기본 *//*
++
+ img {
+   border: 0px;
+   vertical-align: middle;
+@@ -387,18 +406,24 @@
+   cursor: pointer;
+ }
+ 
+-/*이미지에 자동 라인추가*/
++*/
++/*이미지에 자동 라인추가*//*
++
+ .imgBorder {
+   padding: 4px;
+   border: 1px solid #ddd;
+ }
+ 
+-/* ime-mode */
++*/
++/* ime-mode *//*
++
+ .imeOff {
+   ime-mode: disabled;
+ }
+ 
+-/* 오버-클릭 커서로 지정*/
++*/
++/* 오버-클릭 커서로 지정*//*
++
+ button,
+ .pointer,
+ .hand {
+@@ -408,15 +433,25 @@
+   cursor: move;
+ }
+ 
+-/* Table */
+-/*테이블 스타일 지정시 개별로 지정해주시기 바랍니다!!*/
++*/
++/* Table *//*
++
++*/
++/*테이블 스타일 지정시 개별로 지정해주시기 바랍니다!!*//*
++
++*/
+ /*
+ table { border-collapse: collapse; border-spacing: 0px;}
+ table.ashow {empty-cells:show;}
++*//*
++
++
++*/
++/*기본 스타일 정의*//*
++
+ */
++/*플로팅*//*
+ 
+-/*기본 스타일 정의*/
+-/*플로팅*/
+ .fr {
+   float: right;
+ }
+@@ -432,12 +467,16 @@
+   display: block;
+ }
+ 
+-/*포지셔닝*/
++*/
++/*포지셔닝*//*
++
+ .pos_d,
+ .pos-d,
+ .pos-st {
+   position: static;
+-} /*기본*/
++} */
++/*기본*//*
++
+ .pos_r,
+ .pos-r,
+ .pos-rel {
+@@ -449,7 +488,9 @@
+   position: absolute;
+ }
+ 
+-/*박스유형*/
++*/
++/*박스유형*//*
++
+ .isbox,
+ .is-rel,
+ .is-box {
+@@ -464,7 +505,9 @@
+   display: inline-block;
+ }
+ 
+-/* 글자자름 (inline-block, block 형태로 가로폭 반드시 지정해 줘야함)*/
++*/
++/* 글자자름 (inline-block, block 형태로 가로폭 반드시 지정해 줘야함)*//*
++
+ .ellipsis {
+   white-space: nowrap;
+   overflow: hidden;
+@@ -475,7 +518,9 @@
+   word-break: keep-all;
+ }
+ 
+-/*숨김*/
++*/
++/*숨김*//*
++
+ .hidden {
+   display: none;
+ }
+@@ -492,7 +537,9 @@
+   line-height: 0;
+ }
+ 
+-/* LI 목록 데이터 없음 스타일 기본 */
++*/
++/* LI 목록 데이터 없음 스타일 기본 *//*
++
+ * .no-data,
+ * .noData {
+   height: 100px;
+@@ -510,7 +557,9 @@
+   width: 100%;
+ }
+ 
+-/*공백 */
++*/
++/*공백 *//*
++
+ .gap10 {
+   height: 10px;
+   clear: both;
+@@ -551,7 +600,9 @@
+   display: block;
+ }
+ 
+-/*정렬*/
++*/
++/*정렬*//*
++
+ .tc {
+   text-align: center;
+ }
+@@ -595,7 +646,9 @@
+   vertical-align: bottom !important;
+ }
+ 
+-/* 들여쓰기 */
++*/
++/* 들여쓰기 *//*
++
+ .indent {
+   margin-left: 23px;
+ }
+@@ -606,7 +659,9 @@
+   margin-left: 10px;
+ }
+ 
+-/* 폰트색상 */
++*/
++/* 폰트색상 *//*
++
+ .c0 {
+   color: #000 !important;
+ }
+@@ -632,7 +687,9 @@
+   color: #fff !important;
+ }
+ 
+-/*회색조*/
++*/
++/*회색조*//*
++
+ .cg1 {
+   color: #69696a !important;
+ }
+@@ -679,7 +736,9 @@
+   border: 1px solid #7f9db9;
+ }
+ 
+-/* 폰트속성 */
++*/
++/* 폰트속성 *//*
++
+ .nb {
+   font-weight: normal;
+ }
+@@ -728,7 +787,9 @@
+   font-size: 20px;
+ }
+ 
+-/*도움말 공통*/
++*/
++/*도움말 공통*//*
++
+ .fhelp {
+   font-size: 11px;
+   letter-spacing: -1px;
+@@ -736,7 +797,9 @@
+   line-height: 130%;
+ }
+ 
+-/*줄간격*/
++*/
++/*줄간격*//*
++
+ .tlh190 {
+   line-height: 190%;
+ }
+@@ -765,18 +828,24 @@
+   line-height: 110%;
+ }
+ 
+-/*영문,숫자*/
++*/
++/*영문,숫자*//*
++
+ .en {
+   font-size: 90%;
+   font-family: Verdana;
+ }
+ 
+-/*회색필터처리*/
++*/
++/*회색필터처리*//*
++
+ .gray {
+   filter: Gray;
+ }
+ 
+-/* 패딩 5,10단위만 지정함*/
++*/
++/* 패딩 5,10단위만 지정함*//*
++
+ .pad5a {
+   padding: 5px;
+ }
+@@ -962,7 +1031,9 @@
+   padding-bottom: 50px;
+ }
+ 
+-/*마진*/
++*/
++/*마진*//*
++
+ .noMgf,
+ .no_mgf {
+   margin-bottom: 0px !important;
+@@ -1110,7 +1181,9 @@
+   margin-right: 50px;
+ }
+ 
+-/*가로 크기*/
++*/
++/*가로 크기*//*
++
+ .w500 {
+   width: 500px;
+ }
+@@ -1179,7 +1252,9 @@
+   width: 25%;
+ }
+ 
+-/*에디터용 출력 소스*/
++*/
++/*에디터용 출력 소스*//*
++
+ .editor-wrap {
+   background: #f9f9f9;
+ }
+@@ -1215,3 +1290,4 @@
+   border: 1px solid #ccc;
+   padding: 5px;
+ }
++*/
+Index: withme_frontend/src/assets/css/reset/common.css
+===================================================================
+diff --git a/withme_frontend/src/assets/css/reset/common.css b/withme_frontend/src/assets/css/reset/common.css
+--- a/withme_frontend/src/assets/css/reset/common.css	(revision 79aecfe138e442decd3b2bfda8d4ee2ac4efcdc1)
++++ b/withme_frontend/src/assets/css/reset/common.css	(date 1739870222763)
+@@ -1,7 +1,12 @@
++/*
+ @charset "utf-8";
+-/* 2012-05-07  CSS  2.1 CENTUMSOFT */
++*/
++/* 2012-05-07  CSS  2.1 CENTUMSOFT *//*
++
+ 
+-/* html5 호환 설정*/
++*/
++/* html5 호환 설정*//*
++
+ * {
+   margin: 0;
+   padding: 0;
+@@ -157,7 +162,9 @@
+ td {
+ }
+ 
+-/*body{font:13px/1.231 "돋움",arial,helvetica,clean,sans-serif; }*/
++*/
++/*body{font:13px/1.231 "돋움",arial,helvetica,clean,sans-serif; }*//*
++
+ body {
+   font-family: "Malgun Gothic", "맑은 고딕", "돋움", Dotum, Verdana, Arial,
+     helvetica, clean, sans-serif;
+@@ -191,7 +198,9 @@
+   display: inline;
+ }
+ 
+-/* 글자 속성 */
++*/
++/* 글자 속성 *//*
++
+ a {
+   color: #555;
+   text-decoration: none;
+@@ -200,12 +209,16 @@
+ }
+ a:focus {
+ }
++*/
+ /* a:visited, a:visited, a.visited, a.visited:visited {color:#555;text-decoration:none;}
+ 
+ a:hover,a:hover, a.visited:hover {color:#555;text-decoration:none;}
+- */
++ *//*
++
++
++*/
++/* LIST 요소 기본 *//*
+ 
+-/* LIST 요소 기본 */
+ li {
+   list-style: none;
+ }
+@@ -231,7 +244,9 @@
+   padding-left: 22px;
+ }
+ 
+-/* Form 요소들 기본 */
++*/
++/* Form 요소들 기본 *//*
++
+ fieldset {
+   padding: 0px;
+   margin: 0px;
+@@ -328,10 +343,12 @@
+   vertical-align: middle;
+ }
+ 
+-/* .isIE7 input[type='tel'],.isIE7 input[type='url'],.isIE7 input[type='number'], .isIE7 input[type='email'],.isIE7  input[type='text'],.isIE7  input[type='password'], 
++*/
++/* .isIE7 input[type='tel'],.isIE7 input[type='url'],.isIE7 input[type='number'], .isIE7 input[type='email'],.isIE7  input[type='text'],.isIE7  input[type='password'],
+ 
+ .isIE7 input.text,.isIE7 input.password {height:1.25em;}
+- */
++ *//*
++
+ 
+ .is-file-sfrm {
+   display: inline-block;
+@@ -372,7 +389,9 @@
+   vertical-align: middle;
+ }
+ 
+-/* 이미지 요소 기본 */
++*/
++/* 이미지 요소 기본 *//*
++
+ img {
+   border: 0px;
+   vertical-align: middle;
+@@ -387,18 +406,24 @@
+   cursor: pointer;
+ }
+ 
+-/*이미지에 자동 라인추가*/
++*/
++/*이미지에 자동 라인추가*//*
++
+ .imgBorder {
+   padding: 4px;
+   border: 1px solid #ddd;
+ }
+ 
+-/* ime-mode */
++*/
++/* ime-mode *//*
++
+ .imeOff {
+   ime-mode: disabled;
+ }
+ 
+-/* 오버-클릭 커서로 지정*/
++*/
++/* 오버-클릭 커서로 지정*//*
++
+ button,
+ .pointer,
+ .hand {
+@@ -408,15 +433,25 @@
+   cursor: move;
+ }
+ 
+-/* Table */
+-/*테이블 스타일 지정시 개별로 지정해주시기 바랍니다!!*/
++*/
++/* Table *//*
++
++*/
++/*테이블 스타일 지정시 개별로 지정해주시기 바랍니다!!*//*
++
++*/
+ /*
+ table { border-collapse: collapse; border-spacing: 0px;}
+ table.ashow {empty-cells:show;}
++*//*
++
++
++*/
++/*기본 스타일 정의*//*
++
+ */
++/*플로팅*//*
+ 
+-/*기본 스타일 정의*/
+-/*플로팅*/
+ .fr {
+   float: right;
+ }
+@@ -432,12 +467,16 @@
+   display: block;
+ }
+ 
+-/*포지셔닝*/
++*/
++/*포지셔닝*//*
++
+ .pos_d,
+ .pos-d,
+ .pos-st {
+   position: static;
+-} /*기본*/
++} */
++/*기본*//*
++
+ .pos_r,
+ .pos-r,
+ .pos-rel {
+@@ -449,7 +488,9 @@
+   position: absolute;
+ }
+ 
+-/*박스유형*/
++*/
++/*박스유형*//*
++
+ .isbox,
+ .is-rel,
+ .is-box {
+@@ -464,7 +505,9 @@
+   display: inline-block;
+ }
+ 
+-/* 글자자름 (inline-block, block 형태로 가로폭 반드시 지정해 줘야함)*/
++*/
++/* 글자자름 (inline-block, block 형태로 가로폭 반드시 지정해 줘야함)*//*
++
+ .ellipsis {
+   white-space: nowrap;
+   overflow: hidden;
+@@ -475,7 +518,9 @@
+   word-break: keep-all;
+ }
+ 
+-/*숨김*/
++*/
++/*숨김*//*
++
+ .hidden {
+   display: none;
+ }
+@@ -492,7 +537,9 @@
+   line-height: 0;
+ }
+ 
+-/* LI 목록 데이터 없음 스타일 기본 */
++*/
++/* LI 목록 데이터 없음 스타일 기본 *//*
++
+ * .no-data,
+ * .noData {
+   height: 100px;
+@@ -510,7 +557,9 @@
+   width: 100%;
+ }
+ 
+-/*공백 */
++*/
++/*공백 *//*
++
+ .gap10 {
+   height: 10px;
+   clear: both;
+@@ -551,7 +600,9 @@
+   display: block;
+ }
+ 
+-/*정렬*/
++*/
++/*정렬*//*
++
+ .tc {
+   text-align: center;
+ }
+@@ -595,7 +646,9 @@
+   vertical-align: bottom !important;
+ }
+ 
+-/* 들여쓰기 */
++*/
++/* 들여쓰기 *//*
++
+ .indent {
+   margin-left: 23px;
+ }
+@@ -606,7 +659,9 @@
+   margin-left: 10px;
+ }
+ 
+-/* 폰트색상 */
++*/
++/* 폰트색상 *//*
++
+ .c0 {
+   color: #000 !important;
+ }
+@@ -632,7 +687,9 @@
+   color: #fff !important;
+ }
+ 
+-/*회색조*/
++*/
++/*회색조*//*
++
+ .cg1 {
+   color: #69696a !important;
+ }
+@@ -679,7 +736,9 @@
+   border: 1px solid #7f9db9;
+ }
+ 
+-/* 폰트속성 */
++*/
++/* 폰트속성 *//*
++
+ .nb {
+   font-weight: normal;
+ }
+@@ -728,7 +787,9 @@
+   font-size: 20px;
+ }
+ 
+-/*도움말 공통*/
++*/
++/*도움말 공통*//*
++
+ .fhelp {
+   font-size: 11px;
+   letter-spacing: -1px;
+@@ -736,7 +797,9 @@
+   line-height: 130%;
+ }
+ 
+-/*줄간격*/
++*/
++/*줄간격*//*
++
+ .tlh190 {
+   line-height: 190%;
+ }
+@@ -765,18 +828,24 @@
+   line-height: 110%;
+ }
+ 
+-/*영문,숫자*/
++*/
++/*영문,숫자*//*
++
+ .en {
+   font-size: 90%;
+   font-family: Verdana;
+ }
+ 
+-/*회색필터처리*/
++*/
++/*회색필터처리*//*
++
+ .gray {
+   filter: Gray;
+ }
+ 
+-/* 패딩 5,10단위만 지정함*/
++*/
++/* 패딩 5,10단위만 지정함*//*
++
+ .pad5a {
+   padding: 5px;
+ }
+@@ -962,7 +1031,9 @@
+   padding-bottom: 50px;
+ }
+ 
+-/*마진*/
++*/
++/*마진*//*
++
+ .noMgf,
+ .no_mgf {
+   margin-bottom: 0px !important;
+@@ -1110,7 +1181,9 @@
+   margin-right: 50px;
+ }
+ 
+-/*가로 크기*/
++*/
++/*가로 크기*//*
++
+ .w500 {
+   width: 500px;
+ }
+@@ -1179,7 +1252,9 @@
+   width: 25%;
+ }
+ 
+-/*에디터용 출력 소스*/
++*/
++/*에디터용 출력 소스*//*
++
+ .editor-wrap {
+   background: #f9f9f9;
+ }
+@@ -1215,3 +1290,4 @@
+   border: 1px solid #ccc;
+   padding: 5px;
+ }
++*/

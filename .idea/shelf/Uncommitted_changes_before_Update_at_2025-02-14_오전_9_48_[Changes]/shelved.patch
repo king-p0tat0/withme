@@ -1,0 +1,610 @@
+Index: withme_backend/src/main/java/com/javalab/student/service/MemberService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.service;\r\n\r\nimport com.javalab.student.dto.*;\r\nimport com.javalab.student.entity.Member;\r\nimport com.javalab.student.repository.MemberRepository;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.data.domain.Page;\r\nimport org.springframework.data.domain.Pageable;\r\nimport org.springframework.security.crypto.password.PasswordEncoder;\r\nimport org.springframework.stereotype.Service;\r\nimport org.springframework.transaction.annotation.Transactional;\r\n\r\n\r\nimport java.text.SimpleDateFormat;\r\nimport java.time.format.DateTimeFormatter;\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\nimport java.util.Map;\r\nimport java.util.stream.Collectors;\r\n\r\n@Service\r\n@RequiredArgsConstructor\r\npublic class MemberService {\r\n\r\n    private final MemberRepository memberRepository;\r\n    private final PasswordEncoder passwordEncoder;\r\n\r\n    /**\r\n     * 회원가입 처리\r\n     * @param memberFormDto - 클라이언트에서 전달받은 회원가입 데이터\r\n     */\r\n    @Transactional\r\n    public void registerMember(MemberFormDto memberFormDto) {\r\n        // 이메일 중복 체크\r\n        if (memberRepository.findByEmail(memberFormDto.getEmail()) != null) {\r\n            throw new IllegalStateException(\"이미 존재하는 이메일입니다.\");\r\n        }\r\n\r\n        // MemberFormDto를 Member 엔티티로 변환\r\n        Member member = Member.createMember(memberFormDto, passwordEncoder);\r\n\r\n        // 데이터 저장\r\n        memberRepository.save(member);\r\n    }\r\n\r\n    /**\r\n     * 사용자 정보를 ID로 조회\r\n     * @param id - 사용자 ID\r\n     * @return Member 엔티티\r\n     * @throws IllegalArgumentException - 해당 ID의 사용자가 없는 경우 예외 발생\r\n     */\r\n    @Transactional(readOnly = true)\r\n    public Member getMemberById(Long id) {\r\n        return memberRepository.findById(id)\r\n                .orElseThrow(() -> new IllegalArgumentException(\"해당 ID의 사용자를 찾을 수 없습니다.\"));\r\n    }\r\n    @Transactional(readOnly = true)\r\n    public Member getMemberByEmail(String email) {\r\n        return memberRepository.findByEmail(email);\r\n    }\r\n\r\n\r\n    // 사용자 정보 수정 메서드\r\n    public void updateMember(Long id, MemberFormDto memberFormDto) {\r\n        Member member = memberRepository.findById(id)\r\n                .orElseThrow(() -> new IllegalArgumentException(\"존재하지 않는 사용자입니다.\"));\r\n\r\n        member.setName(memberFormDto.getName());\r\n        member.setPhone(memberFormDto.getPhone());\r\n        member.setAddress(memberFormDto.getAddress());\r\n\r\n        memberRepository.save(member); // 변경 사항 저장\r\n    }\r\n\r\n\r\n    /**\r\n     * 이메일 중복 체크\r\n     * @param email - 클라이언트에서 입력받은 이메일\r\n     * @return true(중복) or false(사용 가능)\r\n     */\r\n    public boolean isEmailDuplicate(String email) {\r\n        Member foundMember = memberRepository.findByEmail(email);\r\n        return foundMember != null;\r\n    }\r\n\r\n    /**\r\n     * 로그인 처리\r\n     * @param loginForm 로그인 폼 데이터 (이메일, 비밀번호)\r\n     * @return 로그인 성공 여부 (true: 성공, false: 실패)\r\n     */\r\n    public boolean login(LoginFormDto loginForm) {\r\n        if (loginForm.getEmail() == null || loginForm.getEmail().isEmpty()) {\r\n            throw new IllegalArgumentException(\"이메일을 입력해주세요.\");\r\n        }\r\n\r\n        Member member = memberRepository.findByEmail(loginForm.getEmail());\r\n        if (member == null) {\r\n            return false; // 사용자 없음\r\n        }\r\n\r\n        if (!passwordEncoder.matches(loginForm.getPassword(), member.getPassword())) {\r\n            return false; // 비밀번호 불일치\r\n        }\r\n\r\n        return true; // 로그인 성공\r\n    }\r\n\r\n    public Member findById(Long memberId) {\r\n        return memberRepository.findById(memberId)\r\n                .orElseThrow(() -> new IllegalArgumentException(\"존재하지 않는 사용자입니다\"));\r\n    }\r\n\r\n    public Member findByEmail(String email) {\r\n        return memberRepository.findByEmail(email);\r\n    }\r\n\r\n    /*모든 사용자 조회(페이징)*/\r\n    public PageResponseDTO<MemberDto> getAllMembers(PageRequestDTO pageRequestDTO) {\r\n        // Pageable 생성\r\n        Pageable pageable = pageRequestDTO.getPageable(\"id\");\r\n\r\n        // 데이터 조회 (Page 객체 사용)\r\n        Page<Member> result = memberRepository.findAll(pageable);\r\n\r\n        // Page -> PageResponseDTO 변환\r\n        List<MemberDto> dtoList = result.getContent().stream()\r\n                .map(this::convertEntityToDto)\r\n                .collect(Collectors.toList());\r\n\r\n        return PageResponseDTO.<MemberDto>builder()\r\n                .dtoList(dtoList)\r\n                .total((int) result.getTotalElements())\r\n                .pageRequestDTO(pageRequestDTO)\r\n                .build();\r\n    }\r\n\r\n    public List<Member> getMember() {\r\n        return memberRepository.findAll();\r\n    }\r\n\r\n\r\n    private MemberDto convertEntityToDto(Member member) {\r\n        return MemberDto.builder()\r\n                .id(member.getId())\r\n                .name(member.getName())\r\n                .email(member.getEmail())\r\n                .phone(member.getPhone())\r\n                .address(member.getAddress())\r\n                .age(member.getAge())\r\n                .role(member.getRole())\r\n                .social(member.isSocial())\r\n                .provider(member.getProvider())\r\n                .build();\r\n    }\r\n\r\n\r\n     /**\r\n     * 사용자 인증 메서드\r\n     * @param email 사용자 이메일\r\n     * @param password 사용자 비밀번호\r\n     * @return 인증된 Member 객체\r\n     * @throws IllegalArgumentException 이메일 또는 비밀번호가 잘못된 경우 예외 발생\r\n     */\r\n    public Member authenticate(String email, String password) {\r\n        if (email == null || email.isEmpty()) {\r\n            throw new IllegalArgumentException(\"이메일을 입력해주세요.\");\r\n        }\r\n\r\n        // 이메일로 사용자 조회\r\n        Member member = memberRepository.findByEmail(email);\r\n        if (member == null) {\r\n            throw new IllegalArgumentException(\"존재하지 않는 사용자입니다.\");\r\n        }\r\n\r\n        // 비밀번호 검증\r\n        if (!passwordEncoder.matches(password, member.getPassword())) {\r\n            throw new IllegalArgumentException(\"비밀번호가 일치하지 않습니다.\");\r\n        }\r\n\r\n        return member; // 인증 성공 시 Member 객체 반환\r\n    }\r\n\r\n    /**\r\n     * 일별 신규 가입자 수를 반환하는 메서드\r\n     */\r\n    public List<NewRegistrationDTO> getNewRegistrationsPerDay() {\r\n        List<Member> members = memberRepository.findAll();  // 모든 회원을 가져옴\r\n\r\n        // 날짜 포맷 정의 (yyyy-MM-dd)\r\n        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(\"yyyy-MM-dd\");\r\n\r\n        // 가입일(reg_time)을 기준으로 날짜별 그룹화하여 신규 가입자 수 집계\r\n        Map<String, Long> newRegistrationsCount = members.stream()\r\n                .collect(Collectors.groupingBy(\r\n                        member -> member.getRegTime().format(formatter),  // LocalDateTime을 문자열로 변환\r\n                        Collectors.counting()  // 각 날짜별 가입자 수 계산\r\n                ));\r\n\r\n        // 결과를 NewRegistrationDTO 형태로 변환\r\n        return newRegistrationsCount.entrySet().stream()\r\n                .map(entry -> new NewRegistrationDTO(entry.getKey(), entry.getValue().intValue()))\r\n                .collect(Collectors.toList());\r\n    }\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/service/MemberService.java b/withme_backend/src/main/java/com/javalab/student/service/MemberService.java
+--- a/withme_backend/src/main/java/com/javalab/student/service/MemberService.java	(revision 432fc8f79851e8207ae5a795063fa6588db65ead)
++++ b/withme_backend/src/main/java/com/javalab/student/service/MemberService.java	(date 1739432528218)
+@@ -146,7 +146,6 @@
+                 .email(member.getEmail())
+                 .phone(member.getPhone())
+                 .address(member.getAddress())
+-                .age(member.getAge())
+                 .role(member.getRole())
+                 .social(member.isSocial())
+                 .provider(member.getProvider())
+Index: withme_backend/src/main/java/com/javalab/student/service/shop/ItemService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.service.shop;\r\n\r\n\r\nimport com.javalab.student.dto.shop.ItemFormDto;\r\nimport com.javalab.student.dto.shop.ItemImgDto;\r\nimport com.javalab.student.entity.shop.Item;\r\nimport com.javalab.student.entity.shop.ItemImg;\r\nimport com.javalab.student.repository.shop.ItemImgRepository;\r\nimport com.javalab.student.repository.shop.ItemRepository;\r\nimport jakarta.persistence.EntityNotFoundException;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.stereotype.Service;\r\nimport org.springframework.transaction.annotation.Transactional;\r\nimport org.springframework.web.multipart.MultipartFile;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\n\r\n@Service\r\n@Transactional\r\n@RequiredArgsConstructor\r\npublic class ItemService {\r\n\r\n    // 의존성 주입\r\n    private final ItemRepository itemRepository;\r\n    private final ItemImgService itemImgService;\r\n    private final ItemImgRepository itemImgRepository;\r\n\r\n    // 상품 등록\r\n    public Long saveItem(ItemFormDto itemFormDTO, List<MultipartFile> itemImgFileList) throws Exception{\r\n\r\n        // 1. 상품 등록, 저장(영속화)\r\n        // 1.1. ItemFormDto의 crateItem() 메소드를 통해 Item 객체 생성(Dto -> Entity)\r\n        Item item = itemFormDTO.crateItem();\r\n        // 1.2. ItemRepository의 save() 메소드를 통해 Item 객체 저장\r\n        // save(item) : JPA의 ENtityManager가 persist(item) 메소드 호출해서 해당 엔티티를 영속화\r\n        // item 엔티티가 데이터베이스에 저장되고 기본키를 발급받아서 그 기본키로 영속성 컨텍스트에 저장됨\r\n        itemRepository.save(item);\r\n\r\n        // 2. 이미지 등록\r\n        for(int i=0;i<itemImgFileList.size(); i++){\r\n            // 2.1. ItemImg 객체 생성\r\n            ItemImg itemImg = new ItemImg();\r\n            // 2.2. Item 객체와 연관관계 설정\r\n            itemImg.setItem(item);\r\n            // 2.3. 대표 이미지 여부 설정\r\n            if( i == 0)\r\n                itemImg.setRepimgYn(\"Y\");\r\n            else\r\n                itemImg.setRepimgYn(\"N\");\r\n            // 2.4. ItemImgService의 saveItemImg() 메소드를 통해 ItemImg 객체 저장\r\n            itemImgService.saveItemImg(itemImg, itemImgFileList.get(i));\r\n        }\r\n        return item.getId();\r\n    }\r\n\r\n    /**\r\n     * 상품 상세 조회\r\n     * - 한 개의 상품과 여러 개의 상품 이미지 정보를 조회하는 메서드\r\n     * - 상품 ID를 전달받아 상품 상세 정보를 조회하는 메서드 상품 이미지 정보를 조회한다.\r\n     * - 상품 정보와 상품 이미지 정보를 조합하여 상품 상세 정보를 반환한다.\r\n     * - 트랜잭션 내에서 INSERT, UPDATE, DELETE 쿼리가 발생하지 않도록 보장.\r\n     *   혹시 다른 레이어에서 여기서 영속화한 엔티티를 수정하거나 삭제하는 경우가 있을 수 있기 때문에\r\n     *   readOnly = true 옵션을 사용하여 트랜잭션 내에서 SELECT 쿼리만 실행하도록 설정한다.\r\n     * - readOnly = true 옵션을 사용하여 트랜잭션 내에서 SELECT 쿼리만 실행하도록 설정한다.\r\n     * @param itemId\r\n     */\r\n    @Transactional(readOnly = true)\r\n    public ItemFormDto getItemDetail(Long itemId) {\r\n\r\n        // 1. 상품 번호로 해당 상품의 이미지들을 조회한다.\r\n        List<ItemImg> itemImgList = itemImgRepository.findByItemIdOrderByIdAsc(itemId);\r\n\r\n        // 2. 조회한 이미지들을 ItemImgDto로 변환하기 위해 List에 담는다.\r\n        List<ItemImgDto> itemImgDtoList = new ArrayList<>();\r\n        for(ItemImg itemImg : itemImgList){\r\n            ItemImgDto itemImgDto = ItemImgDto.entityToDto(itemImg);\r\n            itemImgDtoList.add(itemImgDto);\r\n        }\r\n\r\n        // 3. 상품 번호로 해당 상품을 조회한다. 이렇게 조회하면 영속성 컨텍스트에 해당 엔티티가 영속화된다.\r\n        Item item = itemRepository.findById(itemId)\r\n                .orElseThrow(EntityNotFoundException::new);\r\n\r\n        // 조회한 3.상품 정보와 2.이미지 정보를 조합하여 ItemFormDto로 변환한다.\r\n        // 변환하는 이유는 화면에 출력하기 위함이다.\r\n        ItemFormDto itemFormDto = ItemFormDto.of(item);\r\n\r\n        // 4. ItemFormDto에 이미지 정보를 설정한다.\r\n        itemFormDto.setItemImgDtoList(itemImgDtoList);\r\n        // 상품정보와 상품의 이미지 정보들에 대한 조회 완료\r\n\r\n        return itemFormDto;\r\n    }\r\n\r\n    /**\r\n     * 상품 수정\r\n     * @param itemFormDto\r\n     * @param itemImgFileList\r\n     */\r\n    public long updateItem(ItemFormDto itemFormDto,\r\n                           List<MultipartFile> itemImgFileList) throws Exception {\r\n        // 1. 수정할 상품 조회, 영속화 - 상품 정보를 수정하기 위해 조회\r\n        Item item = itemRepository.findById(itemFormDto.getId()).orElseThrow(EntityNotFoundException::new);\r\n\r\n        // 2. 영속화 되어 있는 상품의 정보를 수정한다. - 변경 감지(dirty checking) - 자동감지후 자동 저장됨.\r\n        item.updateItem(itemFormDto);\r\n\r\n        // 3. 화면에서 전달된 상품 이미지의 키(기본키)를  arrayList로 받아온다.\r\n        List<Long> itemImgIds = itemFormDto.getItemImgIds();\r\n\r\n        // 4. 화면에서 전달된 상품 이미지 파일을 업데이트한다.\r\n        for(int i = 0; i < itemImgFileList.size(); i++){\r\n            // 4.1. 상품 이미지 파일을 업데이트한다.(상품 이미지 id, 상품 이미지 파일)\r\n            itemImgService.updateItemImg(itemImgIds.get(i), itemImgFileList.get(i));\r\n        }\r\n        return item.getId();\r\n    }\r\n\r\n    /**\r\n     * 상품 목록 조회\r\n     * @param itemSearchDto : 복잡한 검색 조건을 담은 DTO\r\n     * @param pageable : 페이징 처리를 위한 Pageable 객체\r\n     */\r\n   /* @Transactional(readOnly = true)\r\n    public Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable){\r\n        return itemRepository.getAdminItemPage(itemSearchDto, pageable);\r\n    }\r\n\r\n    @Transactional(readOnly = true)\r\n    public Page<MainItemDto> getMainItemPage(ItemSearchDto itemSearchDto, Pageable pageable){\r\n        return itemRepository.getMainItemPage(itemSearchDto, pageable);\r\n    }*/\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/service/shop/ItemService.java b/withme_backend/src/main/java/com/javalab/student/service/shop/ItemService.java
+--- a/withme_backend/src/main/java/com/javalab/student/service/shop/ItemService.java	(revision 432fc8f79851e8207ae5a795063fa6588db65ead)
++++ b/withme_backend/src/main/java/com/javalab/student/service/shop/ItemService.java	(date 1739433058336)
+@@ -3,12 +3,16 @@
+ 
+ import com.javalab.student.dto.shop.ItemFormDto;
+ import com.javalab.student.dto.shop.ItemImgDto;
++import com.javalab.student.dto.shop.ItemSearchDto;
++import com.javalab.student.dto.shop.MainItemDto;
+ import com.javalab.student.entity.shop.Item;
+ import com.javalab.student.entity.shop.ItemImg;
+ import com.javalab.student.repository.shop.ItemImgRepository;
+ import com.javalab.student.repository.shop.ItemRepository;
+ import jakarta.persistence.EntityNotFoundException;
+ import lombok.RequiredArgsConstructor;
++import org.springframework.data.domain.Page;
++import org.springframework.data.domain.Pageable;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
+ import org.springframework.web.multipart.MultipartFile;
+@@ -122,7 +126,7 @@
+      * @param itemSearchDto : 복잡한 검색 조건을 담은 DTO
+      * @param pageable : 페이징 처리를 위한 Pageable 객체
+      */
+-   /* @Transactional(readOnly = true)
++    @Transactional(readOnly = true)
+     public Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable){
+         return itemRepository.getAdminItemPage(itemSearchDto, pageable);
+     }
+@@ -130,7 +134,7 @@
+     @Transactional(readOnly = true)
+     public Page<MainItemDto> getMainItemPage(ItemSearchDto itemSearchDto, Pageable pageable){
+         return itemRepository.getMainItemPage(itemSearchDto, pageable);
+-    }*/
++    }
+ 
+ 
+ 
+Index: withme_backend/src/test/java/com/javalab/student/repository/ItemTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.repository;\r\n\r\nimport com.javalab.student.constant.ItemSellStatus;\r\nimport com.javalab.student.entity.shop.Item;\r\nimport com.javalab.student.repository.shop.ItemRepository;\r\nimport jakarta.transaction.Transactional;\r\nimport lombok.extern.log4j.Log4j2;\r\nimport org.junit.jupiter.api.DisplayName;\r\nimport org.junit.jupiter.api.Test;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.boot.test.context.SpringBootTest;\r\n\r\nimport static org.assertj.core.api.Assertions.assertThat;\r\n\r\n@SpringBootTest\r\n@Log4j2\r\n@Transactional\r\npublic class ItemTest {\r\n    @Autowired\r\n    ItemRepository itemRepository;  // 테스트할 ItemRepository 빈 주입\r\n\r\n    // 아이템 한 개 저장 테스트\r\n    @Test\r\n    @DisplayName(\"상품 저장 테스트\")\r\n    //@Rollback(false)  // 롤백 방지\r\n    public void saveItemTest(){\r\n        // Given : 테스트용 Item 엔티티 생성\r\n        Item item = Item.builder()\r\n                .itemNm(\"테스트 상품 한개 저장\")\r\n                .price(10000)\r\n                .stockNumber(50)\r\n                .itemDetail(\"테스트 상품 상세 설명\")\r\n                .itemSellStatus(ItemSellStatus.SELL)\r\n                //.regTime(LocalDateTime.now())\r\n                .build();\r\n\r\n        // When(작동) : 테스트 대상 메서드 호출\r\n        // save() : Item 엔티티를 저장하는 메서드(영속 상태로 전환)\r\n        Item savedItem = itemRepository.save(item);  // 저장된 Item 엔티티 반환\r\n\r\n        // Then(검증) : 위에서 생성한 엔티티와 영속화된 엔티티를 비교해서 검증\r\n        // import static org.assertj.core.api.Assertions.assertThat; 추가\r\n        // 1차 검증, 저장된 Item 엔티티의 ID가 null이 아닌지 검증\r\n        assertThat(savedItem.getId()).isNotNull();\r\n        // 2. 검증, 저장된 Item 엔티티의 상품명과 테스트 Item 엔티티의 상품명이 같은지 검증\r\n        assertThat(savedItem.getItemNm()).isEqualTo(item.getItemNm());\r\n        // 저장된 값 확인\r\n        log.info(\"savedItem: {}\", savedItem);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/test/java/com/javalab/student/repository/ItemTest.java b/withme_backend/src/test/java/com/javalab/student/repository/ItemTest.java
+--- a/withme_backend/src/test/java/com/javalab/student/repository/ItemTest.java	(revision 432fc8f79851e8207ae5a795063fa6588db65ead)
++++ b/withme_backend/src/test/java/com/javalab/student/repository/ItemTest.java	(date 1739434585104)
+@@ -9,6 +9,7 @@
+ import org.junit.jupiter.api.Test;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.boot.test.context.SpringBootTest;
++import org.springframework.test.annotation.Commit;
+ 
+ import static org.assertj.core.api.Assertions.assertThat;
+ 
+@@ -19,32 +20,33 @@
+     @Autowired
+     ItemRepository itemRepository;  // 테스트할 ItemRepository 빈 주입
+ 
+-    // 아이템 한 개 저장 테스트
++    // 아이템 여러 개 저장 테스트
+     @Test
+-    @DisplayName("상품 저장 테스트")
+-    //@Rollback(false)  // 롤백 방지
+-    public void saveItemTest(){
+-        // Given : 테스트용 Item 엔티티 생성
+-        Item item = Item.builder()
+-                .itemNm("테스트 상품 한개 저장")
+-                .price(10000)
+-                .stockNumber(50)
+-                .itemDetail("테스트 상품 상세 설명")
+-                .itemSellStatus(ItemSellStatus.SELL)
+-                //.regTime(LocalDateTime.now())
+-                .build();
++    @DisplayName("여러 상품 저장 테스트")
++    @Commit
++    public void saveMultipleItemsTest(){
++        // 30개의 아이템을 저장하기 위한 반복문
++        for (int i = 1; i <= 30; i++) {
++            // Given : 테스트용 Item 엔티티 생성
++            Item item = Item.builder()
++                    .itemNm("테스트 상품 " + i)  // 아이템 이름에 번호 추가
++                    .price(10000 + (i * 100))  // 가격에 차이를 두기 위해 가격 계산
++                    .stockNumber(50)  // 재고 수량은 동일하게 설정
++                    .itemDetail("테스트 상품 상세 설명 " + i)  // 상세 설명에 번호 추가
++                    .itemSellStatus(ItemSellStatus.SELL)  // 판매 상태는 "SELL"
++                    .build();
+ 
+-        // When(작동) : 테스트 대상 메서드 호출
+-        // save() : Item 엔티티를 저장하는 메서드(영속 상태로 전환)
+-        Item savedItem = itemRepository.save(item);  // 저장된 Item 엔티티 반환
++            // When(작동) : 테스트 대상 메서드 호출
++            // save() : Item 엔티티를 저장하는 메서드(영속 상태로 전환)
++            Item savedItem = itemRepository.save(item);  // 저장된 Item 엔티티 반환
+ 
+-        // Then(검증) : 위에서 생성한 엔티티와 영속화된 엔티티를 비교해서 검증
+-        // import static org.assertj.core.api.Assertions.assertThat; 추가
+-        // 1차 검증, 저장된 Item 엔티티의 ID가 null이 아닌지 검증
+-        assertThat(savedItem.getId()).isNotNull();
+-        // 2. 검증, 저장된 Item 엔티티의 상품명과 테스트 Item 엔티티의 상품명이 같은지 검증
+-        assertThat(savedItem.getItemNm()).isEqualTo(item.getItemNm());
+-        // 저장된 값 확인
+-        log.info("savedItem: {}", savedItem);
++            // Then(검증) : 위에서 생성한 엔티티와 영속화된 엔티티를 비교해서 검증
++            // 1차 검증, 저장된 Item 엔티티의 ID가 null이 아닌지 검증
++            assertThat(savedItem.getId()).isNotNull();
++            // 2차 검증, 저장된 Item 엔티티의 상품명과 테스트 Item 엔티티의 상품명이 같은지 검증
++            assertThat(savedItem.getItemNm()).isEqualTo(item.getItemNm());
++            // 저장된 값 확인
++            log.info("savedItem: {}", savedItem);
++        }
+     }
+ }
+Index: withme_backend/src/main/java/com/javalab/student/controller/shop/ItemController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.controller.shop;\r\n\r\n\r\nimport com.javalab.student.constant.ItemSellStatus;\r\nimport com.javalab.student.dto.shop.ItemDto;\r\nimport com.javalab.student.dto.shop.ItemFormDto;\r\nimport com.javalab.student.dto.shop.ItemSearchDto;\r\nimport com.javalab.student.service.shop.ItemService;\r\nimport jakarta.persistence.EntityNotFoundException;\r\nimport jakarta.validation.Valid;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.data.domain.Page;\r\nimport org.springframework.data.domain.PageRequest;\r\nimport org.springframework.data.domain.Pageable;\r\nimport org.springframework.stereotype.Controller;\r\nimport org.springframework.ui.Model;\r\nimport org.springframework.validation.BindingResult;\r\nimport org.springframework.web.bind.annotation.GetMapping;\r\nimport org.springframework.web.bind.annotation.PathVariable;\r\nimport org.springframework.web.bind.annotation.PostMapping;\r\nimport org.springframework.web.bind.annotation.RequestParam;\r\nimport org.springframework.web.multipart.MultipartFile;\r\n\r\nimport java.time.LocalDateTime;\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\nimport java.util.Optional;\r\n\r\n@Controller\r\n@RequiredArgsConstructor\r\npublic class ItemController {\r\n\r\n    private final ItemService itemService;\r\n\r\n    /**\r\n     * 상품 상세 페이지\r\n     * - 파라미터를 쿼리 스트링 방식으로 전달\r\n     */\r\n    @GetMapping(\"/view\")\r\n    public String getItem(@RequestParam(\"id\") Long id, Model model) {\r\n        ItemDto itemDto = ItemDto.builder()\r\n                .id(id)\r\n                .itemNm(\"테스트 상품 \" + id)\r\n                .price(10000)\r\n                .stockNumber(10)\r\n                .itemDetail(\"테스트 상품 상세 설명\")\r\n                .itemSellStatus(ItemSellStatus.SOLD_OUT)\r\n                .regTime(LocalDateTime.now())\r\n                .build();\r\n        model.addAttribute(\"item\", itemDto);\r\n        return \"itemView\"; // 타임리프 페이지\r\n    }\r\n    /**\r\n     * 상품 상세 페이지 #2\r\n     * - PathVariable을 사용한 상품 상세 페이지\r\n     */\r\n    @GetMapping(\"/view/{id}\")\r\n    public String getItem2(@PathVariable(\"id\") Long id, Model model) {\r\n        ItemDto itemDto = ItemDto.builder()\r\n                .id(id)\r\n                .itemNm(\"테스트 상품 \" + id)\r\n                .price(10000)\r\n                .stockNumber(10)\r\n                .itemDetail(\"테스트 상품 상세 설명\")\r\n                .itemSellStatus(ItemSellStatus.SOLD_OUT)\r\n                .regTime(LocalDateTime.now())\r\n                .build();\r\n        model.addAttribute(\"item\", itemDto);\r\n        model.addAttribute(\"param1\", id);\r\n        return \"itemView\"; // 타임리프 페이지\r\n    }\r\n\r\n    /**\r\n     * 상품 목록 페이지\r\n     */\r\n    @GetMapping(\"/itemList\")\r\n    public String getItemList(Model model) {\r\n        List<ItemDto> itemList = new ArrayList<>();\r\n        for (int i = 1; i <= 10; i++) {\r\n            ItemDto item = ItemDto.builder()\r\n                    .id((long) i)\r\n                    .itemNm(\"테스트 상품 \" + i)\r\n                    .price(10000 + (i * 1000))\r\n                    .stockNumber(10 + i)\r\n                    .itemDetail(\"테스트 상품 \" + i + \" 상세 설명\")\r\n                    .itemSellStatus(i % 2 == 0 ? ItemSellStatus.SOLD_OUT : ItemSellStatus.SELL)\r\n                    .regTime(LocalDateTime.now())\r\n                    .build();\r\n            itemList.add(item);\r\n        }\r\n        model.addAttribute(\"items\", itemList);\r\n        return \"itemList\";\r\n    }\r\n\r\n    /**\r\n     * 상품 등록 페이지\r\n     */\r\n    @GetMapping(\"/admin/item/new\")\r\n    public String itemForm(Model model){\r\n        model.addAttribute(\"itemFormDto\", new ItemFormDto());\r\n        return \"/item/itemForm\";\r\n    }\r\n\r\n\r\n    /**\r\n     * 상품 등록 처리\r\n     * - 상품 등록 페이지에서 입력한 상품 정보를 전달받아 상품을 등록하는 메서드\r\n     */\r\n    @PostMapping(\"/admin/item/new\")\r\n    public String itemForm(@Valid ItemFormDto itemFormDTO, BindingResult bindingResult,\r\n                           Model model, @RequestParam(\"itemImgFile\") List<MultipartFile> itemImgFileList){\r\n\r\n        if(bindingResult.hasErrors()){\r\n            return \"item/itemForm\";\r\n        }\r\n        // 첫번째 상품 이미지가 없고 id가 null인 경우 에러 메시지 전달 즉, 상품 최초 등록인 경우\r\n        if(itemImgFileList.get(0).isEmpty() && itemFormDTO.getId() == null){\r\n            model.addAttribute(\"errorMessage\", \"첫번째 상품 이미지는 필수 입력 값 입니다.\");\r\n            return \"item/itemForm\";\r\n        }\r\n\r\n        // 첨부 파일이 없는 경우 제외, 파일을 5개 첨부하도록 되어 있지만 실제로 두 개만 첨부하면 나머지 3개도 null인 상태로\r\n        // 전달되므로 null인 파일은 제외. java stram API의 filter 한다.\r\n        itemImgFileList = itemImgFileList.stream()\r\n                .filter(file -> !file.isEmpty())\r\n                .toList();\r\n\r\n        try{\r\n            itemService.saveItem(itemFormDTO, itemImgFileList);\r\n        }catch (Exception e){\r\n            model.addAttribute(\"errorMessage\", \"상품 등록 중 에러가 발생했습니다.\");\r\n            return \"item/itemForm\";\r\n        }\r\n\r\n        return \"redirect:/\";\r\n    }\r\n\r\n    /**\r\n     * 상품 상세 페이지\r\n     * - 상품 번호를 전달 받아 상품 상세 페이지로 이동\r\n     * @param itemId\r\n     */\r\n    @GetMapping(\"/admin/item/{itemId}\")\r\n    public String itemDetail(@PathVariable(\"itemId\") Long itemId, Model model){\r\n        try{\r\n            ItemFormDto itemFormDto = itemService.getItemDetail(itemId);\r\n            model.addAttribute(\"itemFormDto\", itemFormDto);\r\n            return \"item/itemForm\";\r\n        }catch (EntityNotFoundException e){\r\n            model.addAttribute(\"errorMessage\", \"존재하지 않는 상품 입니다.\");\r\n            return \"item/itemForm\";\r\n        }\r\n    }\r\n\r\n    /**\r\n     * 상품 수정 처리\r\n     * - 상품 수정 페이지에서 입력한 상품 정보를 전달받아 상품을 수정하는 메서드\r\n     * - 상품 이미지가 변경된 경우 기존 이미지를 삭제하고 새로운 이미지를 등록\r\n     * - 상품 이미지를 삭제하는 경우 기존 이미지를 삭제한다.\r\n     */\r\n    @PostMapping(\"/admin/item/{itemId}\")\r\n    public String itemUpdate(@Valid ItemFormDto itemFormDto,\r\n                             BindingResult bindingResult,\r\n                             @RequestParam(\"itemImgFile\") List<MultipartFile> itemImgFilelist,\r\n                             Model model){\r\n        // 1. 입력값 검증\r\n        if(bindingResult.hasErrors()){\r\n            return \"item/itemForm\";\r\n        }\r\n\r\n        // 2. 첫번째 상품 이미지가 비어있는 경우 검증\r\n        if(itemImgFilelist.get(0).isEmpty() && itemFormDto.getId() == null){\r\n            model.addAttribute(\"errorMessage\", \"첫번째 상품 이미지는 필수 입력 값 입니다.\");\r\n            return \"item/itemForm\";\r\n        }\r\n\r\n        // 3. 총 첨부할 수 있는 파일의 개수는 5개에서 비어있는 파일을 제외\r\n        itemImgFilelist = itemImgFilelist.stream()\r\n                .filter(file -> !file.isEmpty())\r\n                .toList();\r\n\r\n        // 4. 상품 수정\r\n        try{\r\n            itemService.updateItem(itemFormDto, itemImgFilelist);\r\n        }catch(Exception e){\r\n            model.addAttribute(\"errorMessage\", \"상품 수정 중 에러가 발생하였습니다.\");\r\n        }\r\n\r\n        //return \"redirect:/\";\r\n        // 5. 상품 수정 후 상세보기 페이지로 리다이렉트\r\n        return \"redirect:/admin/item/\" + itemFormDto.getId();\r\n    }\r\n\r\n\r\n    /**\r\n     * 상품 관리 페이지 이동 및 조회한 상품 데이터를 화면에 전달\r\n     * - /admin/items : 상품 관리 페이지로 이동\r\n     * - /admin/items/{page} : 상품 관리 페이지로 이동(페이지 번호가 있는 경우)\r\n     * - @PathVariable(\"page\") Optional<Integer> page : 페이지 번호를 Optional로 받음\r\n     * - Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 3) : 페이지 번호가 있는 경우 해당 페이지로 이동\r\n     *\r\n     * @param itemSearchDto\r\n     * @param page\r\n     * @param model\r\n     * @return\r\n     */\r\n    @GetMapping({\"/admin/items\", \"/admin/items/{page}\"})\r\n    public String itemManage(ItemSearchDto itemSearchDto,\r\n                             @PathVariable(\"page\") Optional<Integer> page, Model model){\r\n\r\n        // page.get() : Optional 객체에서 값을 가져옴, 이 값은 페이지 번호, 없는 경우 0\r\n        Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 3);\r\n\r\n        Page<Item> items = itemService.getAdminItemPage(itemSearchDto, pageable);\r\n\r\n        model.addAttribute(\"items\", items);\r\n        // itemSearchDto : 검색 조건을 화면에 다시 전달\r\n        model.addAttribute(\"itemSearchDto\", itemSearchDto);\r\n        // maxPage : 최대 페이지 수, 화면에 5개의 페이지 번호를 표시\r\n        model.addAttribute(\"maxPage\", 5);\r\n\r\n        return \"item/itemMng\";\r\n    }\r\n\r\n    /**\r\n     * 상품 상세 페이지\r\n     * - 상품 상세 페이지로 이동\r\n     * @param itemId\r\n     */\r\n    @GetMapping(\"/item/{itemId}\")\r\n    public String itemDetail(Model model, @PathVariable(\"itemId\") Long itemId){\r\n        ItemFormDto itemFormDto = itemService.getItemDetail(itemId);\r\n        model.addAttribute(\"item\", itemFormDto);\r\n        return \"item/itemDetail\";\r\n    }\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/controller/shop/ItemController.java b/withme_backend/src/main/java/com/javalab/student/controller/shop/ItemController.java
+--- a/withme_backend/src/main/java/com/javalab/student/controller/shop/ItemController.java	(revision 432fc8f79851e8207ae5a795063fa6588db65ead)
++++ b/withme_backend/src/main/java/com/javalab/student/controller/shop/ItemController.java	(date 1739434585097)
+@@ -5,6 +5,8 @@
+ import com.javalab.student.dto.shop.ItemDto;
+ import com.javalab.student.dto.shop.ItemFormDto;
+ import com.javalab.student.dto.shop.ItemSearchDto;
++import com.javalab.student.entity.Doctor;
++import com.javalab.student.entity.shop.Item;
+ import com.javalab.student.service.shop.ItemService;
+ import jakarta.persistence.EntityNotFoundException;
+ import jakarta.validation.Valid;
+@@ -12,13 +14,11 @@
+ import org.springframework.data.domain.Page;
+ import org.springframework.data.domain.PageRequest;
+ import org.springframework.data.domain.Pageable;
++import org.springframework.http.ResponseEntity;
+ import org.springframework.stereotype.Controller;
+ import org.springframework.ui.Model;
+ import org.springframework.validation.BindingResult;
+-import org.springframework.web.bind.annotation.GetMapping;
+-import org.springframework.web.bind.annotation.PathVariable;
+-import org.springframework.web.bind.annotation.PostMapping;
+-import org.springframework.web.bind.annotation.RequestParam;
++import org.springframework.web.bind.annotation.*;
+ import org.springframework.web.multipart.MultipartFile;
+ 
+ import java.time.LocalDateTime;
+@@ -28,6 +28,7 @@
+ 
+ @Controller
+ @RequiredArgsConstructor
++@RequestMapping("/item")
+ public class ItemController {
+ 
+     private final ItemService itemService;
+@@ -73,24 +74,8 @@
+     /**
+      * 상품 목록 페이지
+      */
+-    @GetMapping("/itemList")
+-    public String getItemList(Model model) {
+-        List<ItemDto> itemList = new ArrayList<>();
+-        for (int i = 1; i <= 10; i++) {
+-            ItemDto item = ItemDto.builder()
+-                    .id((long) i)
+-                    .itemNm("테스트 상품 " + i)
+-                    .price(10000 + (i * 1000))
+-                    .stockNumber(10 + i)
+-                    .itemDetail("테스트 상품 " + i + " 상세 설명")
+-                    .itemSellStatus(i % 2 == 0 ? ItemSellStatus.SOLD_OUT : ItemSellStatus.SELL)
+-                    .regTime(LocalDateTime.now())
+-                    .build();
+-            itemList.add(item);
+-        }
+-        model.addAttribute("items", itemList);
+-        return "itemList";
+-    }
++//    @GetMapping("/list")
++//    public ResponseEntity<List<Item>>
+ 
+     /**
+      * 상품 등록 페이지
+Index: withme_backend/src/main/java/com/javalab/student/controller/shop/MemberController.java
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/controller/shop/MemberController.java b/withme_backend/src/main/java/com/javalab/student/controller/shop/MemberController.java
+deleted file mode 100644
+--- a/withme_backend/src/main/java/com/javalab/student/controller/shop/MemberController.java	(revision 432fc8f79851e8207ae5a795063fa6588db65ead)
++++ /dev/null	(revision 432fc8f79851e8207ae5a795063fa6588db65ead)
+@@ -1,129 +0,0 @@
+-package com.javalab.student.controller.shop;
+-
+-
+-import com.javalab.student.dto.MemberFormDto;
+-import com.javalab.student.entity.Member;
+-import com.javalab.student.service.MemberService;
+-import jakarta.servlet.http.HttpServletRequest;
+-import jakarta.servlet.http.HttpServletResponse;
+-import jakarta.validation.Valid;
+-import lombok.RequiredArgsConstructor;
+-import lombok.extern.log4j.Log4j2;
+-import org.springframework.security.core.Authentication;
+-import org.springframework.security.core.context.SecurityContextHolder;
+-import org.springframework.security.crypto.password.PasswordEncoder;
+-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+-import org.springframework.stereotype.Controller;
+-import org.springframework.ui.Model;
+-import org.springframework.validation.BindingResult;
+-import org.springframework.web.bind.annotation.GetMapping;
+-import org.springframework.web.bind.annotation.PostMapping;
+-import org.springframework.web.bind.annotation.RequestMapping;
+-import org.springframework.web.bind.annotation.ResponseBody;
+-
+-/**
+- * 회원 관련 컨트롤러
+- * - 회원 관련 기능을 제공하는 컨트롤러
+- */
+-@Controller
+-@RequestMapping("/members")
+-@RequiredArgsConstructor
+-@Log4j2 // 로그를 사용하기 위한 어노테이션, log.info() 사용가능
+-public class MemberController {
+-
+-    private final MemberService memberService;
+-    private final PasswordEncoder passwordEncoder;  // 비밀번호 암복호화
+-
+-    /**
+-     * 회원가입 폼
+-     * - 회원가입 폼을 제공하는 컨트롤러
+-     */
+-    @GetMapping("/new")
+-    public String memberForm(Model model){
+-        model.addAttribute("memberFormDto", new MemberFormDto());
+-        return "members/memberForm";
+-    }
+-
+-    /**
+-     * 회원가입 처리
+-     * - 회원가입 처리를 하는 컨트롤러
+-     * - 회원가입 폼에서 전달되는 데이터가 정상인지 검증하는 로직이 필요함.
+-     * - @Valid : MemberFormDto에 정의된 검증 로직을 수행함.
+-     * - BindingResult : 검증 결과를 담고 있는 객체, 오류 발생시 오류 내용을 담고 있음.
+-     * - 회원가입 폼에서 전달되는 데이터가 정상이 아닌 경우, 다시 회원가입 폼으로 이동해야함.
+-     */
+-    @PostMapping("/new")
+-    public String memberCreate(@Valid MemberFormDto memberFormDto,
+-                               BindingResult bindingResult, Model model){
+-
+-        // 1. 오류가 있다면 회원 가입 폼으로 이동
+-        if(bindingResult.hasErrors()){
+-            return "members/memberForm";
+-        }
+-        try {
+-            // 2. 회원가입 처리
+-            // 2.1. MemberFormDto를 Member 엔티티로 변환
+-            Member member = Member.createMember(memberFormDto, passwordEncoder);
+-            // 2.2. 회원가입 처리메소드 호출
+-            memberService.saveMember(member);
+-        } catch (IllegalStateException e) {
+-            // 3. 회원가입 중복 오류 발생시
+-            // - 중복 오류 메시지를 로그에 기록
+-            // - 회원가입 폼으로 이동
+-            log.info("MemberController 회원가입시 중복 오류 : " + e.getMessage());
+-            model.addAttribute("errorMessage", e.getMessage());
+-            return "members/memberForm";
+-        }
+-        return "redirect:/";    // 회원가입 성공시 메인페이지로 이동
+-    }
+-
+-    /**
+-     * 로그인 화면 오픈 메소드
+-     * @return
+-     */
+-    @GetMapping("/login")
+-    public String loginMember(Model model){
+-        log.info("로그인 화면 오픈 메소드");
+-        model.addAttribute("memberFormDto", new MemberFormDto());
+-        return "/members/memberLoginForm";
+-    }
+-
+-    /**
+-     * 로그인 실패시 오류 메시지를 전달하는 메소드
+-     * @param model
+-     * @return
+-     */
+-    @GetMapping("/login/error")
+-    public String loginError(Model model){
+-        model.addAttribute("loginErrorMsg", "아이디 또는 비밀번호 확인해주세요");
+-        return "/members/memberLoginForm";
+-    }
+-
+-    /**
+-     * 로그아웃 성공시 메인페이지로 이동
+-     */
+-    @GetMapping("/logout")
+-    public String performLogout(HttpServletRequest request,
+-                                HttpServletResponse response) {
+-        // 1. 현재 로그인한 사용자 정보를 시큐리티 컨텍스트 홀더에서 가져옴
+-        // org.springframework.security.core.Authentication;
+-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+-        // 2. 로그인한 사용자 정보가 있다면 로그아웃 처리
+-        if(authentication != null){
+-            // 2.1. 로그아웃 처리
+-            new SecurityContextLogoutHandler().logout(request, response, authentication);
+-        }
+-        // 3. 메인페이지로 이동
+-        return "redirect:/";
+-    }
+-
+-    /**
+-     * 파비콘 요청 무시
+-     */
+-    @GetMapping("/favicon.ico")
+-    @ResponseBody
+-    void disableFavicon() {
+-        // 아무 작업도 하지 않음
+-    }
+-
+-}
+Index: .idea/modules.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"ProjectModuleManager\">\r\n    <modules>\r\n      <module fileurl=\"file://$PROJECT_DIR$/.idea/modules/student.main.iml\" filepath=\"$PROJECT_DIR$/.idea/modules/student.main.iml\" />\r\n      <module fileurl=\"file://$PROJECT_DIR$/.idea/withme.iml\" filepath=\"$PROJECT_DIR$/.idea/withme.iml\" />\r\n    </modules>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/modules.xml b/.idea/modules.xml
+--- a/.idea/modules.xml	(revision 432fc8f79851e8207ae5a795063fa6588db65ead)
++++ b/.idea/modules.xml	(date 1739437932995)
+@@ -3,6 +3,7 @@
+   <component name="ProjectModuleManager">
+     <modules>
+       <module fileurl="file://$PROJECT_DIR$/.idea/modules/student.main.iml" filepath="$PROJECT_DIR$/.idea/modules/student.main.iml" />
++      <module fileurl="file://$PROJECT_DIR$/.idea/modules/student.test.iml" filepath="$PROJECT_DIR$/.idea/modules/student.test.iml" />
+       <module fileurl="file://$PROJECT_DIR$/.idea/withme.iml" filepath="$PROJECT_DIR$/.idea/withme.iml" />
+     </modules>
+   </component>
+Index: withme_backend/src/main/java/com/javalab/student/repository/shop/ItemRepositoryCustom.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.repository.shop;\r\n\r\n\r\n/**\r\n * ItemRepositoryCustom 인터페이스\r\n * - querydsl을 사용한 동적 쿼리를 위한 ItemRepositoryCustom 인터페이스\r\n */\r\npublic interface ItemRepositoryCustom {\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/repository/shop/ItemRepositoryCustom.java b/withme_backend/src/main/java/com/javalab/student/repository/shop/ItemRepositoryCustom.java
+--- a/withme_backend/src/main/java/com/javalab/student/repository/shop/ItemRepositoryCustom.java	(revision 432fc8f79851e8207ae5a795063fa6588db65ead)
++++ b/withme_backend/src/main/java/com/javalab/student/repository/shop/ItemRepositoryCustom.java	(date 1739433058348)
+@@ -1,10 +1,20 @@
+ package com.javalab.student.repository.shop;
+ 
+ 
++import com.javalab.student.dto.shop.ItemSearchDto;
++import com.javalab.student.dto.shop.MainItemDto;
++import com.javalab.student.entity.shop.Item;
++import org.springframework.data.domain.Page;
++import org.springframework.data.domain.Pageable;
++
+ /**
+  * ItemRepositoryCustom 인터페이스
+  * - querydsl을 사용한 동적 쿼리를 위한 ItemRepositoryCustom 인터페이스
+  */
+ public interface ItemRepositoryCustom {
+ 
++    Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable);
++
++    Page<MainItemDto> getMainItemPage(ItemSearchDto itemSearchDto, Pageable pageable);
++
+ }
+Index: withme_backend/src/main/java/com/javalab/student/repository/shop/ItemRepositoryCustomImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.javalab.student.repository.shop;\r\n\r\n\r\n\r\n/**\r\n * ItemRepositoryCustom 인터페이스를 구현하는 클래스\r\n * - querydsl을 사용하여 동적으로 쿼리를 생성하기 위한 메서드를 구현한다.\r\n * - BooleanExpression : querydsl의 조건을 표현하는 인터페이스, where 조건을 만듦.\r\n */\r\npublic class ItemRepositoryCustomImpl implements ItemRepositoryCustom{\r\n\r\n\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/withme_backend/src/main/java/com/javalab/student/repository/shop/ItemRepositoryCustomImpl.java b/withme_backend/src/main/java/com/javalab/student/repository/shop/ItemRepositoryCustomImpl.java
+--- a/withme_backend/src/main/java/com/javalab/student/repository/shop/ItemRepositoryCustomImpl.java	(revision 432fc8f79851e8207ae5a795063fa6588db65ead)
++++ b/withme_backend/src/main/java/com/javalab/student/repository/shop/ItemRepositoryCustomImpl.java	(date 1739433058342)
+@@ -1,6 +1,25 @@
+ package com.javalab.student.repository.shop;
+ 
+ 
++import com.javalab.student.constant.ItemSellStatus;
++import com.javalab.student.dto.shop.ItemSearchDto;
++import com.javalab.student.dto.shop.MainItemDto;
++import com.javalab.student.dto.shop.QMainItemDto;
++import com.javalab.student.entity.shop.Item;
++import com.javalab.student.entity.shop.QItem;
++import com.javalab.student.entity.shop.QItemImg;
++import com.querydsl.core.QueryResults;
++import com.querydsl.core.types.dsl.BooleanExpression;
++import com.querydsl.core.types.dsl.Wildcard;
++import com.querydsl.jpa.impl.JPAQueryFactory;
++import jakarta.persistence.EntityManager;
++import org.springframework.data.domain.Page;
++import org.springframework.data.domain.PageImpl;
++import org.springframework.data.domain.Pageable;
++import org.thymeleaf.util.StringUtils;
++
++import java.time.LocalDateTime;
++import java.util.List;
+ 
+ /**
+  * ItemRepositoryCustom 인터페이스를 구현하는 클래스
+@@ -9,6 +28,145 @@
+  */
+ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom{
+ 
++    // 동적으로 쿼리를 생성하기 위해 JPAQueryFactory를 사용한다.
++    private JPAQueryFactory queryFactory;
++
++    // 생성자를 통해 EntityManager를 전달 받는다.
++    public ItemRepositoryCustomImpl(EntityManager em){
++        this.queryFactory = new JPAQueryFactory(em);
++    }
++
++    // 상품의 판매 상태와 검색 조건을 이용하여 상품 목록을 조회하는 메서드
++    private BooleanExpression searchSellStatusEq(ItemSellStatus searchSellStatus){
++        return searchSellStatus == null ? null : QItem.item.itemSellStatus.eq(searchSellStatus);
++    }
++
++    // 상품 등록일 검색 조건을 이용하여 상품 목록을 조회하는 메서드
++    private BooleanExpression regDtsAfter(String searchDateType){
++
++        LocalDateTime dateTime = LocalDateTime.now();
++
++        if(StringUtils.equals("all", searchDateType) || searchDateType == null){
++            return null;
++        } else if(StringUtils.equals("1d", searchDateType)){
++            dateTime = dateTime.minusDays(1);
++        } else if(StringUtils.equals("1w", searchDateType)){
++            dateTime = dateTime.minusWeeks(1);
++        } else if(StringUtils.equals("1m", searchDateType)){
++            dateTime = dateTime.minusMonths(1);
++        } else if(StringUtils.equals("6m", searchDateType)){
++            dateTime = dateTime.minusMonths(6);
++        }
++
++        return QItem.item.regTime.after(dateTime);
++    }
++
++    // 상품명, 상품 등록자 검색 조건을 이용하여 상품 목록을 조회하는 메서드
++    private BooleanExpression searchByLike(String searchBy, String searchQuery){
++
++        if(StringUtils.equals("itemNm", searchBy)){
++            return QItem.item.itemNm.like("%" + searchQuery + "%");
++        } else if(StringUtils.equals("createdBy", searchBy)){
++            return QItem.item.createdBy.like("%" + searchQuery + "%");
++        }
++
++        return null;
++    }
++
++    private BooleanExpression itemNmLike(String searchQuery){
++        return StringUtils.isEmpty(searchQuery) ? null : QItem.item.itemNm.like("%" + searchQuery + "%");
++    }
++
++    /**
++     * 관리자 페이지에서 상품 목록을 조회하는 메서드
++     * - ItemSearchDto : 상품 검색 조건을 담은 DTO
++     * - Pageable : 페이징 처리를 위한 인터페이스
++     * @param itemSearchDto
++     * @param pageable
++     * @return
++     */
++    @Override
++    public Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable) {
++        // queryFactory : 동적으로 쿼리를 만들수 있는 쿼리 객체를 생성
++        // QueryResults : querydsl의 페이징 처리를 위한 클래스로 fetchResults() 메서드를 통해
++        // 조회된 데이터와 전체 데이터 수를 가져온다.
++        QueryResults<Item> results = queryFactory
++                .selectFrom(QItem.item) // selectFrom() : 어떤 엔티티를 조회할지 지정(QItem.item)
++                .where(regDtsAfter(itemSearchDto.getSearchDateType()),  // regDtsAfter() : 상품 등록일 검색 조건
++                        searchSellStatusEq(itemSearchDto.getSearchSellStatus()),
++                        searchByLike(itemSearchDto.getSearchBy(),
++                                itemSearchDto.getSearchQuery()))
++                .orderBy(QItem.item.id.desc())
++                .offset(pageable.getOffset())
++                .limit(pageable.getPageSize())
++                .fetchResults();
++
++        List<Item> content = results.getResults();  // 조회된 데이터 즉, content
++        long total = results.getTotal();            // 전체 데이터 수 즉, total(위 조회조건에 합당한 전체 건수)
++
++        // contest : 조회된 데이터
++        // total : 전체 데이터 수
++        // pageable : 페이지 정보
++        return new PageImpl<>(content, pageable, total);
++    }
++
++
++    /**
++     * 메인 페이지에 상품 목록을 조회하는 메서드
++     * - QueryDSL을 사용하여 상품 데이터를 조회하고, 페이징 처리를 수행하는 로직이다.
++     * - 상품 검색: ItemSearchDto에 포함된 검색 조건을 기반으로 데이터를 필터링합니다.
++     * - 대표 이미지 필터링: 대표 이미지(repimgYn = "Y")만 조회합니다.
++     * - 페이징 처리: Pageable 객체를 기반으로 결과 데이터를 페이징 처리합니다.
++     * - DTO 매핑: 조회 결과를 MainItemDto 객체로 매핑하여 반환합니다.
++     * @param itemSearchDto
++     * @param pageable
++     * @return
++     */
++    @Override
++    public Page<MainItemDto> getMainItemPage(ItemSearchDto itemSearchDto, Pageable pageable) {
++        // 1. QueryDSL 객체 선언
++        QItem item = QItem.item;
++        QItemImg itemImg = QItemImg.itemImg;
++
++        // 2. 콘텐츠 조회
++        // - 현재 페이지에 표시할 데이터를 QueryDSL로 조회한다.
++        List<MainItemDto> content = queryFactory
++                .select(
++                        // QMainItemDto를 사용하여 조회 결과를 MainItemDto로 매핑한다.
++                        new QMainItemDto(
++                                item.id,
++                                item.itemNm,
++                                item.itemDetail,
++                                itemImg.imgUrl,
++                                item.price)
++                )
++                .from(itemImg)  // itemImg 테이블을 기준으로 조회한다.
++                .join(itemImg.item, item)   // itemImg 테이블과 item 테이블을 조인한다.
++                .where(itemImg.repimgYn.eq("Y"))        // 대표 이미지만 조회한다.
++                .where(itemNmLike(itemSearchDto.getSearchQuery()))  // 상품명 검색 조건을 적용한다.
++                .orderBy(item.id.desc())    // 상품 번호를 기준으로 내림차순 정렬한다.
++                .offset(pageable.getOffset())   // 페이지 시작 위치를 설정한다.
++                .limit(pageable.getPageSize())  // 페이지 당 조회할 데이터 수를 설정한다.
++                .fetch();   // 조회 결과를 반환한다.
++
++        /*
++         * 3. 전체 데이터 수를 조회한다.
++         * Wildcard : QueryDSL에서 전체 데이터 개수를 세기 위한 객체.
++         */
++        long total = queryFactory
++                .select(Wildcard.count)
++                .from(itemImg)
++                .join(itemImg.item, item)
++                .where(itemImg.repimgYn.eq("Y"))
++                .where(itemNmLike(itemSearchDto.getSearchQuery()))
++                .fetchOne()
++                ;
++
++        // 4. 결과 반환
++        // - 조회된 콘텐츠와 전체 데이터 수를 사용해 PageImpl 객체 생성
++        return new PageImpl<>(content, pageable, total);
++    }
++
+ 
+ 
+ }
+\ No newline at end of file
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <annotationProcessing>\r\n      <profile name=\"Gradle Imported\" enabled=\"true\">\r\n        <outputRelativeToContentRoot value=\"true\" />\r\n        <processorPath useClasspath=\"false\">\r\n          <entry name=\"$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.36/5a30490a6e14977d97d9c73c924c1f1b5311ea95/lombok-1.18.36.jar\" />\r\n        </processorPath>\r\n        <module name=\"student.test\" />\r\n        <module name=\"student.main\" />\r\n      </profile>\r\n    </annotationProcessing>\r\n    <bytecodeTargetLevel target=\"17\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+--- a/.idea/compiler.xml	(revision 432fc8f79851e8207ae5a795063fa6588db65ead)
++++ b/.idea/compiler.xml	(date 1739437933015)
+@@ -8,6 +8,22 @@
+           <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.36/5a30490a6e14977d97d9c73c924c1f1b5311ea95/lombok-1.18.36.jar" />
+         </processorPath>
+         <module name="student.test" />
++      </profile>
++      <profile name="Gradle Imported" enabled="true">
++        <outputRelativeToContentRoot value="true" />
++        <processorPath useClasspath="false">
++          <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/com.querydsl/querydsl-apt/5.0.0/d48657412f2b96d787bbe5ae393e33815c94b4d0/querydsl-apt-5.0.0-jakarta.jar" />
++          <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/jakarta.annotation/jakarta.annotation-api/2.1.1/48b9bda22b091b1f48b13af03fe36db3be6e1ae3/jakarta.annotation-api-2.1.1.jar" />
++          <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/jakarta.persistence/jakarta.persistence-api/3.1.0/66901fa1c373c6aff65c13791cc11da72060a8d6/jakarta.persistence-api-3.1.0.jar" />
++          <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.36/5a30490a6e14977d97d9c73c924c1f1b5311ea95/lombok-1.18.36.jar" />
++          <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/com.querydsl/querydsl-codegen/5.1.0/a8504ea51fbc2258543cedab6a37fe6039b2d20a/querydsl-codegen-5.1.0.jar" />
++          <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/com.querydsl/querydsl-core/5.1.0/be322c3fe98de8e7c204afb8860bfabd81a3bafd/querydsl-core-5.1.0.jar" />
++          <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/com.querydsl/codegen-utils/5.1.0/ba401554d613760617992eafb6cdba175c811e6f/codegen-utils-5.1.0.jar" />
++          <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/javax.inject/javax.inject/1/6975da39a7040257bd51d21a231b76c915872d38/javax.inject-1.jar" />
++          <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/io.github.classgraph/classgraph/4.8.146/360448a09bfa5689d89cfa97fea53b3fdefa9c23/classgraph-4.8.146.jar" />
++          <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/com.mysema.commons/mysema-commons-lang/0.2.4/d09c8489d54251a6c22fbce804bdd4a070557317/mysema-commons-lang-0.2.4.jar" />
++          <entry name="$PROJECT_DIR$/../../../../repository/gradle/caches/modules-2/files-2.1/org.eclipse.jdt/ecj/3.26.0/4837be609a3368a0f7e7cf0dc1bdbc7fe94993de/ecj-3.26.0.jar" />
++        </processorPath>
+         <module name="student.main" />
+       </profile>
+     </annotationProcessing>
