@@ -110,7 +110,7 @@ const CommentSection = ({ postId, user = null, isLoggedIn, views = 0 }) => {
             postId: Number(postId),
             userId: Number(user.id),
             userName: user.name,
-            parentCommentId: 0
+            parentCommentId: null
           })
         }
       );
@@ -147,7 +147,7 @@ const CommentSection = ({ postId, user = null, isLoggedIn, views = 0 }) => {
             postId: Number(postId),
             userId: Number(user.id),
             userName: user.name,
-            parentCommentId: Number(parentCommentId)
+            parentCommentId: parentCommentId
           })
         }
       );
@@ -159,10 +159,10 @@ const CommentSection = ({ postId, user = null, isLoggedIn, views = 0 }) => {
       await fetchComments();
       setShowReplyForm(null);
       setReplyContent("");
-      alert("대댓글이 성공적으로 작성되었습니다.");
+      alert("댓글이 성공적으로 작성되었습니다.");
     } catch (error) {
-      console.error("대댓글 작성 실패:", error);
-      alert("대댓글 작성 중 오류가 발생했습니다.");
+      console.error("댓글 작성 실패:", error);
+      alert("댓글 작성 중 오류가 발생했습니다.");
     }
   };
 
@@ -264,7 +264,8 @@ const CommentSection = ({ postId, user = null, isLoggedIn, views = 0 }) => {
           <button
             className="write_button"
             onClick={() => setShowCommentForm(true)}
-            disabled={!isLoggedIn}>
+            disabled={!isLoggedIn}
+            title={!isLoggedIn ? "로그인이 필요합니다" : ""}>
             댓글작성
           </button>
         ) : (
@@ -333,7 +334,7 @@ const CommentSection = ({ postId, user = null, isLoggedIn, views = 0 }) => {
           />
         ))
       ) : (
-        <p>댓글이 없습니다.</p>
+        <p className="no_comment">댓글이 없습니다.</p>
       )}
     </div>
   );

@@ -1,5 +1,8 @@
 package com.javalab.student.security.oauth;
 
+import com.javalab.student.entity.Member;
+import com.javalab.student.repository.MemberRepository;
+import com.javalab.student.security.dto.MemberSecurityDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -7,10 +10,6 @@ import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserServ
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-
-import com.javalab.student.entity.Member;
-import com.javalab.student.repository.MemberRepository;
-import com.javalab.student.security.dto.MemberSecurityDto;
 
 import java.util.Collections;
 import java.util.Map;

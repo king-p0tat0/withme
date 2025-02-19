@@ -1,34 +1,38 @@
 package com.javalab.student.controller;
 
-import com.javalab.student.dto.PetDto;
-import com.javalab.student.security.dto.MemberSecurityDto;
-import com.javalab.student.service.PetService;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 
-import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+
+import com.javalab.student.dto.PetDto;
+import com.javalab.student.dto.SubstanceDto;
+import com.javalab.student.service.PetService;
+
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.core.io.Resource;
-import org.springframework.beans.factory.annotation.Value;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.Files;
 
 @RestController
 @RequestMapping("/api/pets")
@@ -94,7 +98,10 @@ public ResponseEntity<PetDto> getPetDetails(@PathVariable("petId") Long petId) {
     }
 }
 
-
+@GetMapping("/substances")
+public ResponseEntity<List<SubstanceDto>> getAllSubstances() {
+    return ResponseEntity.ok(petService.getAllSubstances());
+}
 
 
     // 반려동물 등록 (이미지 포함)
@@ -108,7 +115,8 @@ public ResponseEntity<PetDto> registerPet(
         @RequestParam("gender") String gender,
         @RequestParam("userId") Long userId,
         @RequestParam(value = "neutered", required = false) Boolean neutered,
-        @RequestParam(value = "healthConditions", required = false) String healthConditions) {
+        @RequestParam(value = "healthConditions", required = false) String healthConditions,
+        @RequestParam(value = "allergyIds", required = false) List<Long> allergyIds) {
 
     log.info("이미지 파일: {}", image != null ? image.getOriginalFilename() : "없음");
 
@@ -122,6 +130,7 @@ public ResponseEntity<PetDto> registerPet(
                 .userId(userId)
                 .neutered(neutered)
                 .healthConditions(healthConditions)
+                .allergyIds(allergyIds) 
                 .build();
 
         PetDto savedPet = petService.registerPet(petDto, image);
@@ -200,4 +209,5 @@ public ResponseEntity<Void> deletePet(
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 }
+
 }

@@ -1,25 +1,28 @@
 package com.javalab.student.service.shop;
 
 
-import com.javalab.student.constant.ItemSellStatus;
-import com.javalab.student.dto.shop.ItemFormDto;
-import com.javalab.student.dto.shop.ItemImgDto;
-import com.javalab.student.dto.shop.ItemSearchDto;
-import com.javalab.student.dto.shop.MainItemDto;
-import com.javalab.student.entity.shop.CartItem;
-import com.javalab.student.entity.shop.Item;
-import com.javalab.student.entity.shop.ItemImg;
-import com.javalab.student.repository.shop.ItemImgRepository;
-import com.javalab.student.repository.shop.ItemRepository;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.javalab.student.constant.ItemSellStatus;
+import com.javalab.student.dto.shop.ItemFormDto;
+import com.javalab.student.dto.shop.ItemImgDto;
+import com.javalab.student.entity.Substance;
+import com.javalab.student.entity.shop.Item;
+import com.javalab.student.entity.shop.ItemImg;
+import com.javalab.student.entity.shop.ItemSubstance; 
+import com.javalab.student.repository.shop.ItemImgRepository;
+import com.javalab.student.repository.shop.ItemRepository;
+import com.javalab.student.repository.shop.ItemSubstanceRepository;
+import com.javalab.student.repository.SubstanceRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
@@ -30,35 +33,50 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final ItemImgService itemImgService;
     private final ItemImgRepository itemImgRepository;
+    private final ItemSubstanceRepository itemSubstanceRepository;
+    private final SubstanceRepository substanceRepository;
 
     // 상품 등록
-    public Long saveItem(ItemFormDto itemFormDTO, List<MultipartFile> itemImgFileList) throws Exception{
+    @Transactional
+public Long saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileList) throws Exception {
+    // 1. 상품 등록, 저장(영속화)
+    Item item = itemFormDto.crateItem();
+    itemRepository.save(item);
 
-        // 1. 상품 등록, 저장(영속화)
-        // 1.1. ItemFormDto의 crateItem() 메소드를 통해 Item 객체 생성(Dto -> Entity)
-        Item item = itemFormDTO.crateItem();
-        // 1.2. ItemRepository의 save() 메소드를 통해 Item 객체 저장
-        // save(item) : JPA의 ENtityManager가 persist(item) 메소드 호출해서 해당 엔티티를 영속화
-        // item 엔티티가 데이터베이스에 저장되고 기본키를 발급받아서 그 기본키로 영속성 컨텍스트에 저장됨
-        itemRepository.save(item);
-
-        // 2. 이미지 등록
-        for(int i=0;i<itemImgFileList.size(); i++){
-            // 2.1. ItemImg 객체 생성
-            ItemImg itemImg = new ItemImg();
-            // 2.2. Item 객체와 연관관계 설정
-            itemImg.setItem(item);
-            // 2.3. 대표 이미지 여부 설정
-            if( i == 0)
-                itemImg.setRepimgYn("Y");
-            else
-                itemImg.setRepimgYn("N");
-            // 2.4. ItemImgService의 saveItemImg() 메소드를 통해 ItemImg 객체 저장
-            itemImgService.saveItemImg(itemImg, itemImgFileList.get(i));
-        }
-        return item.getId();
+    // 2. 이미지 등록
+    for(int i=0; i<itemImgFileList.size(); i++){
+        ItemImg itemImg = new ItemImg();
+        itemImg.setItem(item);
+        if(i == 0)
+            itemImg.setRepimgYn("Y");
+        else
+            itemImg.setRepimgYn("N");
+        itemImgService.saveItemImg(itemImg, itemImgFileList.get(i));
     }
 
+    // 3. 알러지 성분 저장 로직
+    if (itemFormDto.getSubstanceIds() != null && !itemFormDto.getSubstanceIds().isEmpty()) {
+        List<ItemSubstance> itemSubstances = itemFormDto.getSubstanceIds().stream()
+            .map(substanceId -> {
+                Substance substance = substanceRepository.findById(substanceId)
+                    .orElseThrow(() -> new EntityNotFoundException("Substance not found"));
+                
+                ItemSubstance itemSubstance = new ItemSubstance();
+                itemSubstance.setItem(item); // 엔티티 연관관계 설정
+                itemSubstance.setSubstance(substance);
+                
+                return itemSubstance;
+            })
+            .collect(Collectors.toList());
+        
+        itemSubstanceRepository.saveAll(itemSubstances);
+    }
+
+    return item.getId();
+}
+
+
+    
     /**
      * 상품 상세 조회
      * - 한 개의 상품과 여러 개의 상품 이미지 정보를 조회하는 메서드
@@ -83,6 +101,7 @@ public class ItemService {
             itemImgDtoList.add(itemImgDto);
         }
 
+       
         // 3. 상품 번호로 해당 상품을 조회한다. 이렇게 조회하면 영속성 컨텍스트에 해당 엔티티가 영속화된다.
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(EntityNotFoundException::new);
@@ -90,6 +109,13 @@ public class ItemService {
         // 조회한 3.상품 정보와 2.이미지 정보를 조합하여 ItemFormDto로 변환한다.
         // 변환하는 이유는 화면에 출력하기 위함이다.
         ItemFormDto itemFormDto = ItemFormDto.of(item);
+
+        // 알러지 성분 ID 추가
+    List<Long> substanceIds = itemSubstanceRepository.findByItemId(itemId).stream()
+    .map(is -> is.getSubstance().getSubstanceId())
+    .collect(Collectors.toList());
+
+itemFormDto.setSubstanceIds(substanceIds);
 
         // 4. ItemFormDto에 이미지 정보를 설정한다.
         itemFormDto.setItemImgDtoList(itemImgDtoList);
@@ -218,6 +244,15 @@ public class ItemService {
                 itemFormDto.setItemImgDtoList(new ArrayList<>()); // 대표 이미지가 없는 경우 빈 리스트
             }
 
+
+            // 알러지 성분 ID 추가
+        List<Long> substanceIds = itemSubstanceRepository.findByItemId(item.getId()).stream()
+        .map(is -> is.getSubstance().getSubstanceId())
+        .collect(Collectors.toList());
+    
+        itemFormDto.setSubstanceIds(substanceIds);
+
+
             // 6. 변환된 DTO를 리스트에 추가
             itemFormDtoList.add(itemFormDto);
         }
@@ -235,4 +270,45 @@ public class ItemService {
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 상품입니다."));
         item.setItemSellStatus(itemSellStatus); // JPA 변경 감지로 자동 업데이트
     }
+
+// 상품 등록 시 알러지 정보 저장 메서드
+@Transactional
+public void saveItemWithSubstances(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileList, List<Long> safeSubstanceIds) throws Exception {
+    // 1. 기존 상품 저장 로직 실행
+    Long itemId = saveItem(itemFormDto, itemImgFileList);
+
+    // 2. 알러지 안전 정보 저장
+    if (safeSubstanceIds != null && !safeSubstanceIds.isEmpty()) {
+        safeSubstanceIds.forEach(substanceId -> {
+            ItemSubstance itemSubstance = new ItemSubstance();
+            itemSubstance.setId(itemId);
+            itemSubstance.setSubstance(null);
+            itemSubstanceRepository.save(itemSubstance);
+        });
+    }
+}
+
+// 상품의 알러지 안전 정보 수정
+@Transactional
+public void updateItemSubstances(Long itemId, List<Long> safeSubstanceIds) {
+    // 1. 기존 알러지 정보 삭제
+    itemSubstanceRepository.deleteByItemId(itemId);
+
+    // 2. 새로운 알러지 정보 저장
+    if (safeSubstanceIds != null && !safeSubstanceIds.isEmpty()) {
+        safeSubstanceIds.forEach(substanceId -> {
+            ItemSubstance itemSubstance = new ItemSubstance();
+            itemSubstance.setId(itemId);
+            itemSubstance.setSubstance(null);
+            itemSubstanceRepository.save(itemSubstance);
+        });
+    }
+}
+
+// 상품의 알러지 안전 정보 조회
+@Transactional(readOnly = true)
+public List<Long> getItemSafeSubstances(Long itemId) {
+    return itemSubstanceRepository.findSubstanceIdsByItemId(itemId);
+}
+
 }

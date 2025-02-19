@@ -90,4 +90,7 @@ public class ItemFormDto {
         return modelMapper.map(item, ItemFormDto.class);
     }
 
+
+    private List<Long> substanceIds;
+
 }
