@@ -54,6 +54,21 @@ const Header = () => {
     }
   };
 
+  const adminDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (adminDropdownRef.current && !adminDropdownRef.current.contains(event.target)) {
+        setIsAdminOpen(false); // 드롭다운 외부 클릭 시 닫기
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside); // 클릭 이벤트 추가
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside); // 클린업
+    };
+  }, []);
+
   return (
     <header>
       <div className="gnb-container">
@@ -78,6 +93,11 @@ const Header = () => {
                 <li>
                   <Link to="/doctor-messages">상담내역</Link>
                 </li>
+              )}
+              {!user.roles.includes("ADMIN") && (
+                  <li>
+                    <Link to={`/mypage/${user.id}`}>마이페이지</Link>
+                  </li>
               )}
               {user.roles.includes("PENDING_DOCTOR") && (
                 <li>

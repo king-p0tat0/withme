@@ -3,6 +3,8 @@ import "../../../assets/css/shop/ItemView.css";
 import { API_URL, SERVER_URL2 } from "../../../constant";
 import { fetchWithAuth } from "../../../common/fetchWithAuth";
 import { useParams, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faShoppingBasket, faCaretDown } from "@fortawesome/free-solid-svg-icons";
 
 export default function ItemView({ user }) {
   const { itemId } = useParams();
@@ -161,8 +163,8 @@ export default function ItemView({ user }) {
             <strong>알러지 성분:</strong> {getSubstanceNames(item.substanceIds)}
           </p>
 
-          <button className="add-to-cart-btn" onClick={handleAddToCart}>
-            장바구니 담기
+          <button className="add-to-cart-btn" onClick={handleAddToCart} style={{ width: "200px" }}>
+            <FontAwesomeIcon icon={faShoppingBasket} style={{ marginRight: "10px", fontSize: "1.5em" }} />장바구니 담기
           </button>
 
           {/* 관리자인 경우에만 수정 및 삭제 버튼을 표시 */}

@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Dashboard from './Dashboard';
 import ItemList from './ItemList';
-import NoticeList from './NoticeList';
+import NoticeListAdmin from './NoticeListAdmin';
 import NoticeAdd from './NoticeAdd';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleUser, faChevronDown, faHouse, faUser, faPaw, faTag, faPen } from "@fortawesome/free-solid-svg-icons";

@@ -201,7 +201,6 @@ function App() {
         <Route path="/admin" element={<Admin user={user} />} />
         <Route path="/admin/dashboard" element={<Dashboard user={user} />} />
         <Route path="/doctor/status" element={<DoctorUpdate />} />
-        <Route path="/admin/notice-list" element={<NoticeListAdmin />} />
         <Route path="/survey-main" element={<SurveyMain />} />
 
         {/* 회원가입 페이지 */}

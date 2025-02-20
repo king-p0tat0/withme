@@ -173,9 +173,9 @@ export default function DoctorList() {
                     </table>
 
                     {/* 팝업 모달 */}
-                    {isModalOpen && (
-                        <DoctorView doctor={selectedDoctor} onClose={closeModal} docList={fetchDoctors} />
-                    )}
+{/*                     {isModalOpen && ( */}
+{/*                         <DoctorView doctor={selectedDoctor} onClose={closeModal} docList={fetchDoctors} /> */}
+{/*                     )} */}
 
                     {/* 페이징 버튼 */}
                     <div className="pagination">
