@@ -60,7 +60,7 @@ const [orderData, setOrderData] = useState(location.state?.orderData || {});
           {orderItems.map((item) => (
             <Box key={item.orderItemId} display="flex" alignItems="center" mb={2}>
               <img
-                src={SERVER_URL2 +  item.imgUrl }
+                src={item.imgUrl.startsWith('/assets') ? item.imgUrl : SERVER_URL2 + item.imgUrl}
                 alt={item.itemNm}
                 style={{ width: 100, height: 100, marginRight: 20 }}
               />

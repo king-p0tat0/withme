@@ -150,34 +150,6 @@ public class CartService {
      * - 주문 생성 후 장바구니 상품을 삭제한다.
      * @return
      */
-//    public Long orderCartItem(List<CartOrderDto> cartOrderDtoList, String email){
-//        // 1. 주문할 상품 리스트를 담을 리스트 생성
-//        List<OrderDto> orderDtoList = new ArrayList<>();
-//        // 2. 장바구니 상품 리스트를 순회하면서 주문할 상품 리스트 생성
-//        for (CartOrderDto cartOrderDto : cartOrderDtoList) {
-//            // 2.1. 장바구니 상품 조회해서 상품 ID와 수량을 이용해서 주문할 상품 리스트 생성
-//            // cartOrderDto -> OrderDto 변환
-//            CartItem cartItem = cartItemRepository
-//                    .findById(cartOrderDto.getCartItemId())
-//                    .orElseThrow(EntityNotFoundException::new);
-//
-//            OrderDto orderDto = new OrderDto();
-//            orderDto.setItemId(cartItem.getItem().getId());
-//            orderDto.setCount(cartItem.getCount());
-//
-//            orderDtoList.add(orderDto);
-//        }
-//
-//        Long orderId = orderService.orders(orderDtoList, email);
-//        for (CartOrderDto cartOrderDto : cartOrderDtoList) {
-//            CartItem cartItem = cartItemRepository
-//                    .findById(cartOrderDto.getCartItemId())
-//                    .orElseThrow(EntityNotFoundException::new);
-//            cartItemRepository.delete(cartItem);
-//        }
-//
-//        return orderId;
-//    }
 
     public Long orderCartItem(List<CartOrderItemDto> cartOrderItems, String email) {
         log.info("orderCartItem 서비스 시작",cartOrderItems, email );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../../css/DoctorList.css';
-import DoctorView from './DoctorView';
+//import DoctorView from './DoctorView';
 import { useNavigate, Link } from 'react-router-dom';
 import { fetchWithAuth } from '../../common/fetchWithAuth'; // fetchWithAuth import
 import { API_URL } from '../../constant';

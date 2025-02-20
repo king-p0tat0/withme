@@ -5,13 +5,14 @@ import { PersistGate } from "redux-persist/integration/react";
 import { persistor } from "./redux/store";
 import { fetchUserInfo, clearUser } from "./redux/authSlice";
 import { API_URL } from "./constant";
+import { fetchWithAuth } from "./common/fetchWithAuth.js";
 import { Snackbar, Alert, Badge } from "@mui/material";
 import useWebSocket from "./hook/useWebSocket";
 
 // ui
 import UiComponents from "./component/elements/UiComponents";
 
-// pet
+//pet
 import PetDetailsView from "./component/pet/PetDetailsView";
 import PetRegister from "./component/pet/PetRegister";
 
@@ -35,10 +36,10 @@ import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
 import PostView from "./component/posts/PostView";
 
-// 관리자
-import Admin from "./component/admin/Admin";
-import DoctorUpdate from "./component/admin/DoctorUpdate";
-import Dashboard from "./component/admin/Dashboard";
+//관리자
+import Admin from "./component/Admin/Admin";
+import DoctorUpdate from "./component/Admin/DoctorUpdate";
+//import Dashboard from "./component/Admin/Dashboard";
 
 // ✅ 회원 관련
 import Login from "./component/Login";
@@ -86,7 +87,7 @@ import PayResult from "./component/shop/Order/PayResult";
 import SubscriptionPage from "./component/shop/Product/SubscriptionPage";
 import SubscriptionPayment from "./component/shop/Order/SubscriptionPayment";
 
-// 검색
+//검색
 import SearchResults from "./component/SearchResults";
 
 function App() {
@@ -99,7 +100,6 @@ function App() {
   const [notification, setNotification] = useState(null);
   const location = useLocation();
 
-  // 🔍 사용자 정보 초기 로딩
   useEffect(() => {
     if (!user && isLoggedIn) {
       dispatch(fetchUserInfo());
@@ -220,8 +220,7 @@ function App() {
         >
           <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
           <Route path="/doctor-messages" element={<DoctorMessageList />} />
-          <Route path="/doctor/application/status" element={<DoctorApplicationStatus />} />
-          <Route path="/doctor/application/edit" element={<DoctorApplicationEdit />} />
+
         </Route>
 
         {/* 기타 */}

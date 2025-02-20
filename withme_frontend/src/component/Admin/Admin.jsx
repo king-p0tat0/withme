@@ -1,11 +1,11 @@
 import DoctorUpdate from './DoctorUpdate';
 import DoctorList from './DoctorList';
 //import DoctorView from './DoctorView';
-import UserList from './UserList';
+//import UserList from './UserList';
 import ItemAdd from '../shop/Product/ItemAdd';
 import React, { useState  } from 'react';
-import Dashboard from './Dashboard';
-import ItemList from './ItemList';
+//import Dashboard from './Dashboard';
+//import ItemList from './ItemList';
 import '../../assets/css/admin/Admin.css';
 
 export default function Admin({user}) {
