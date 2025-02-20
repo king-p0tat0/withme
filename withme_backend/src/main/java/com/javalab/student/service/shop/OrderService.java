@@ -197,11 +197,17 @@ public class OrderService {
             throw new SecurityException("해당 주문에 접근할 권한이 없습니다.");
         }
 
+        // 기본 이미지 URL 설정
+        String defaultImageUrl = "/assets/images/noImg.jpg";
+
         // 주문 아이템 조회 및 DTO 변환 (이미지 포함)
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
         return orderItems.stream()
                 .map(orderItem -> {
-                    String imgUrl = itemImgRepository.findByItemIdAndRepimgYn(orderItem.getItem().getId(), "Y").getImgUrl();
+                    // 대표 이미지 조회 (Optional.ofNullable 사용)
+                    ItemImg itemImg = itemImgRepository.findByItemIdAndRepimgYn(orderItem.getItem().getId(), "Y");
+                    String imgUrl = (itemImg != null) ? itemImg.getImgUrl() : defaultImageUrl;
+
                     return new OrderItemDto(orderItem, imgUrl);
                 })
                 .collect(Collectors.toList());

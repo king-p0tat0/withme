@@ -22,14 +22,14 @@ public class TokenProvider {
 
     public TokenProvider(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
-        
+
         String secretKey = jwtProperties.getSecretKey();
         // 키 길이를 최소 32바이트로 보장
-        secretKey = secretKey.length() < 32 
-            ? secretKey.repeat(32 / secretKey.length() + 1) 
-            : secretKey;
+        secretKey = secretKey.length() < 32
+                ? secretKey.repeat(32 / secretKey.length() + 1)
+                : secretKey;
         secretKey = secretKey.substring(0, 32);
-        
+
         // Base64 인코딩 대신 직접 바이트로 변환
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
@@ -64,9 +64,9 @@ public class TokenProvider {
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token);
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
             return true;
         } catch (Exception e) {
             return false;

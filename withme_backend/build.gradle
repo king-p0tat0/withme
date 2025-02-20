@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.2.3' 
+    id 'org.springframework.boot' version '3.4.1'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -61,10 +61,7 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
-    // Spring Security
-    //implementation 'org.springframework.boot:spring-boot-starter-security:3.3.6'
-
-    // 이를 통해 실제 인증 메커니즘을 테스트할 필요 없이 가상의 인증 정보를 제공하여 테스트를 작성할 수 있습니다.
+    implementation 'org.springframework.boot:spring-boot-starter-security:3.3.6'
     testImplementation 'org.springframework.security:spring-security-test'
 
     // 소셜 로그인
@@ -106,7 +103,7 @@ dependencies {
 
     // 포트원 결제 모듈 의존성
     implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
-
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
 // Thumbnailator 라이브러리 추가
      implementation 'net.coobird:thumbnailator:0.4.19'
@@ -121,6 +118,8 @@ dependencies {
     implementation 'org.springframework.data:spring-data-elasticsearch:5.2.3'
     
 
+    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch:3.2.3'
+    implementation 'co.elastic.clients:elasticsearch-java:8.10.4'
 }
 
 tasks.named('test') {

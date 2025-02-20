@@ -16,7 +16,6 @@ const Header = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const adminDropdownRef = useRef(null);
 
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (adminDropdownRef.current && !adminDropdownRef.current.contains(event.target)) {
@@ -79,26 +78,8 @@ const Header = () => {
               <>
                 <li style={{ color: "#333" }}>{user.name}님</li>
                 {user.roles.includes("ROLE_ADMIN") && (
-                  <li ref={adminDropdownRef}>
-                    <button
-                      className="admin-btn"
-                      onClick={() => setIsAdminOpen(!isAdminOpen)}
-                    >
-                      관리자 <FontAwesomeIcon icon={faCaretDown} />
-                    </button>
-                    {isAdminOpen && (
-                      <ul className="admin-dropdown">
-                        <li>
-                          <Link to="/admin">관리자 페이지</Link>
-                        </li>
-                        <li>
-                          <Link to="/doctor/status">수의사 신청상태</Link>
-                        </li>
-                        <li>
-                          <Link to="/doctor/edit">수의사 수정페이지</Link>
-                        </li>
-                      </ul>
-                    )}
+                  <li>
+                    <Link to="/admin">관리자</Link>
                   </li>
                 )}
                 <li>
@@ -107,14 +88,31 @@ const Header = () => {
                   </Link>
                 </li>
                 {!user.roles.includes("ADMIN") && (
-                <li>
-                  <Link to={`/mypage/${user.id}`}>마이페이지</Link>
-                </li>
+                    <li>
+                      <Link to={`/mypage/${user.id}`}>마이페이지</Link>
+                    </li>
                 )}
                 {user.roles.includes("PENDING_DOCTOR") && (
-                  <li>
-                    <Link to={`/doctor/register`}>수의사 신청</Link>
-                  </li>
+                  <li ref={adminDropdownRef}>
+                     <button
+                       className="admin-btn"
+                       onClick={() => setIsAdminOpen(!isAdminOpen)}>
+                       수의사 <FontAwesomeIcon icon={faCaretDown} />
+                     </button>
+                     {isAdminOpen && (
+                       <ul className="admin-dropdown">
+                         <li>
+                           <Link to="/doctor/register">수의사 신청</Link>
+                         </li>
+                         <li>
+                           <Link to={`/doctors/status/${user.id}`}>수의사 신청상태</Link>
+                         </li>
+                         <li>
+                           <Link to={`/doctors/edit/${user.id}`}>수의사 신청서 수정</Link>
+                         </li>
+                       </ul>
+                     )}
+                   </li>
                 )}
               </>
             ) : (
@@ -129,7 +127,6 @@ const Header = () => {
                 <span className="tooltip">+2,000P</span>
               </li>
             )}
-
 
             <li>
               <Link to="/cart/list" className="cart-btn" onClick={handleCartClick}>

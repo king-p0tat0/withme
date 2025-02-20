@@ -43,16 +43,19 @@ public Long saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileLis
     Item item = itemFormDto.crateItem();
     itemRepository.save(item);
 
-    // 2. 이미지 등록
-    for(int i=0; i<itemImgFileList.size(); i++){
-        ItemImg itemImg = new ItemImg();
-        itemImg.setItem(item);
-        if(i == 0)
-            itemImg.setRepimgYn("Y");
-        else
-            itemImg.setRepimgYn("N");
-        itemImgService.saveItemImg(itemImg, itemImgFileList.get(i));
-    }
+// 2. 이미지 등록
+        if (!itemImgFileList.isEmpty()) {  // 리스트가 비어있지 않을 때만 실행
+            for (int i = 0; i < itemImgFileList.size(); i++) {
+                ItemImg itemImg = new ItemImg();
+                itemImg.setItem(item);
+
+                // 첫 번째 이미지는 대표 이미지로 설정
+                itemImg.setRepimgYn(i == 0 ? "Y" : "N");
+
+                // 이미지 저장 서비스 호출
+                itemImgService.saveItemImg(itemImg, itemImgFileList.get(i));
+            }
+        }
 
     // 3. 알러지 성분 저장 로직
     if (itemFormDto.getSubstanceIds() != null && !itemFormDto.getSubstanceIds().isEmpty()) {

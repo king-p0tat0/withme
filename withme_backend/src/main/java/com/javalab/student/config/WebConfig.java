@@ -14,8 +14,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${uploadPath}")
     String uploadPath;  // file:///c:/shop/
 
-//     @Value("${petUploadPath}")
-//     String petUploadPath;  // /Users/judykim/Documents/uploads/pet
+     @Value("${petUploadPath}")
+   String petUploadPath;  // /Users/judykim/Documents/uploads/pet
 
 
 @Value("${postImgLocation}")

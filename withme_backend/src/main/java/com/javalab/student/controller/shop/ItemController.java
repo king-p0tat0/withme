@@ -72,7 +72,7 @@ public class ItemController {
 @PostMapping("/new")
 public ResponseEntity<?> createItem(
     @Valid @RequestPart("itemFormDto") ItemFormDto itemFormDto,
-    @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList
+    @RequestPart(value ="itemImgFile", required = false) List<MultipartFile> itemImgFileList
 ) {
     try {
          // 상품 저장 시 알러지 성분 정보도 함께 저장

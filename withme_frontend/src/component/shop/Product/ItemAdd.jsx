@@ -94,6 +94,10 @@ const ItemRegistration = () => {
       alert("판매가를 입력해주세요.");
       return;
     }
+    if (images.length === 0) {
+      alert("상품 이미지를 최소 한 개 등록해야 합니다.");
+      return;
+    }
 
     const formData = new FormData();
 

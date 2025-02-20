@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom"; // 중복 import 정리
+import React, { useEffect, useState } from "react";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom"; // 중복된 import 합침
 import { useSelector, useDispatch } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { persistor } from "./redux/store";
@@ -8,6 +8,8 @@ import { API_URL } from "./constant";
 import { fetchWithAuth } from "./common/fetchWithAuth.js";
 import { Helmet } from "react-helmet";
 import "./App.css";
+import { Snackbar, Alert, Badge } from "@mui/material";
+import useWebSocket from "./hook/useWebSocket";
 
 // ui
 import UiComponents from "./component/elements/UiComponents";
@@ -28,6 +30,8 @@ import SignupDoctor from "./component/member/SignupDoctor"; // 수의사 회원�
 import RegisterDoctor from "./component/doctor/RegisterDoctor";
 import DoctorApplicationStatus from "./component/doctor/DoctorApplicationStatus";
 import DoctorApplicationEdit from "./component/doctor/DoctorApplicationEdit";
+import DoctorDashboard from "./component/doctor/DoctorDashboard";
+import DoctorMessageList from "./component/doctor/DoctorMessageList";
 
 // 커뮤니티
 import PostList from "./component/posts/PostList";
@@ -66,6 +70,14 @@ import PaidSurveyResult from "./component/survey/PaidSurveyResult";
 import PaidSurveySelection from "./component/survey/PaidSurveySelection";
 import SurveyMain from "./component/survey/SurveyMain";
 
+// 권한 기반 라우팅을 위한 ProtectedRoute 컴포넌트
+const ProtectedRoute = ({ isAllowed, redirectPath = '/unauthorized', children }) => {
+  if (!isAllowed) {
+    return <Navigate to={redirectPath} replace />;
+  }
+  return children ? children : <Outlet />;
+};
+
 // 쇼핑몰
 import ItemList from "./component/shop/Product/ItemList";
 import ItemView from "./component/shop/Product/ItemView";
@@ -84,7 +96,10 @@ function App() {
   // 리덕스 스토어의 상태를 가져오기 위해 useSelector 훅 사용, auth 슬라이스에서 user, isLoggedIn 상태를 가져옴
   // user: 사용자 정보 객체, isLoggedIn: 로그인 여부
   const { user, isLoggedIn } = useSelector((state) => state.auth);
+  const { open: snackbarOpen, message: snackbarMessage } = useSelector((state) => state.snackbar);
+  const { unreadCount } = useSelector((state) => state.messages);
   const dispatch = useDispatch();
+  const [notification, setNotification] = useState(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -93,6 +108,11 @@ function App() {
     }
   }, [user, isLoggedIn, dispatch]);
 
+  // 📡 WebSocket 연결 (useWebSocket Hook 사용)
+  useWebSocket(user);
+
+  // 알림 닫기
+  const handleCloseNotification = () => setNotification(null);
   const handleLogout = async () => {
     try {
       await fetchWithAuth(`${API_URL}auth/logout`, {
@@ -118,8 +138,29 @@ function App() {
         <link rel="icon" href="/assets/images/favicon.ico" />
       </Helmet>
 
-      {/*헤더 부분*/}
-    {location.pathname.startsWith("/admin") ? null : <Header />}
+{location.pathname.startsWith("/admin") ? null : <Header unreadCount={unreadCount} />}
+
+      {/* 🔔 WebSocket 알림 표시 */}
+      <Snackbar
+        open={!!notification || snackbarOpen}
+        autoHideDuration={5000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleCloseNotification}
+          severity="info"
+          sx={{
+            width: '100%',
+            '& .MuiAlert-message': {
+              fontSize: '0.9rem',
+              fontWeight: 500
+            }
+          }}
+        >
+          {notification?.message || snackbarMessage}
+        </Alert>
+      </Snackbar>
 
       {/* Home을 제외한 모든 페이지에 NavBar 노출하도록 설정 */}
         {!(location.pathname === "/" || location.pathname === "/item/list" || location.pathname.startsWith("/admin")) && <NavBar />}
@@ -140,6 +181,20 @@ function App() {
         <Route path="/posts" element={<PostList />} />
         <Route path="/posts/:id" element={<PostView />} />
         <Route path="/posts/new" element={<PostForm />} />
+        <Route path="/posts/edit/:id" element={<PostForm />} />
+        <Route path="/posts/:id" element={<PostView />} />
+
+        {/* 관리자 */}
+        {/* <Route
+          path="/admin"
+          element={
+            <ProtectedRoute isAllowed={!!user && user.roles.includes('ROLE_ADMIN')}>
+              <Admin />
+            </ProtectedRoute>
+          }
+        /> */}
+
+        {/* 회원가입 */}
         <Route path="/posts/:id/edit" element={<PostForm />} />
 
         {/* ✅ 관리자 페이지 */}
@@ -168,6 +223,19 @@ function App() {
         <Route path="/item/search" element={<SearchResults />} />
         <Route path="/survey/paid/result" element={<PaidSurveyResult />} />
 
+
+        {/* 전문의 관련 */}
+        <Route
+          element={
+            <ProtectedRoute isAllowed={!!user && user.roles.includes('ROLE_DOCTOR')} />
+          }
+        >
+          <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+          <Route path="/doctor-messages" element={<DoctorMessageList />} />
+
+        </Route>
+
+        {/* 기타 */}
         {/* 쇼핑몰 */}
         <Route path="/item/list" element={<ItemList />} />
         <Route path="/item/view/:itemId" element={<ItemView user={user} />} />

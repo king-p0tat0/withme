@@ -205,10 +205,9 @@ export default function CartPage() {
                         checked={selectedItems.includes(item.cartItemId)}
                         onChange={() => handleSelectItem(item.cartItemId)}
                     />
-                    <img
-                        src={SERVER_URL2 + item.imgUrl}
-                        alt={item.itemNm}
-                        className="cart-item-image" />
+                    <img src={item.imgUrl ? SERVER_URL2 + item.imgUrl : '/assets/images/noImg.jpg'}
+                     style={{ width: 100, height: 100, marginRight: 20 }}/>
+
                     <div className="cart-item-info">
                         <h4>{item.itemNm}</h4>
                         <p>{item.price.toLocaleString()}원</p>
@@ -244,7 +243,6 @@ export default function CartPage() {
                     </button>
                 </div>
             </div>
-
         </div>
     );
 }
