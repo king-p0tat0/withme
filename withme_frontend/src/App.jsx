@@ -37,8 +37,8 @@ import PostForm from "./component/posts/PostForm";
 import PostView from "./component/posts/PostView";
 
 //관리자
-import Admin from "./component/Admin/Admin";
-import DoctorUpdate from "./component/Admin/DoctorUpdate";
+//import Admin from "./component/Admin/Admin";
+//import DoctorUpdate from "./component/Admin/DoctorUpdate";
 //import Dashboard from "./component/Admin/Dashboard";
 
 // ✅ 회원 관련
@@ -176,21 +176,21 @@ function App() {
         <Route path="/posts/:id" element={<PostView />} />
 
         {/* 관리자 */}
-        <Route
+        {/* <Route
           path="/admin"
           element={
             <ProtectedRoute isAllowed={!!user && user.roles.includes('ROLE_ADMIN')}>
               <Admin />
             </ProtectedRoute>
           }
-        />
+        /> */}
 
         {/* 회원가입 */}
         <Route path="/posts/:id/edit" element={<PostForm />} />
         {/* ✅ 관리자 페이지 */}
-        <Route path="/admin" element={<Admin user={user} />} />
+       {/*  <Route path="/admin" element={<Admin user={user} />} />
         <Route path="/admin/dashboard" element={<Dashboard user={user} />} />
-        <Route path="/doctor/status" element={<DoctorUpdate />} />
+        <Route path="/doctor/status" element={<DoctorUpdate />} /> */}
         <Route path="/survey-main" element={<SurveyMain />} />
         {/* 회원가입 페이지 */}
         <Route path="/policy" element={<Policy />} />
