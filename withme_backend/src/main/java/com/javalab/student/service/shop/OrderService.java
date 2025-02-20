@@ -198,7 +198,7 @@ public class OrderService {
         }
 
         // 기본 이미지 URL 설정
-        String defaultImageUrl = "/assets/images/default-item.png";
+        String defaultImageUrl = "/assets/images/noImg.jpg";
 
         // 주문 아이템 조회 및 DTO 변환 (이미지 포함)
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
