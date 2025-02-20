@@ -79,7 +79,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 "/swagger-ui", "/v3/api-docs", "/ws", "/ws/info",
                 "/api/item/list", "/api/item/view/",
                 "/topic/chat/", "/api/notices", "/api/posts",
-                "/api/items/search/", "/api/items/search", 
+                "/api/items/search/", "/api/items/search", "/api/items/reindex",
                 "/api/substances/list",
                 "/images/", "/image/"
         );

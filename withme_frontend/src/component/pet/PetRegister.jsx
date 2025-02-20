@@ -3,12 +3,9 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
-  Card,
-  CardContent,
   TextField,
   Typography,
   Box,
-  FormLabel,
   FormControl,
   Checkbox,
   FormControlLabel,
@@ -18,11 +15,10 @@ import {
 import { PhotoCamera } from "@mui/icons-material";
 import { API_URL } from "../../constant";
 import { getImageUrl } from "../../utils/imageUtils";
+import AllergySelection from "./AllergySelection";
+import styles from "../../assets/css/member/PetRegister.module.css";
 
 const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
-  const [substances, setSubstances] = useState([]); // 알러지 목록
-  const [selectedAllergies, setSelectedAllergies] = useState([]); // 선택된 알러지
-
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
 
@@ -39,6 +35,7 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
 
   const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState("");
+  const [selectedAllergies, setSelectedAllergies] = useState([]);
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -46,7 +43,6 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
       navigate("/login");
       return;
     }
-
     if (petData) {
       setFormData({
         name: petData.name || "",
@@ -61,6 +57,14 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
 
       if (petData.imageUrl) {
         setImagePreview(getImageUrl(petData.imageUrl));
+      }
+
+      // 알러지 데이터 설정 수정
+      if (petData.allergies && Array.isArray(petData.allergies)) {
+        const allergyIds = petData.allergies.map(
+          (allergy) => allergy.substanceId
+        );
+        setSelectedAllergies(allergyIds);
       }
     }
   }, [petData, user, navigate]);
@@ -89,25 +93,6 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
     }
   };
 
-  // 알러지 목록 불러오기
-  useEffect(() => {
-    const fetchSubstances = async () => {
-      try {
-        const response = await fetch(`${API_URL}pets/substances`, {
-          credentials: "include"
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setSubstances(data);
-        }
-      } catch (error) {
-        console.error("알러지 목록 로딩 중 오류:", error);
-      }
-    };
-
-    fetchSubstances();
-  }, []);
-
   // 알러지 선택 핸들러
   const handleAllergyChange = (substanceId) => {
     setSelectedAllergies((prev) => {
@@ -128,6 +113,17 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
       return;
     }
 
+    // 필수 입력 필드 검증
+    if (
+      !formData.name ||
+      !formData.breed ||
+      !formData.age ||
+      !formData.weight
+    ) {
+      alert("필수 정보를 모두 입력해주세요.");
+      return;
+    }
+
     try {
       const url = petData
         ? `${API_URL}pets/${petData.petId}`
@@ -137,21 +133,24 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
       const dataToSend = new FormData();
       dataToSend.append("name", formData.name);
       dataToSend.append("breed", formData.breed);
-      dataToSend.append("age", formData.age);
-      dataToSend.append("weight", formData.weight);
+      dataToSend.append("age", String(formData.age));
+      dataToSend.append("weight", String(formData.weight));
       dataToSend.append("gender", formData.gender);
       dataToSend.append("userId", user.id);
-      // 선택된 알러지 ID들을 FormData에 추가
-      selectedAllergies.forEach((allergyId) => {
-        dataToSend.append("allergyIds", allergyId);
-      });
+
+      // 알러지 ID들을 쉼표로 구분된 문자열로 추가
+      if (selectedAllergies && selectedAllergies.length > 0) {
+        dataToSend.append("allergyIds", selectedAllergies.join(","));
+      }
 
       if (formData.neutered !== undefined) {
         dataToSend.append("neutered", formData.neutered);
       }
+
       if (formData.healthConditions) {
         dataToSend.append("healthConditions", formData.healthConditions);
       }
+
       if (formData.imageFile) {
         dataToSend.append("image", formData.imageFile);
       }
@@ -159,10 +158,7 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
       const response = await fetch(url, {
         method,
         body: dataToSend,
-        credentials: "include", // 쿠키 포함
-        headers: {
-          // Authorization 헤더 제거하고 쿠키로 전달
-        }
+        credentials: "include"
       });
 
       if (response.ok) {
@@ -174,19 +170,27 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
             : "반려동물이 등록되었습니다."
         );
         navigate(`/mypage/${user.id}`);
-      } else if (response.status === 401) {
-        // 로그인 페이지로 리다이렉트
-        const currentPath = petData
-          ? `/mypage/pet/${petData.petId}`
-          : "/mypage/pet/register";
-        alert("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
-        navigate("/login", {
-          state: { returnUrl: currentPath }
-        });
       } else {
         const errorText = await response.text();
         console.error("펫 등록/수정 오류:", errorText);
-        setError("펫 등록/수정 중 오류가 발생했습니다.");
+
+        switch (response.status) {
+          case 400:
+            setError("잘못된 요청입니다. 입력 정보를 확인해주세요.");
+            break;
+          case 401:
+            alert("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
+            navigate("/login");
+            break;
+          case 403:
+            setError("해당 작업을 수행할 권한이 없습니다.");
+            break;
+          case 500:
+            setError("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            break;
+          default:
+            setError("펫 등록/수정 중 오류가 발생했습니다.");
+        }
       }
     } catch (error) {
       console.error("펫 등록/수정 중 오류:", error);
@@ -195,31 +199,23 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
   };
 
   return (
-    <Card sx={{ maxWidth: "400px", margin: "auto" }}>
-      <CardContent>
-        <Typography variant="h6" sx={{ mb: 3 }}>
+    <div className={styles.form_container}>
+      <div className={styles.form_warp}>
+        <p className={styles.form_titme}>
           {petData ? "펫 정보 수정" : "펫 등록"}
-        </Typography>
+        </p>
 
         <form onSubmit={handleSubmit}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {/* 이미지 업로드 */}
-            <FormControl>
-              <FormLabel>반려동물 사진</FormLabel>
-              <Box sx={{ textAlign: "center", mt: "8px" }}>
+          <div className={styles.grid_box}>
+            <div className={styles.left_section}>
+              {/* 이미지 업로드 */}
+              <div className={styles.image_upload_container}>
                 {imagePreview && (
-                  <Box sx={{ mb: 2 }}>
-                    <img
-                      src={imagePreview}
-                      alt="미리보기"
-                      style={{
-                        width: "200px",
-                        height: "200px",
-                        objectFit: "cover",
-                        borderRadius: "8px"
-                      }}
-                    />
-                  </Box>
+                  <img
+                    src={imagePreview}
+                    alt="미리보기"
+                    className={styles.image_preview}
+                  />
                 )}
                 <Button
                   variant="outlined"
@@ -233,152 +229,122 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
                     onChange={handleImageChange}
                   />
                 </Button>
-              </Box>
-            </FormControl>
+              </div>
 
-            {/* 이름 */}
-            <TextField
-              label="이름"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-              fullWidth
-            />
-
-            {/* 품종 */}
-            <FormControl>
-              <FormLabel>품종</FormLabel>
+              {/* 이름 */}
               <TextField
+                label="이름"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                fullWidth
+                className={styles.input_field}
+              />
+
+              {/* 품종 */}
+              <TextField
+                label="품종"
                 name="breed"
                 value={formData.breed}
                 onChange={handleInputChange}
-                placeholder="품종"
-                variant="outlined"
                 fullWidth
-                margin="dense"
-              />
-            </FormControl>
-
-            {/* 나이 & 체중 */}
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField
-                label="나이"
-                name="age"
-                type="text" // type을 text로 설정
-                value={formData.age}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (/^\d*$/.test(value)) {
-                    // 숫자만 허용
-                    handleInputChange(e);
-                  }
-                }}
-                inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }} // 모바일 환경에서도 숫자 키패드 표시
-                required
-                fullWidth
+                className={styles.input_field}
               />
 
-              <TextField
-                label="체중 (kg)"
-                name="weight"
-                type="text" // type을 text로 설정
-                value={formData.weight}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (/^\d*$/.test(value)) {
-                    // 숫자만 허용
-                    handleInputChange(e);
-                  }
-                }}
-                inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }} // 모바일 환경에서도 숫자 키패드 표시
-                required
-                fullWidth
-              />
-            </Box>
-
-            {/* 성별 */}
-            <FormControl>
-              <FormLabel>성별</FormLabel>
+              {/* 나이 & 체중 */}
               <Box sx={{ display: "flex", gap: 2 }}>
+                <TextField
+                  label="나이"
+                  name="age"
+                  value={formData.age}
+                  onChange={handleInputChange}
+                  required
+                  fullWidth
+                  className={styles.input_field}
+                />
+                <TextField
+                  label="체중 (kg)"
+                  name="weight"
+                  value={formData.weight}
+                  onChange={handleInputChange}
+                  required
+                  fullWidth
+                  className={styles.input_field}
+                />
+              </Box>
+
+              {/* 성별 */}
+              <div className={styles.gender_selection}>
                 <Button
-                  type="button"
                   variant={formData.gender === "M" ? "contained" : "outlined"}
                   onClick={() =>
                     setFormData((prev) => ({ ...prev, gender: "M" }))
-                  }>
+                  }
+                  className={`${styles.gender_button} ${
+                    formData.gender === "M" ? styles.active : ""
+                  }`}>
                   수컷
                 </Button>
                 <Button
-                  type="button"
                   variant={formData.gender === "F" ? "contained" : "outlined"}
                   onClick={() =>
                     setFormData((prev) => ({ ...prev, gender: "F" }))
-                  }>
+                  }
+                  className={`${styles.gender_button} ${
+                    formData.gender === "F" ? styles.active : ""
+                  }`}>
                   암컷
                 </Button>
-              </Box>
-            </FormControl>
+              </div>
 
-            {/* 건강 상태 */}
-            <TextField
-              label="건강 상태"
-              name="healthConditions"
-              value={formData.healthConditions}
-              onChange={handleInputChange}
-              multiline
-              rows={3}
-              fullWidth
-            />
-
-            {/* 중성화 여부 */}
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={formData.neutered}
-                  onChange={handleCheckboxChange}
-                  name="neutered"
-                />
-              }
-              label="중성화 여부"
-            />
-
-            {/* 알러지 선택 섹션 추가 */}
-            <FormControl sx={{ mt: 2 }}>
-              <FormLabel>알러지</FormLabel>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                {substances.map((substance) => (
-                  <FormControlLabel
-                    key={substance.substanceId}
-                    control={
-                      <Checkbox
-                        checked={selectedAllergies.includes(
-                          substance.substanceId
-                        )}
-                        onChange={() =>
-                          handleAllergyChange(substance.substanceId)
-                        }
-                      />
-                    }
-                    label={substance.name}
+              {/* 중성화 여부 */}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.neutered}
+                    onChange={handleCheckboxChange}
+                    name="neutered"
                   />
-                ))}
-              </Box>
-            </FormControl>
+                }
+                label="중성화 여부"
+                className={styles.neutered_checkbox}
+              />
 
-            {/* 버튼 */}
-            <Box sx={{ display: "flex", gap: "8px", mt: 2 }}>
-              <Button type="submit" variant="contained" fullWidth>
-                {petData ? "수정 완료" : "등록"}
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => navigate(`/mypage/${user.id}`)}
-                fullWidth>
-                취소
-              </Button>
-            </Box>
-          </Box>
+              {/* 건강 상태 */}
+              <TextField
+                label="건강 상태"
+                name="healthConditions"
+                value={formData.healthConditions}
+                onChange={handleInputChange}
+                multiline
+                rows={3}
+                fullWidth
+                className={styles.health_conditions}
+              />
+            </div>
+
+            <div className={styles.allergy_section}>
+              <h3>우리 아이 알러지 체크</h3>
+              <div className={styles.allergy_content}>
+                <AllergySelection
+                  selectedAllergies={selectedAllergies}
+                  onAllergyChange={handleAllergyChange}
+                />
+              </div>
+            </div>
+          </div>
+          <div className={styles.button_group}>
+            <Button
+              variant="outlined"
+              onClick={() => navigate(`/mypage/${user.id}`)}
+              fullWidth>
+              취소
+            </Button>
+            <Button type="submit" variant="contained" fullWidth>
+              {petData ? "수정 완료" : "등록"}
+            </Button>
+          </div>
         </form>
 
         {/* 오류 메시지 */}
@@ -388,8 +354,8 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
           onClose={() => setError("")}>
           <Alert severity="error">{error}</Alert>
         </Snackbar>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

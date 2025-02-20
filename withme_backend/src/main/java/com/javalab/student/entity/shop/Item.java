@@ -47,8 +47,8 @@ public class Item extends BaseEntity {
     private ItemSellStatus itemSellStatus; //상품 판매 상태
 
 
-// @OneToMany(mappedBy = "item", fetch = FetchType.LAZY)
-//     private List<ItemSubstance> itemSubstances = new ArrayList<>();
+@OneToMany(mappedBy = "item", fetch = FetchType.LAZY)
+    private List<ItemSubstance> itemSubstances = new ArrayList<>();
 
 
 /**

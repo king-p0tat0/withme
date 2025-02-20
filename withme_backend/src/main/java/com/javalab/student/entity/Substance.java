@@ -5,6 +5,8 @@ import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -14,25 +16,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity  // JPA가 관리하는 엔티티임을 명시
-@Table(name = "substance")  // 실제 DB 테이블 이름 지정
-//@Document(indexName = "substance_index")
+import org.springframework.data.elasticsearch.annotations.Document;
+
+@Entity
+@Table(name = "substance")
+@Document(indexName = "substance_index")  // Elasticsearch 인덱스 설정
 @Getter
-@Setter  // Lombok: 모든 필드의 getter/setter 자동 생성
-@NoArgsConstructor  // Lombok: 기본 생성자 자동 생성
+@Setter
+@NoArgsConstructor
 public class Substance {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "substance_id")
-    @Field(type = FieldType.Long)
     private Long substanceId;
 
     @Column(name = "name", length = 100, nullable = false)
-    @Field(type = FieldType.Keyword)
+    @Field(type = FieldType.Keyword)  // Elasticsearch에서 검색 가능하도록 필드 매핑
     private String name;
 
     @OneToMany(mappedBy = "substance")
     private Set<PetAllergy> petAllergies = new HashSet<>();
-
-
-
 }

@@ -185,21 +185,36 @@ public PetDto getPetDetails(Long petId) {
                 .collect(Collectors.toList());
     }
 
-     @Override
+
+
     @Transactional
-    public void savePetAllergies(Long petId, List<Long> allergyIds) {
-        Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new EntityNotFoundException("Pet not found"));
-        
-        if (allergyIds == null || allergyIds.isEmpty()) {
-            pet.getAllergies().clear();
-        } else {
-            Set<Substance> substances = new HashSet<>(substanceRepository.findAllById(allergyIds));
-            pet.updateAllergies(substances);
-        }
-        
-        petRepository.save(pet);
+public void savePetAllergies(Long petId, List<Long> allergyIds) {
+    Pet pet = petRepository.findById(petId)
+            .orElseThrow(() -> new EntityNotFoundException("Pet not found"));
+    
+    // 기존 알러지 정보 유지 여부 결정
+    if (allergyIds == null || allergyIds.isEmpty()) {
+        // 알러지 ID가 없으면 기존 알러지 정보 그대로 유지
+        return;
     }
+
+    // 새로운 알러지 substances 조회
+    Set<Substance> newSubstances = new HashSet<>(substanceRepository.findAllById(allergyIds));
+    
+    // 기존 알러지들 중 제거할 것과 유지할 것 분리
+    Set<Substance> existingSubstances = pet.getAllergies().stream()
+        .map(PetAllergy::getSubstance)
+        .collect(Collectors.toSet());
+    
+    // 새로운 알러지 추가
+    newSubstances.forEach(substance -> {
+        if (!existingSubstances.contains(substance)) {
+            pet.addAllergy(substance);
+        }
+    });
+    
+    petRepository.save(pet);
+}
 
     @Override
     @Transactional(readOnly = true)
@@ -216,86 +231,149 @@ public PetDto getPetDetails(Long petId) {
 
 
 
-@Override
-@Transactional
-public PetDto registerPet(PetDto petDto, MultipartFile image) {
-    try {
-        Pet pet = modelMapper.map(petDto, Pet.class);
-
-        // 이미지 업로드 처리
-        if (image != null && !image.isEmpty()) {
-            String originalFilename = image.getOriginalFilename();
-            String fileName = System.currentTimeMillis() + "_" + originalFilename;
-
-            Path filePath = Paths.get(petUploadPath, fileName);
-
-            // 파일 저장
-            Files.copy(image.getInputStream(), filePath);
-
-            // 이미지 URL 생성 (중복 방지)
-            pet.setImageUrl("/api/pets/image/" + fileName); // API 경로 설정
-            pet.setImageName(fileName); // 실제 파일 이름 저장
+    @Transactional
+    public PetDto registerPet(PetDto petDto, MultipartFile image) {
+        try {
+            Pet pet = modelMapper.map(petDto, Pet.class);
+    
+            // 이미지 업로드 처리
+            if (image != null && !image.isEmpty()) {
+                String originalFilename = image.getOriginalFilename();
+                String fileName = System.currentTimeMillis() + "_" + 
+                                  (originalFilename != null ? originalFilename : "unnamed");
+    
+                Path filePath = Paths.get(petUploadPath, fileName);
+    
+                // 파일 저장
+                Files.copy(image.getInputStream(), filePath);
+    
+                // 이미지 URL 생성 (중복 방지)
+                pet.setImageUrl("/api/pets/image/" + fileName); // API 경로 설정
+                pet.setImageName(fileName); // 실제 파일 이름 저장
+            }
+    
+            // 알러지 정보 저장 전에 allergies 필드 초기화
+            if (pet.getAllergies() == null) {
+                pet.setAllergies(new HashSet<>());
+            }
+    
+            Pet savedPet = petRepository.save(pet);
+    
+            // 알러지 정보 저장
+            if (petDto.getAllergyIds() != null && !petDto.getAllergyIds().isEmpty()) {
+                savePetAllergies(savedPet.getPetId(), petDto.getAllergyIds());
+            }
+            
+            // 수동으로 DTO 매핑
+            PetDto resultDto = new PetDto();
+            resultDto.setPetId(savedPet.getPetId());
+            resultDto.setUserId(savedPet.getUserId());
+            resultDto.setName(savedPet.getName());
+            resultDto.setAge(savedPet.getAge());
+            resultDto.setBreed(savedPet.getBreed());
+            resultDto.setGender(savedPet.getGender());
+            resultDto.setWeight(savedPet.getWeight());
+            resultDto.setNeutered(savedPet.getNeutered());
+            resultDto.setHealthConditions(savedPet.getHealthConditions());
+            resultDto.setImageUrl(savedPet.getImageUrl());
+            resultDto.setImageName(savedPet.getImageName());
+            
+            // 알러지 정보 수동 매핑
+            if (savedPet.getAllergies() != null && !savedPet.getAllergies().isEmpty()) {
+                List<SubstanceDto> allergies = savedPet.getAllergies().stream()
+                    .map(petAllergy -> SubstanceDto.builder()
+                        .substanceId(petAllergy.getSubstance().getSubstanceId())
+                        .name(petAllergy.getSubstance().getName())
+                        .build())
+                    .collect(Collectors.toList());
+                
+                resultDto.setAllergies(allergies);
+                resultDto.setAllergyIds(allergies.stream()
+                    .map(SubstanceDto::getSubstanceId)
+                    .collect(Collectors.toList()));
+            }
+            
+            return resultDto;
+        } catch (IOException e) {
+            log.error("이미지 업로드 중 오류 발생: {}", e.getMessage());
+            throw new RuntimeException("이미지 업로드 중 오류 발생", e);
+        } catch (Exception e) {
+            log.error("펫 등록 중 오류 발생: {}", e.getMessage());
+            throw new RuntimeException("펫 등록 중 오류 발생", e);
         }
-
-        Pet savedPet = petRepository.save(pet);
-
-         // 알러지 정보 저장
-         if (petDto.getAllergyIds() != null && !petDto.getAllergyIds().isEmpty()) {
-            savePetAllergies(savedPet.getPetId(), petDto.getAllergyIds());
-        }
-        
-        return modelMapper.map(savedPet, PetDto.class);
-    } catch (IOException e) {
-        log.error("이미지 업로드 중 오류 발생: {}", e.getMessage());
-        throw new RuntimeException("이미지 업로드 중 오류 발생", e);
     }
-}
 
 
 
 @Override
     @Transactional
-    public PetDto updatePet(Long petId, PetDto petDto, MultipartFile image) {
-        Pet pet = petRepository.findById(petId)
+public PetDto updatePet(Long petId, PetDto petDto, MultipartFile image) {
+    try {
+        // 기존 펫 정보 조회
+        Pet existingPet = petRepository.findById(petId)
                 .orElseThrow(() -> new EntityNotFoundException("Pet not found"));
 
         // 기본 정보 업데이트
-        modelMapper.map(petDto, pet);
-
-        // 알러지 정보 업데이트
-        if (petDto.getAllergyIds() != null) {
-            savePetAllergies(petId, petDto.getAllergyIds());
-        }
+        existingPet.setName(petDto.getName());
+        existingPet.setBreed(petDto.getBreed());
+        existingPet.setAge(petDto.getAge());
+        existingPet.setWeight(petDto.getWeight());
+        existingPet.setGender(petDto.getGender());
+        existingPet.setNeutered(petDto.getNeutered());
+        existingPet.setHealthConditions(petDto.getHealthConditions());
 
         // 이미지 처리
         if (image != null && !image.isEmpty()) {
             try {
-                handleImageUpdate(pet, image);
+                handleImageUpdate(existingPet, image);
             } catch (IOException e) {
                 log.error("이미지 업로드 중 오류 발생: {}", e.getMessage());
                 throw new RuntimeException("이미지 업로드 실패", e);
             }
         }
 
-        Pet updatedPet = petRepository.save(pet);
-        return getPetDetails(updatedPet.getPetId());
-    }
-
-    private void handleImageUpdate(Pet pet, MultipartFile image) throws IOException {
-        // 기존 이미지 삭제
-        if (pet.getImageName() != null) {
-            Path oldImagePath = Paths.get(petUploadPath, pet.getImageName());
-            Files.deleteIfExists(oldImagePath);
+        // 알러지 정보 업데이트
+        if (petDto.getAllergyIds() != null) {
+            savePetAllergies(petId, petDto.getAllergyIds());
         }
 
-        // 새 이미지 저장
-        String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
-        Path filePath = Paths.get(petUploadPath, fileName);
-        Files.copy(image.getInputStream(), filePath);
+        // 업데이트된 펫 저장
+        Pet updatedPet = petRepository.save(existingPet);
 
-        pet.setImageUrl("/api/pets/image/" + fileName);
-        pet.setImageName(fileName);
+        // 결과 DTO 생성
+        PetDto resultDto = new PetDto();
+        resultDto.setPetId(updatedPet.getPetId());
+        resultDto.setUserId(updatedPet.getUserId());
+        resultDto.setName(updatedPet.getName());
+        resultDto.setAge(updatedPet.getAge());
+        resultDto.setBreed(updatedPet.getBreed());
+        resultDto.setGender(updatedPet.getGender());
+        resultDto.setWeight(updatedPet.getWeight());
+        resultDto.setNeutered(updatedPet.getNeutered());
+        resultDto.setHealthConditions(updatedPet.getHealthConditions());
+        resultDto.setImageUrl(updatedPet.getImageUrl());
+        resultDto.setImageName(updatedPet.getImageName());
+        
+        // 알러지 정보 매핑
+        List<SubstanceDto> allergies = updatedPet.getAllergies().stream()
+            .map(petAllergy -> SubstanceDto.builder()
+                .substanceId(petAllergy.getSubstance().getSubstanceId())
+                .name(petAllergy.getSubstance().getName())
+                .build())
+            .collect(Collectors.toList());
+        
+        resultDto.setAllergies(allergies);
+        resultDto.setAllergyIds(allergies.stream()
+            .map(SubstanceDto::getSubstanceId)
+            .collect(Collectors.toList()));
+
+        return resultDto;
+    } catch (Exception e) {
+        log.error("펫 업데이트 중 오류 발생: {}", e.getMessage(), e);
+        throw new RuntimeException("펫 업데이트 중 오류 발생", e);
     }
+}
+
     
 @Override
 @Transactional
@@ -335,6 +413,30 @@ public void deletePet(Long petId, String userEmail) {
         } catch (IOException ex) {
             throw new RuntimeException("Could not store image " + image.getOriginalFilename(), ex);
         }
+    }
+
+    private void handleImageUpdate(Pet pet, MultipartFile image) throws IOException {
+        // 기존 이미지 파일 삭제
+        if (pet.getImageName() != null) {
+            Path oldImagePath = Paths.get(petUploadPath, pet.getImageName());
+            try {
+                Files.deleteIfExists(oldImagePath);
+            } catch (IOException e) {
+                log.warn("기존 이미지 삭제 중 오류 발생: {}", e.getMessage());
+            }
+        }
+    
+        // 새 이미지 저장
+        String originalFilename = image.getOriginalFilename();
+        String fileName = System.currentTimeMillis() + "_" + 
+                          (originalFilename != null ? originalFilename : "unnamed");
+    
+        Path filePath = Paths.get(petUploadPath, fileName);
+        Files.copy(image.getInputStream(), filePath);
+    
+        // 이미지 정보 업데이트
+        pet.setImageUrl("/api/pets/image/" + fileName);
+        pet.setImageName(fileName);
     }
 
     private void deleteExistingImage(String imageUrl) {

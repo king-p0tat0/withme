@@ -104,8 +104,7 @@ public class SecurityConfig {
                 .requestMatchers("/ws/**", "/topic/**").permitAll()
 
                 //검색
-                .requestMatchers(HttpMethod.GET, "/api/items/search",  "/api/items/search/**").permitAll()
-                .requestMatchers(HttpMethod.OPTIONS, "/api/items/search",  "/api/items/search/**").permitAll()
+                .requestMatchers("/api/items/search","/api/items/reindex").permitAll()
 
                 // 인증 불필요 API
                 .requestMatchers(

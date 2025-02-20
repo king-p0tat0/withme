@@ -58,7 +58,6 @@ public class Pet {
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PetAllergy> allergies = new HashSet<>();
 
-    // Builder 패턴
     @Builder
     public Pet(Long userId, String name, Integer age, Boolean neutered, 
                String healthConditions, String breed, Integer weight, 
@@ -75,7 +74,7 @@ public class Pet {
         this.imageName = imageName;
     }
 
-    // 알러지 관련 메서드들
+    // 알러지 관련 메서드
     public void addAllergy(Substance substance) {
         PetAllergy petAllergy = new PetAllergy();
         petAllergy.setPet(this);
@@ -90,6 +89,8 @@ public class Pet {
 
     public void updateAllergies(Set<Substance> substances) {
         this.allergies.clear();
-        substances.forEach(this::addAllergy);
+        if (substances != null) {
+            substances.forEach(this::addAllergy);
+        }
     }
 }
