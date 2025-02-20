@@ -19,26 +19,21 @@ spring.datasource.hikari.validation-timeout=5000
 #Hibernate\uB294 MariaDB \uB370\uC774\uD130\uBCA0\uC774\uC2A4\uC5D0 \uCD5C\uC801\uD654\uB41C \uB370\uC774\uD130\uBCA0\uC774\uC2A4 \uC791\uC5C5\uC744 \uC218\uD589
 spring.jpa.database-platform=org.hibernate.dialect.MariaDBDialect
 
-Entity create mode
+# Entity create mode
 spring.jpa.hibernate.ddl-auto=update
 # \uB370\uC774\uD130\uBCA0\uC774\uC2A4 \uCD08\uAE30\uD654 \uD30C\uC77C(data_member.sql) \uC790\uB3D9 \uC2E4\uD589 \uC124\uC815
 spring.datasource.initialization-mode=always
 spring.sql.init.mode=always
 spring.sql.init.platform=mariadb
 
-<<<<<<< HEAD
-# import.sql\uC744 \uC0AC\uC6A9\uD560 \uB54C \uD14C\uC774\uBE14 \uBC0F \uB370\uC774\uD130 \uC0BD\uC785\uC744 \uC704\uD55C \uC704\uCE58 \uC9C0\uC815
-spring.sql.init.data-locations=classpath:data_question.sql
-=======
 ##################################################################################################################
 # data.sql\uC744 \uC0AC\uC6A9\uD560 \uB54C \uD14C\uC774\uBE14 \uBC0F \uB370\uC774\uD130 \uC0BD\uC785\uC744 \uC704\uD55C \uC704\uCE58 \uC9C0\uC815
 # db \uC774\uB984 \uBC14\uAFB8\uACE0 \uCCAB \uC2E4\uD589\uC2DC \uC8FC\uC11D\uCC98\uB9AC\uD558\uACE0 \uD14C\uC774\uBE14\uC774 \uB9CC\uB4E4\uC5B4\uC9C4 \uD6C4 \uC8FC\uC11D\uD480\uACE0 \uB2E4\uC2DC \uC2E4\uD589\uD558\uBA74
 # \uAE30\uBCF8 \uB370\uC774\uD130 \uB4E4\uC5B4\uAC10
 
-#spring.sql.init.data-locations=classpath:data_member.sql,classpath:data_doctor.sql,classpath:data_substance.sql
+spring.sql.init.data-locations=classpath:data_member.sql,classpath:data_doctor.sql,classpath:data_substance.sql
 
 ##################################################################################################################
->>>>>>> main
 
 # Hibernate sql show
 spring.jpa.show-sql=true
@@ -80,8 +75,6 @@ uploadPath=file:///c:/shop/
 
 petImgLocation=c:/shop/pet
 petUploadPath=file:///c:/shop/
-<<<<<<< HEAD
-=======
 
 postImgLocation=c:/shop/post
 postUploadPath=file:///c:/shop/
@@ -98,10 +91,7 @@ postUploadPath=file:///c:/shop/
 ##post \uC774\uBBF8\uC9C0 \uC5C5\uB85C\uB4DC
 #postImgLocation=/Users/judykim/Documents/uploads/post
 #postUploadPath=/Users/judykim/Documents/uploads/post/
->>>>>>> main
 
-postImgLocation=c:/shop/post
-postUploadPath=file:///c:/shop/
 # 2. AWS File Upload Path
 #com.javalab.boot.upload.path=/home/ec2-user/shop/upload
 
@@ -163,26 +153,6 @@ jwt.secret_key=study-springboot
 #jwt.expiration_time=86400000
 spring.mvc.throw-exception-if-no-handler-found=true
 spring.web.resources.add-mappings=false
-
-
-# WebSocket \uC124\uC815
-spring.websocket.path=/ws
-
-# STOMP \uC124\uC815
-spring.websocket.stomp.enabled=true
-spring.websocket.stomp.endpoint=/stomp
-spring.websocket.stomp.allowed-origins=*
-
-# WebSocket \uC138\uC158 \uD0C0\uC784\uC544\uC6C3 \uC124\uC815 (\uBC00\uB9AC\uCD08 \uB2E8\uC704, \uC608: 10\uBD84)
-spring.websocket.stomp.client-heartbeat=0,10000
-spring.websocket.stomp.server-heartbeat=0,10000
-
-# WebSocket \uBA54\uC2DC\uC9C0 \uD06C\uAE30 \uC81C\uD55C (\uBC14\uC774\uD2B8 \uB2E8\uC704, \uC608: 64KB)
-spring.websocket.max-text-message-size=65536
-
-# STOMP \uBA54\uC2DC\uC9C0 \uBE0C\uB85C\uCEE4 \uC124\uC815
-spring.websocket.stomp.broker-relay.enabled=false
-spring.websocket.stomp.broker-relay.prefix=/topic,/queue
 
 #\uD3EC\uD2B8\uC6D0(PortOne) \uACB0\uC81C API \uC124\uC815
 #\uC0C1\uC810 UID(\uB9AC\uC561\uD2B8 \uD658\uACBD\uC124\uC815 \uD30C\uC77C\uC778 .env\uC5D0 \uC124\uC815\uB418\uC5B4 \uC788\uC74C)

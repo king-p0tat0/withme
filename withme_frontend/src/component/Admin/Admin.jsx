@@ -92,7 +92,7 @@ export default function Admin({user}) {
                 </ul>
             </div>
 
-            {/* 메인 콘텐츠 */}
+            {/* 메인 콘텐츠  */}
             <div className="main-content">
                 {currentPage}
             </div>
