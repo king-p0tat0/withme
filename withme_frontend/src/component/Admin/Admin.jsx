@@ -1,6 +1,6 @@
 import DoctorUpdate from './DoctorUpdate';
 import DoctorList from './DoctorList';
-import DoctorView from './DoctorView';
+// import DoctorView from './DoctorView';
 import UserList from './UserList';
 import ItemAdd from '../shop/Product/ItemAdd';
 import React, { useState, useEffect } from 'react';

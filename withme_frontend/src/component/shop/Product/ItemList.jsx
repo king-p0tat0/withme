@@ -113,43 +113,6 @@ export default function ItemList() {
                 </div>
             </div>
 
-      {loading ? (
-        <p className="loading">데이터를 불러오는 중...</p>
-      ) : error ? (
-        <p className="error">{error}</p>
-      ) : (
-        <>
-          <div className="item-card-container">
-            {currentData.length > 0 ? (
-              currentData.map((item) => (
-                <div className="item-card" key={item.id}>
-                  {/* 대표 이미지 표시 */}
-                    <img
-                      src={item.itemImgDtoList && item.itemImgDtoList.length > 0
-                                 ? `${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`
-                                 : "/assets/images/favicon.ico" }
-                      className="item-image"
-                    />
-
-
-                  <div className="item-info">
-                    <h3>{item.itemNm}</h3>
-                    <p>가격: {item.price.toLocaleString()}원</p>
-                    <p>재고: {item.stockNumber}</p>
-                    <p>
-                      상태: {item.itemSellStatus === "SELL" ? "판매중" : "품절"}
-                    </p>
-                    <p>알러지 성분: {getSubstanceNames(item.substanceIds)}</p>
-                    <button onClick={() => handleViewDetail(item.id)}>
-                      상세보기
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>검색 결과가 없습니다.</p>
-            )}
-          </div>
             {/* 배너 */}
             <div
                 className="green-banner"
