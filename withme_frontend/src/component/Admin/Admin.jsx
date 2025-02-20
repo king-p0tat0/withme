@@ -9,7 +9,7 @@ import { useSelector } from "react-redux";
 import Dashboard from './Dashboard';
 import ItemList from './ItemList';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleUser, faChevronDown, faHouse, faUser, faStarOfLife, faTag, faPen } from "@fortawesome/free-solid-svg-icons";
+import { faCircleUser, faChevronDown, faHouse, faUser, faPaw, faTag, faPen } from "@fortawesome/free-solid-svg-icons";
 
 import '../../assets/css/admin/Admin.css';
 
@@ -57,7 +57,7 @@ export default function Admin({ user }) {
                 <div className="admin-profile">
                     <FontAwesomeIcon icon={faCircleUser} className="profile-icon" />
                     <p style={{ fontWeight: "bold", fontSize: "1.1em" }}>관리자</p>
-                    <Link to={`/mypage/${user.id}`} style={{ textDecoration: "none", color: "white" }}>{loggedInUser.email}</Link>
+                    <p>{loggedInUser.email}</p>
                 </div>
                 <ul>
                     {/* 홈 카테고리 */}
@@ -87,21 +87,21 @@ export default function Admin({ user }) {
                                 setActiveMenu('doctor');
                             }}
                         >
-                            <FontAwesomeIcon icon={faStarOfLife} className="left-icon" /> 수의사 관리 <FontAwesomeIcon icon={faChevronDown} className="right-icon" />
+                            <FontAwesomeIcon icon={faPaw} className="left-icon" /> 수의사 관리 <FontAwesomeIcon icon={faChevronDown} className="right-icon" />
                         </p>
                         <div className={`menu-items ${showDoctorMenu ? 'show' : ''}`}>
                             <ul>
                                 <li
                                     className="menu-item"
-                                    onClick={() => setCurrentPage(<DoctorUpdate />)}
-                                >
-                                    승인 대기 목록
-                                </li>
-                                <li
-                                    className="menu-item"
                                     onClick={() => setCurrentPage(<DoctorList />)}
                                 >
                                     수의사 가입 현황
+                                </li>
+                                <li
+                                    className="menu-item"
+                                    onClick={() => setCurrentPage(<DoctorUpdate />)}
+                                >
+                                    승인 대기 목록
                                 </li>
                             </ul>
                         </div>

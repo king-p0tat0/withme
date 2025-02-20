@@ -80,3 +80,19 @@ header {
     50% { transform: translateX(-50%) translateY(-5px); }
     100% { transform: translateX(-50%) translateY(0px); }
 }
+
+.admin-btn {
+    outline: none;
+}
+
+.admin-btn:hover {
+    background-color: #FFFEFD;
+}
+
+.admin-dropdown li a {
+    color: black;
+}
+
+.admin-dropdown li a:hover {
+    color: black;
+}

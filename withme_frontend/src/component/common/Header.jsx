@@ -106,9 +106,11 @@ const Header = () => {
                     로그아웃
                   </Link>
                 </li>
+                {!user.roles.includes("ADMIN") && (
                 <li>
                   <Link to={`/mypage/${user.id}`}>마이페이지</Link>
                 </li>
+                )}
                 {user.roles.includes("PENDING_DOCTOR") && (
                   <li>
                     <Link to={`/doctor/register`}>수의사 신청</Link>
