@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom"; // 중복된 import 합침
 import { useSelector, useDispatch } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { persistor } from "./redux/store";
@@ -11,7 +11,7 @@ import useWebSocket from "./hook/useWebSocket";
 // ui
 import UiComponents from "./component/elements/UiComponents";
 
-//pet
+// pet
 import PetDetailsView from "./component/pet/PetDetailsView";
 import PetRegister from "./component/pet/PetRegister";
 
@@ -35,7 +35,7 @@ import PostList from "./component/posts/PostList";
 import PostForm from "./component/posts/PostForm";
 import PostView from "./component/posts/PostView";
 
-//관리자
+// 관리자
 import Admin from "./component/admin/Admin";
 import DoctorUpdate from "./component/admin/DoctorUpdate";
 import Dashboard from "./component/admin/Dashboard";
@@ -86,7 +86,7 @@ import PayResult from "./component/shop/Order/PayResult";
 import SubscriptionPage from "./component/shop/Product/SubscriptionPage";
 import SubscriptionPayment from "./component/shop/Order/SubscriptionPayment";
 
-//검색
+// 검색
 import SearchResults from "./component/SearchResults";
 
 function App() {
