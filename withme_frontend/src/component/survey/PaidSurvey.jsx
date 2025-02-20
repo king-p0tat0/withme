@@ -50,6 +50,7 @@ const PaidSurveyPage = () => {
                 const response = await fetchWithAuth(`${API_URL}questions/paid?topics=${selectedTopics.join(',')}`);
                 if (!response.ok) throw new Error("질문을 불러오는데 실패했습니다.");
                 const data = await response.json();
+                if (!Array.isArray(data)) throw new Error("데이터 형식이 올바르지 않습니다.");
 
                 const grouped = selectedTopics.reduce((acc, topic) => {
                     acc[topic] = data.filter(q => String(q.topicId) === String(topic));
@@ -59,12 +60,40 @@ const PaidSurveyPage = () => {
                 setGroupedQuestions(grouped);
                 setQuestions(data);
 
+                // 현재 질문 그룹 설정
                 const initialTopic = selectedTopics[0];
                 if (grouped[initialTopic]) {
                     setCurrentQuestions(grouped[initialTopic]);
                 } else {
                     setCurrentQuestions([]);
                 }
+
+                // ✅ 주제명 매핑 (topicNames 설정 추가)
+                const topicMapping = [
+                    { topicId: 1, topicName: '소화 건강' },
+                    { topicId: 2, topicName: '피부 건강' },
+                    { topicId: 3, topicName: '구강 건강' },
+                    { topicId: 4, topicName: '체중 관리' },
+                    { topicId: 5, topicName: '털과 모질 관리' }, // ✅ 기존 '심혈관 건강' 변경
+                    { topicId: 6, topicName: '눈 건강' },
+                    { topicId: 7, topicName: '행동 건강' },
+                    { topicId: 8, topicName: '면역 체계' },
+                    { topicId: 9, topicName: '간 건강' },
+                    { topicId: 10, topicName: '신장 기능' },
+                    { topicId: 11, topicName: '요로 건강' },
+                    { topicId: 12, topicName: '에너지 수준' },
+                    { topicId: 13, topicName: '노화 및 이동성' },
+                    { topicId: 14, topicName: '기생충 관리' },
+                    { topicId: 15, topicName: '백신 접종 이력' },
+                    { topicId: 16, topicName: '스트레스 및 불안' },
+                    { topicId: 17, topicName: '영양 균형' },
+                    { topicId: 18, topicName: '알레르기 관리' }
+                ].reduce((acc, topic) => {
+                    acc[topic.topicId] = topic.topicName;
+                    return acc;
+                }, {});
+
+                setTopicNames(topicMapping); // ✅ 주제명 매핑 상태 업데이트
 
             } catch (error) {
                 console.error("질문 로딩 오류:", error);
@@ -77,6 +106,7 @@ const PaidSurveyPage = () => {
 
         fetchQuestions();
     }, [user, selectedTopics, navigate, location.state]);
+
 
     const handleAnswerChange = (questionId, choiceId, index) => {
         const score = 5 - index;

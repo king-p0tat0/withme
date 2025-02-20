@@ -103,15 +103,43 @@ function FreeSurveyPage() {
 
   return (
     <div style={{ textAlign: "center" }}>
-      <div style={{ borderBottom: "3px solid pink", display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "20px" }}>
+      <div style={{
+        borderBottom: "3px solid pink",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: "20px"
+      }}>
         <img src={img2} alt="img2" style={{ height: "60px", marginRight: "10px" }} />
-        <span style={{ color: "#000", fontSize: "2rem", marginRight: "10px" }}>무료 문진 검사</span>
+        <span style={{ color: "#000", fontSize: "2rem", marginRight: "10px" }}>
+          무료 문진 검사
+        </span>
       </div>
+
       <DataGrid rows={questions} columns={columns} loading={loading} autoHeight hideFooterPagination />
-      <button onClick={handleSubmit} style={{ marginTop: "15px", backgroundColor: "#FFB6C1", color: "#000", padding: "10px 18px", borderRadius: "8px", border: "none", cursor: "pointer" }}>
-        🐾 문진 완료 & 결과 보기
-      </button>
+
+      {/* ✅ 버튼 크기와 글씨 크기 조정 */}
+      <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+        <button
+          onClick={handleSubmit}
+          style={{
+            width: "100%",  // ✅ 전체 폭 맞춤
+            maxWidth: "400px",  // ✅ 최대 너비 설정 (너무 넓어지는 것 방지)
+            backgroundColor: "#FFB6C1",
+            color: "#000",
+            padding: "15px 20px",  // ✅ 버튼 높이 증가
+            borderRadius: "10px",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "1.2rem",  // ✅ 글씨 크기 증가
+            fontWeight: "bold"  // ✅ 글씨 두껍게
+          }}
+        >
+          🐾 문진 완료 & 결과 보기
+        </button>
+      </div>
     </div>
+
   );
 }
 

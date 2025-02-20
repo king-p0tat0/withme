@@ -292,6 +292,7 @@ const PaidSurveyResultPage = () => {
                         <stop offset="100%" stopColor={item.chartData[1].color} stopOpacity={0.6}/>
                       </linearGradient>
                     </defs>
+
                     {/* 배경 원 (그림자 효과용) */}
                     <Pie
                       data={[{ value: 100 }]}
@@ -302,6 +303,7 @@ const PaidSurveyResultPage = () => {
                       fill="#FFF"
                       filter={`url(#shadow-${index})`}
                     />
+
                     {/* 메인 도넛 차트 */}
                     <Pie
                       data={item.chartData}
@@ -313,9 +315,11 @@ const PaidSurveyResultPage = () => {
                       endAngle={-270}
                       paddingAngle={4}
                       dataKey="value"
-                      animationBegin={0}
-                      animationDuration={1500}
-                      label={false}
+                      isAnimationActive={true} // ✅ 애니메이션 활성화
+                      animationDuration={1200} // ✅ 애니메이션 속도 조절
+                      animationEasing="ease-out" // ✅ 부드러운 애니메이션 적용
+                      onMouseEnter={(e, i) => { e.payload.scale = 1.1; }} // ✅ 호버 시 확대 효과
+                      onMouseLeave={(e, i) => { e.payload.scale = 1; }} // ✅ 마우스 떠날 때 원래 크기로
                     >
                       {item.chartData.map((entry, i) => (
                         <Cell
@@ -323,9 +327,11 @@ const PaidSurveyResultPage = () => {
                           fill={`url(#gradient${i+1}-${index})`}
                           stroke={entry.color}
                           strokeWidth={2}
+                          style={{ transform: `scale(${entry.scale || 1})`, transition: "transform 0.3s ease-in-out" }} // ✅ 확대 애니메이션
                         />
                       ))}
                     </Pie>
+
                     {/* 중앙 텍스트 */}
                     <text
                       x="50%"
@@ -340,6 +346,7 @@ const PaidSurveyResultPage = () => {
                     </text>
                   </PieChart>
                 </ResponsiveContainer>
+
                 <Box sx={{
                   mt: 2,
                   display: 'flex',

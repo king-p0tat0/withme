@@ -99,24 +99,36 @@ function FreeSurveyResultPage() {
           <Legend />
         </PieChart>
       </div>
-
+    <div style={{
+      display: "flex",
+      justifyContent: "center",  // ✅ 버튼을 화면 중앙 정렬
+      alignItems: "center",
+      marginTop: "50px",
+      width: "100%" // ✅ 부모 요소 크기에 맞춰 정렬
+    }}>
       <button
         onClick={() => navigate("/login")}
         style={{
-          fontSize: "1.4rem",
+          display: "flex",   // ✅ 내부 텍스트 정렬을 위해 flex 사용
+          alignItems: "center", // ✅ 텍스트 수직 정렬
+          justifyContent: "center", // ✅ 텍스트 수평 정렬
+          fontSize: "2rem",  // ✅ 글자 크기 증가
           fontWeight: "bold",
-          padding: "15px 30px",
           color: "#fff",
           backgroundColor: "#FFC1CC",
           border: "none",
-          borderRadius: "12px",
+          borderRadius: "25px",
           cursor: "pointer",
           transition: "transform 0.3s ease-in-out",
-          marginLeft: "auto",
-          position: "relative"
+          textAlign: "center",
+          width: "420px",  // ✅ 버튼 너비 증가
+          height: "130px", // ✅ 버튼 높이 증가 (텍스트가 정확히 중앙에 위치)
+          position: "relative",
+          whiteSpace: "nowrap", // ✅ 버튼 내부 텍스트가 한 줄 유지되도록 설정
+          lineHeight: "normal", // ✅ 줄 간격 조정
         }}
         onMouseEnter={(e) => {
-          e.target.style.transform = "scale(1.1)";
+          e.target.style.transform = "scale(1.05)";
           const tooltip = e.target.querySelector(".tooltip");
           if (tooltip) tooltip.style.visibility = "visible";
         }}
@@ -129,21 +141,26 @@ function FreeSurveyResultPage() {
         🐾 유료회원으로 전환~
         <div className="tooltip" style={{
           position: "absolute",
-          top: "-50px",
-          right: "-20px",
+          top: "-85px",  // ✅ 툴팁을 더 위로 조정
+          left: "50%",    // ✅ 툴팁을 버튼 중앙 정렬
+          transform: "translateX(-50%)",
           backgroundColor: "#FFD1DC",
           color: "#000",
           padding: "12px",
           borderRadius: "15px",
-          fontSize: "1.2rem",
+          fontSize: "1.6rem",
           visibility: "hidden",
           boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)",
           transition: "opacity 0.3s",
-          whiteSpace: "nowrap"
+          whiteSpace: "nowrap",
         }}>
           🐶 더 많은 혜택을 원하시면 유료로 전환하세요!
         </div>
       </button>
+    </div>
+
+
+
     </div>
   );
 }

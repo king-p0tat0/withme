@@ -243,23 +243,28 @@ const PaidSurveySelectionPage = () => {
           </Typography>
         )}
 
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={startPaidSurvey}
-          sx={{
-            marginTop: "2rem",
-            backgroundColor: "#FFB6C1",
-            "&:hover": {
-              backgroundColor: "#d67d00",
-            },
-            padding: "1rem",
-            fontSize: "1.1rem",
-            borderRadius: "10px",
-          }}
-        >
-          다음으로 문진 검사 시작하기
-        </Button>
+        <Box sx={{ display: "flex", justifyContent: "center", marginTop: "2rem" }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={startPaidSurvey}
+            sx={{
+              width: "100%", // ✅ 전체 폭 맞춤
+              maxWidth: "400px", // ✅ 최대 폭 설정
+              backgroundColor: "#FFB6C1",
+              "&:hover": {
+                backgroundColor: "#d67d00",
+              },
+              padding: "1.2rem",
+              fontSize: "1.2rem",
+              borderRadius: "10px",
+              fontWeight: "bold"
+            }}
+          >
+            다음으로 문진 검사 시작하기
+          </Button>
+        </Box>
+
       </Paper>
     </Box>
   );
