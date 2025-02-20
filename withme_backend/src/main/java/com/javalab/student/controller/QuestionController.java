@@ -1,17 +1,16 @@
 package com.javalab.student.controller;
 
 import com.javalab.student.dto.QuestionDTO;
-import com.javalab.student.entity.Question;
 import com.javalab.student.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize; // ✅ 권한 체크 추가
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * 질문(Question) 컨트롤러
@@ -29,7 +28,7 @@ public class QuestionController {
     }
 
     /**
-     * ✅ 모든 질문 조회
+     * ✅ 모든 질문 조회 (모든 사용자 접근 가능)
      */
     @GetMapping
     public ResponseEntity<List<QuestionDTO>> getAllQuestions() {
@@ -37,10 +36,8 @@ public class QuestionController {
         return ResponseEntity.ok(questionDTOs);
     }
 
-
-
     /**
-     * ✅ 질문 ID로 질문 조회
+     * ✅ 질문 ID로 질문 조회 (모든 사용자 접근 가능)
      */
     @GetMapping("/{questionId}")
     public ResponseEntity<QuestionDTO> getQuestionById(@PathVariable Long questionId) {
@@ -49,9 +46,8 @@ public class QuestionController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-
     /**
-     * 특정 문진 설문의 질문 목록 조회 (선택지 포함)
+     * ✅ 특정 문진 설문의 질문 목록 조회 (선택지 포함) - 무료 문진 (모든 사용자 접근 가능)
      */
     @GetMapping("/free/{surveyId}")
     public ResponseEntity<List<QuestionDTO>> getFreeQuestionsBySurveyId(@PathVariable("surveyId") Long surveyId) {
@@ -60,9 +56,11 @@ public class QuestionController {
     }
 
     /**
-     * ✅ 특정 유저 ID(userId)에 해당하는 질문 조회 (유료 회원 문진 진행)
+     * ✅ 특정 유저 ID(userId)에 해당하는 질문 조회 (유료 문진 진행)
+     * ✅ 유료 문진 질문 목록을 topics 파라미터로 가져오기
+     * ✅ VIP 사용자만 접근 가능 (보안 강화)
      */
-    // ✅ 유료 문진 질문 목록을 topics 파라미터로 가져오기
+    @PreAuthorize("hasRole('VIP')") // ✅ VIP 사용자만 접근 가능
     @GetMapping("/paid")
     public ResponseEntity<List<QuestionDTO>> getPaidQuestions(@RequestParam List<Long> topics) {
         System.out.println("✅ 요청된 topics: " + topics);
@@ -72,6 +70,4 @@ public class QuestionController {
         }
         return ResponseEntity.ok(questions);
     }
-
-
 }

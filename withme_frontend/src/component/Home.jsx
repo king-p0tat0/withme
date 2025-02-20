@@ -1,77 +1,173 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch } from "@fortawesome/free-solid-svg-icons";
-import "./Home.css";
+import MainNotice from "./notice/MainNotice";
+import { fetchWithAuth } from '../common/fetchWithAuth';
+import { API_URL, SERVER_URL2 } from "../constant";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { Modal, Box, Typography, Button, Badge } from "@mui/material";
+import useWebSocket from "../hook/useWebSocket";
+
+import './Home.css';
+import '../assets/css/shop/ItemList.css';
 
 function Home() {
   const { user, isLoggedIn } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState({ content: "", senderName: "" });
+  const [lastMessageId, setLastMessageId] = useState(null);
+  const [newConsultationCount, setNewConsultationCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [notices, setNotices] = useState([]);
+  const [pets, setPets] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
-  const handleSurveyNavigation = (e) => {
-    e.preventDefault();
-    if (!isLoggedIn || !user) {
-      alert("로그인이 필요한 서비스입니다.");
-      navigate("/login");
-      return;
-    }
+  const { lastMessage } = useWebSocket(user);
 
-    if (user.role === "PAID" || user.role === "VIP") {
-      navigate("/survey/paid");
-    } else {
-      navigate("/survey/free");
+  // 문진 함수
+const handleSurveyNavigation = (e) => {
+  e.preventDefault();
+  if (!isLoggedIn || !user) {
+    alert("로그인이 필요한 서비스입니다.");
+    navigate("/login");
+    return;
+  }
+  const userRoles = user.roles.replace(/[\[\]"]/g, '').split(',').map(role => role.trim());
+
+  if (userRoles.includes("ROLE_PAID") || userRoles.includes("ROLE_VIP")) {
+    navigate("/survey/paid");
+  } else {
+    navigate("/survey/free");
+  }
+};
+
+// 공지사항 데이터 불러오기 함수
+const fetchNotices = async () => {
+  try {
+    const response = await fetchWithAuth(`${API_URL}notices?page=0&size=5`);
+    if (!response.ok) throw new Error('공지사항을 불러오는 데 실패했습니다.');
+    const data = await response.json();
+    setNotices(data.content);  // 공지사항 데이터를 상태에 저장
+  } catch (error) {
+    console.error(error);
+    alert('공지사항 데이터를 가져오는 데 문제가 발생했습니다.');
+  }
+};
+
+  // 상품 데이터 불러오기
+  const fetchItems = async () => {
+    try {
+      const response = await fetch(`${API_URL}item/list`);
+      const data = await response.json();
+      setItems(data);  // 받은 데이터 상태에 저장
+    } catch (err) {
+      setError('상품 데이터를 가져오는 데 실패했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  // 반려견 정보 불러오기
   useEffect(() => {
+    const fetchPetData = async () => {
+      try {
+        const response = await fetchWithAuth(`${API_URL}pets/user/${user.id}`);
+        if (response.ok) {
+          const result = await response.json();
+          setPets(result.content || []);
+        }
+      } catch (error) {
+        console.error("반려동물 정보 로드 중 오류:", error);
+      }
+    };
+
+    if (isLoggedIn && user) {
+      fetchPetData();
+    }
+  }, [isLoggedIn, user]);
+
+  // 컴포넌트 마운트 시 호출
+  useEffect(() => {
+    fetchNotices();
+    fetchItems();
     document.body.style.backgroundColor = "#FEF9F6";
     return () => {
       document.body.style.backgroundColor = "";
     };
   }, []);
 
-  // 검색어 입력 핸들러
+  const filteredItems = items.filter((item) =>
+    item.itemNm.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const currentItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
 
-  // 검색 실행 핸들러
   const handleSearch = async (e) => {
     if (e.key === "Enter" || e.type === "click") {
       if (searchQuery.trim()) {
-        // 로그인한 사용자이고 반려동물이 있는 경우
         if (isLoggedIn && user?.petId) {
-          navigate(
-            `/item/search?query=${encodeURIComponent(searchQuery)}&petId=${
-              user.petId
-            }`
-          );
+          navigate(`/item/search?query=${encodeURIComponent(searchQuery)}&petId=${user.petId}`);
         } else {
-          // 일반 검색
           navigate(`/item/search?query=${encodeURIComponent(searchQuery)}`);
         }
       }
     }
   };
 
+  const renderItemCard = (item) => (
+    <div className="item-card" key={item.id}>
+      {item.itemImgDtoList?.length > 0 && (
+        <div className="image-container">
+          <img
+            src={`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`}
+            alt={item.itemNm}
+            className="item-image"
+            style={{ boxShadow: "none", width: "250px" }}
+          />
+          <button
+            className="view-details-btn"
+            onClick={() => navigate(`/item/view/${item.id}`)}
+          >
+            상세보기
+          </button>
+        </div>
+      )}
+      <div className="item-detail-wrap">
+        <h3 className="itemName">{item.itemNm}</h3>
+        <div className="price-cart-container">
+          <p className="price">{item.price.toLocaleString()}원</p>
+          <button
+            className="add-to-cart-btn"
+            onClick={() => handleAddToCart(item)}
+            disabled={item.itemSellStatus === 'SOLD_OUT'}
+          >
+            <img src="/assets/images/icon/cart.png" alt="cart" className="cartIcon" style={{ width: "25px" }} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="Home">
       <nav>
         <ul>
-          <li>
-            <Link to="/">홈</Link>
-          </li>
-          <li>
-            <Link to="/item/list">전체상품</Link>
-          </li>
-          <li>
-            <Link to="/notices">공지사항</Link>
-          </li>
-          <li>
-            <Link to="/posts">커뮤니티</Link>
-          </li>
+          <li><Link to="/">홈</Link></li>
+          <li><Link to="/item/list">쇼핑몰</Link></li>
+          <li><Link to="/notices">공지사항</Link></li>
+          <li><Link to="/posts">커뮤니티</Link></li>
           <li className="search-box">
             <input
               type="text"
@@ -88,161 +184,81 @@ function Home() {
               style={{ cursor: "pointer" }}
             />
           </li>
-          <li>
-            <img
-              src="/assets/images/logo.png"
-              alt="로고 이미지"
-              className="footer-logo"
-            />
-          </li>
         </ul>
       </nav>
 
       <div className="container">
         <div className="banner">
-          <img
-            src="/assets/images/banner.png"
-            alt="배너 이미지"
-            className="bannerImage"
-          />
-          <Link to="#" onClick={handleSurveyNavigation} className="survey-link">
-            문진하러 가기 &gt;
-          </Link>
+          <img src="/assets/images/banner.png" alt="배너 이미지" className="bannerImage" />
+          <Link onClick={handleSurveyNavigation}>문진하러 가기 &gt;</Link>
         </div>
 
-        <div className="item-wrap">
-          <div className="notice">
-            <span className="red" style={{ color: "red" }}>
-              공지사항
-            </span>{" "}
-            📢 <span className="line">|</span> " 오늘은 발렌타인데이입니다 🍫
-            달콤한 하루 보내세요 💕 "
-          </div>
-
-          <div className="product-list all-product-list">
-            <p>전체 상품</p>
-            <hr />
-            <div className="products">
-              <ul>
-                {/* 하드코딩된 상품 리스트 */}
-                <li className="product-item">
-                  <Link to="#" className="productLink">
-                    <img
-                      src="/assets/images/product/product1.png"
-                      alt="상품이미지1"
-                    />
-                    <div className="product-info">
-                      <h3 className="productName">
-                        로얄캐닌 처방식 하이포알러제닉 1.5kg
-                      </h3>
-                      <p className="price">34,500원</p>
-                      <button type="button" className="product-btn">
-                        구매하기
-                      </button>
-                    </div>
-                  </Link>
-                </li>
-                <li className="product-item">
-                  <Link to="#" className="productLink">
-                    <img
-                      src="/assets/images/product/product2.jpg"
-                      alt="상품이미지2"
-                    />
-                    <div className="product-info">
-                      <h3 className="productName">
-                        힐스 다이어트 체중관리 어덜트 스몰포 라이트 (스몰앤미니)
-                        1.5kg
-                      </h3>
-                      <p className="price">27,800원</p>
-                      <button type="button" className="product-btn">
-                        구매하기
-                      </button>
-                    </div>
-                  </Link>
-                </li>
-                <li className="product-item">
-                  <Link to="#" className="productLink">
-                    <img
-                      src="/assets/images/product/product3.jpg"
-                      alt="상품이미지3"
-                    />
-                    <div className="product-info">
-                      <h3 className="productName">
-                        NOW 그레인프리 스몰브리드 어덜트 1.4kg
-                      </h3>
-                      <p className="price">19,900원</p>
-                      <button type="button" className="product-btn">
-                        구매하기
-                      </button>
-                    </div>
-                  </Link>
-                </li>
-                <li className="product-item">
-                  <Link to="#" className="productLink">
-                    <img
-                      src="/assets/images/product/product4.png"
-                      alt="상품이미지4"
-                    />
-                    <div className="product-info">
-                      <h3 className="productName">
-                        로얄캐닌 미니 인도어 어덜트 3kg
-                      </h3>
-                      <p className="price">44,800원</p>
-                      <button type="button" className="product-btn">
-                        구매하기
-                      </button>
-                    </div>
-                  </Link>
-                </li>
-              </ul>
-              <button type="button" className="moreBtn">
-                더 구경하기
-              </button>
-            </div>
-          </div>
-
-          <div className="product-list filtered-product-list">
-            <p>필터링 적용 상품</p>
-            <hr />
-            {!isLoggedIn && (
-              <div className="membership-overlay" id="membershipOverlay">
-                회원 전용 컨텐츠입니다.
-                <br />
-                로그인 후 이용해주세요.
+        <div className="item-container">
+          <p className="item-title">이 상품은 어떠세요?</p>
+          <div className="item-grid">
+            {loading ? (
+              <p>상품을 불러오는 중...</p>
+            ) : error ? (
+              <p className="error">{error}</p>
+            ) : filteredItems.length === 0 ? (
+              <div className="no-results-container">
+                <img src="/assets/images/searchDog.png" alt="cannotFound" className="cannotFound" />
+                <p>'{searchQuery}'에 대한 검색한 결과를 찾을 수가 없어요.</p>
+                <p>다른 검색어로 검색을 해보시겠어요?</p>
               </div>
+            ) : (
+              currentItems.map((item) => renderItemCard(item))
             )}
+          </div>
+        </div>
 
-            <div
-              className={`products filtered-products ${
-                isLoggedIn ? "" : "blur"
-              }`}
-              id="productSection">
-              <ul>
-                {[...Array(4)].map((_, index) => (
-                  <li className="product-item" key={index}>
-                    <Link to="#" className="productLink">
-                      <img
-                        src="/assets/images/product/product1.png"
-                        alt="상품이미지"
-                      />
-                      <div className="product-info">
-                        <h3>로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>
-                        <p className="price">34,500원</p>
-                        <button type="button" className="product-btn">
-                          구매하기
-                        </button>
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <button type="button" className="moreBtn">
-                더 구경하기
-              </button>
+        <button
+            className="moreBtn"
+            onClick={() => navigate(`/item/list`)}
+            style={{ marginBottom: "50px"}}
+            >
+            더 많은 상품 보러가기
+            </button>
+
+        {/* 필터링된 상품 섹션 */}
+        <div className="filtered-container">
+          <div style={{ marginLeft: "10%" }}>
+            <p style={{ paddingTop: "20px" }} className="item-title">
+              {pets.length === 0 ? (
+                "우리 아이 맞춤 상품💕"
+              ) : (
+                pets.map((pet) => (
+                  <p key={pet.petId}>{pet.name}에게 추천해요💕</p>
+                ))
+              )}
+            </p>
+            {!isLoggedIn || !user?.roles?.includes("VIP") ? (
+              <div className="membership-message">
+                맴버쉽 가입 후 이용 가능한 컨텐츠입니다.
+              </div>
+            ) : null}
+            <div className={`item-grid ${(!isLoggedIn || !user?.roles?.includes("VIP")) ? "blurred" : ""}`}>
+              {filteredItems.length > 0 ? (
+                filteredItems.map(renderItemCard)
+              ) : null}
             </div>
           </div>
         </div>
       </div>
+
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        aria-labelledby="message-modal-title"
+        aria-describedby="message-modal-description"
+      >
+        <Box className="message-modal">
+          <Typography variant="h6" id="message-modal-title">새 메시지</Typography>
+          <Typography variant="body2" id="message-modal-description">{modalMessage.content}</Typography>
+          <Typography variant="caption">From: {modalMessage.senderName}</Typography>
+          <Button onClick={() => setModalOpen(false)} color="primary">닫기</Button>
+        </Box>
+      </Modal>
     </div>
   );
 }

@@ -16,11 +16,14 @@ public class CorsConfig {
 
         // 👇 모든 도메인 허용 (배포 시 "http://localhost:3000"만 허용 가능)
         config.setAllowedOrigins(List.of("http://localhost:3000"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")); // 허용할 HTTP 메서드
-        config.setAllowedHeaders(List.of("*")); // 모든 헤더 허용
-        config.setAllowCredentials(true); // 쿠키 및 인증 정보 포함 허용
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        config.addAllowedOriginPattern("*"); // WebSocket을 위한 추가 설정
 
         source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/ws/**", config); // WebSocket 경로 명시적 추가
+
         return new CorsFilter(source);
     }
 }

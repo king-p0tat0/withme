@@ -5,7 +5,7 @@ import { API_URL } from "../../constant";
 import { fetchWithAuth } from "../../common/fetchWithAuth.js";
 import { DataGrid } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
-import img1 from "../../image/img1.png";
+import img2 from "../../image/img2.png";
 
 function FreeSurveyPage() {
   const [questions, setQuestions] = useState([]);
@@ -26,7 +26,6 @@ function FreeSurveyPage() {
         if (response.ok) {
           const data = await response.json();
 
-          // ✅ 프론트엔드에서 질문 중복 제거
           const uniqueQuestions = [];
           const seen = new Set();
 
@@ -58,7 +57,6 @@ function FreeSurveyPage() {
       fetchQuestions();
     }
   }, [isLoggedIn]);
-
 
   const handleAnswerChange = (questionId, choiceId, score) => {
     setAnswers((prev) => ({
@@ -105,13 +103,43 @@ function FreeSurveyPage() {
 
   return (
     <div style={{ textAlign: "center" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "10px" }}>
-        <img src={img1} alt="Survey" style={{ height: "60px" }} />
-        <h2 style={{ fontSize: "2rem", fontWeight: "bold", color: "#D67D00", backgroundColor: "#FFF3E0", padding: "8px 16px", borderRadius: "8px" }}>무료 문진 검사</h2>
+      <div style={{
+        borderBottom: "3px solid pink",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: "20px"
+      }}>
+        <img src={img2} alt="img2" style={{ height: "60px", marginRight: "10px" }} />
+        <span style={{ color: "#000", fontSize: "2rem", marginRight: "10px" }}>
+          무료 문진 검사
+        </span>
       </div>
-      <DataGrid rows={questions} columns={columns} loading={loading} pagination autoHeight />
-      <button onClick={handleSubmit} style={{ marginTop: "15px", backgroundColor: "#FF8C00", color: "white", padding: "10px 18px", borderRadius: "8px" }}>🚀 문진 완료 & 결과 보기</button>
+
+      <DataGrid rows={questions} columns={columns} loading={loading} autoHeight hideFooterPagination />
+
+      {/* ✅ 버튼 크기와 글씨 크기 조정 */}
+      <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+        <button
+          onClick={handleSubmit}
+          style={{
+            width: "100%",  // ✅ 전체 폭 맞춤
+            maxWidth: "400px",  // ✅ 최대 너비 설정 (너무 넓어지는 것 방지)
+            backgroundColor: "#FFB6C1",
+            color: "#000",
+            padding: "15px 20px",  // ✅ 버튼 높이 증가
+            borderRadius: "10px",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "1.2rem",  // ✅ 글씨 크기 증가
+            fontWeight: "bold"  // ✅ 글씨 두껍게
+          }}
+        >
+          🐾 문진 완료 & 결과 보기
+        </button>
+      </div>
     </div>
+
   );
 }
 

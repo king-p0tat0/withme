@@ -2,6 +2,8 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import authReducer from "./authSlice";
+import messageReducer from "./messageSlice";    // 메시지 관련 reducer 추가
+import snackbarReducer from "./snackbarSlice";  // 알림 관련 reducer 추가
 
 /**
  * Redux Persist 설정
@@ -22,16 +24,20 @@ import authReducer from "./authSlice";
 const persistConfig = {
   key: "root",
   storage, // 로컬스토리지를 사용하여 Redux 상태 저장
-  whitelist: ["auth"] // auth 상태만 저장하도록 지정
+  whitelist: ["auth"] // auth 상태만 저장하도록 지정, messages와 snackbar는 새로고침 시 초기화됨
 };
 
 /**
  * 루트 리듀서 생성
  * - combineReducers를 사용하여 여러 리듀서를 하나로 병합
  * - authReducer: authSlice에서 가져온 리듀서를 Redux persist 대상으로 포함
+ * - messageReducer: 메시지 관련 상태 관리
+ * - snackbarReducer: 알림 관련 상태 관리
  */
 const rootReducer = combineReducers({
-  auth: authReducer // auth 리듀서를 Redux persist 대상에 포함, 이렇게 포함시키면 auth 상태가 localStorage에 저장됨. 즉, authSlice에서 내보낸 authReducer를 rootReducer에 포함시켜서 Redux Persist에 저장하도록 설정
+  auth: authReducer,      // 인증 상태 관리
+  messages: messageReducer,  // 실시간 메시지 상태 관리
+  snackbar: snackbarReducer // 알림 상태 관리
 });
 
 /**

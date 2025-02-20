@@ -9,15 +9,16 @@ const NavBar = () => {
     <nav className="nav-bar">
       {[
         { name: "홈", path: "/" },
-        { name: "전체상품", path: "/item/list" },
+        { name: "쇼핑몰", path: "/item/list" },
         { name: "공지사항", path: "/notices" },
-        { name: "커뮤니티", path: "/posts" }
+        { name: "커뮤니티", path: "/posts" },
       ].map((item) => (
         <NavLink
           key={item.path}
           to={item.path}
           onMouseEnter={() => setHovered(item.path)}
-          onMouseLeave={() => setHovered(null)}>
+          onMouseLeave={() => setHovered(null)}
+        >
           {item.name}
         </NavLink>
       ))}

@@ -5,6 +5,7 @@ import com.javalab.student.service.SurveyTopicService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize; // ✅ 권한 체크 추가
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +15,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * 설문 주제 컨트롤러
- * 설문 주제 관련 요청을 처리하는 REST API 컨트롤러
+ * 📌 설문 주제 컨트롤러
+ * - 설문 주제 관련 요청을 처리하는 REST API 컨트롤러
  */
 @RestController
 @RequestMapping("/api/survey-topics")
@@ -30,7 +31,7 @@ public class SurveyTopicController {
     }
 
     /**
-     * ✅ 모든 설문 주제 조회
+     * ✅ 모든 설문 주제 조회 (모든 사용자 접근 가능)
      */
     @GetMapping
     public ResponseEntity<List<SurveyTopic>> getAllTopics() {
@@ -43,7 +44,7 @@ public class SurveyTopicController {
     }
 
     /**
-     * ✅ 특정 주제 ID로 조회
+     * ✅ 특정 주제 ID로 조회 (모든 사용자 접근 가능)
      */
     @GetMapping("/{topicId}")
     public ResponseEntity<SurveyTopic> getTopicById(@PathVariable Long topicId) {
@@ -52,6 +53,10 @@ public class SurveyTopicController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * ✅ 유료 설문 주제 조회 (VIP 사용자만 가능)
+     */
+    @PreAuthorize("hasRole('VIP')") // ✅ VIP 사용자만 접근 가능
     @GetMapping("/paid/{surveyId}")
     public ResponseEntity<?> getPaidTopics(@PathVariable Long surveyId) {
         System.out.println("✅ surveyId 값: " + surveyId); // 👉 디버깅 로그 추가
@@ -73,8 +78,9 @@ public class SurveyTopicController {
     }
 
     /**
-     * ✅ 새로운 설문 주제 생성
+     * ✅ 새로운 설문 주제 생성 (관리자만 가능)
      */
+    @PreAuthorize("hasRole('ADMIN')") // ✅ 관리자만 가능
     @PostMapping
     public ResponseEntity<SurveyTopic> createTopic(@RequestBody SurveyTopic surveyTopic) {
         SurveyTopic savedTopic = surveyTopicService.createTopic(surveyTopic);
@@ -82,8 +88,9 @@ public class SurveyTopicController {
     }
 
     /**
-     * ✅ 설문 주제 삭제
+     * ✅ 설문 주제 삭제 (관리자만 가능)
      */
+    @PreAuthorize("hasRole('ADMIN')") // ✅ 관리자만 가능
     @DeleteMapping("/{topicId}")
     public ResponseEntity<Void> deleteTopic(@PathVariable Long topicId) {
         surveyTopicService.deleteTopic(topicId);

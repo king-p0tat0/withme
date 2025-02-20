@@ -4,10 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { clearUser } from "../../redux/authSlice";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faShoppingBasket,
-  faCaretDown
-} from "@fortawesome/free-solid-svg-icons";
+import { faShoppingBasket, faCaretDown } from "@fortawesome/free-solid-svg-icons";
 import { API_URL } from "../../constant";
 import { fetchWithAuth } from "../../common/fetchWithAuth";
 import { Helmet } from "react-helmet";
@@ -21,10 +18,7 @@ const Header = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        adminDropdownRef.current &&
-        !adminDropdownRef.current.contains(event.target)
-      ) {
+      if (adminDropdownRef.current && !adminDropdownRef.current.contains(event.target)) {
         setIsAdminOpen(false); // 드롭다운 외부 클릭 시 닫기
       }
     };
@@ -78,11 +72,7 @@ const Header = () => {
         <div className="gnb-container">
           <ul className="gnb" style={{ fontWeight: "bold" }}>
             <Link to="/">
-              <img
-                src="/assets/images/text_logo.png"
-                alt="텍스트 로고"
-                className="textLogo"
-              />
+              <img src="/assets/images/text_logo.png" alt="텍스트 로고" className="textLogo" />
             </Link>
             {isLoggedIn ? (
               <>
@@ -97,9 +87,11 @@ const Header = () => {
                     로그아웃
                   </Link>
                 </li>
-                <li>
-                  <Link to={`/mypage/${user.id}`}>마이페이지</Link>
-                </li>
+                {!user.roles.includes("ADMIN") && (
+                    <li>
+                      <Link to={`/mypage/${user.id}`}>마이페이지</Link>
+                    </li>
+                )}
                 {user.roles.includes("PENDING_DOCTOR") && (
                   <li ref={adminDropdownRef}>
                      <button

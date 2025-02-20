@@ -103,7 +103,7 @@ export default function Login() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "로그인에 실패했습니다.");
+        throw new Error(errorData.message || "이메일 또는 비밀번호를 확인해주세요.");
       }
 
       const data = await response.json();
