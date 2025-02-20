@@ -33,9 +33,9 @@ import PostForm from "./component/posts/PostForm";
 import PostView from "./component/posts/PostView";
 
 //관리자
-import Admin from "./component/Admin2/Admin";
-import DoctorUpdate from "./component/Admin2/DoctorUpdate";
-import Dashboard from "./component/Admin2/Dashboard";
+import Admin from "./component/Admin/Admin";
+import DoctorUpdate from "./component/Admin/DoctorUpdate";
+import Dashboard from "./component/Admin/Dashboard";
 
 // ✅ 회원 관련
 import Login from "./component/Login";
