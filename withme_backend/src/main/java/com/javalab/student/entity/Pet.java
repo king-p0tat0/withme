@@ -11,6 +11,8 @@ import com.javalab.student.constant.Role;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "pet")
@@ -53,7 +55,10 @@ public class Pet {
     @Column(name = "image_name")
     private String imageName;
 
-    // Builder 패턴 추가
+    @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<PetAllergy> allergies = new HashSet<>();
+
+    // Builder 패턴
     @Builder
     public Pet(Long userId, String name, Integer age, Boolean neutered, 
                String healthConditions, String breed, Integer weight, 
@@ -68,5 +73,23 @@ public class Pet {
         this.gender = gender;
         this.imageUrl = imageUrl;
         this.imageName = imageName;
+    }
+
+    // 알러지 관련 메서드들
+    public void addAllergy(Substance substance) {
+        PetAllergy petAllergy = new PetAllergy();
+        petAllergy.setPet(this);
+        petAllergy.setSubstance(substance);
+        this.allergies.add(petAllergy);
+    }
+
+    public void removeAllergy(Substance substance) {
+        this.allergies.removeIf(allergy -> 
+            allergy.getSubstance().getSubstanceId().equals(substance.getSubstanceId()));
+    }
+
+    public void updateAllergies(Set<Substance> substances) {
+        this.allergies.clear();
+        substances.forEach(this::addAllergy);
     }
 }

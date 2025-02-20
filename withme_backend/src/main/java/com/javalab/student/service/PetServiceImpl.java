@@ -26,7 +26,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -86,33 +89,90 @@ public String uploadPetImage(MultipartFile file) {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Page<PetDto> getPetsByUser(Long userId, Pageable pageable) {
-        try {
-            Page<Pet> pets = petRepository.findByUserId(userId, pageable);
-            log.info("Found {} pets for user {}", pets.getContent().size(), userId);
-            return pets.map(pet -> modelMapper.map(pet, PetDto.class));
-        } catch (Exception e) {
-            log.error("Error fetching pets for user {}: {}", userId, e.getMessage());
-            throw new RuntimeException("Failed to fetch pets for user", e);
-        }
+@Transactional(readOnly = true)
+public Page<PetDto> getPetsByUser(Long userId, Pageable pageable) {
+    try {
+        Page<Pet> pets = petRepository.findByUserId(userId, pageable);
+        
+        return pets.map(pet -> {
+            // 기본 정보 매핑
+            PetDto petDto = new PetDto();
+            petDto.setPetId(pet.getPetId());
+            petDto.setUserId(pet.getUserId());
+            petDto.setName(pet.getName());
+            petDto.setAge(pet.getAge());
+            petDto.setBreed(pet.getBreed());
+            petDto.setGender(pet.getGender());
+            petDto.setWeight(pet.getWeight());
+            petDto.setNeutered(pet.getNeutered());
+            petDto.setHealthConditions(pet.getHealthConditions());
+            petDto.setImageUrl(pet.getImageUrl());
+            petDto.setImageName(pet.getImageName());
+            
+            // 알러지 정보 조회 및 설정
+            try {
+                List<SubstanceDto> allergies = getPetAllergies(pet.getPetId());
+                petDto.setAllergies(allergies);
+                petDto.setAllergyIds(allergies.stream()
+                        .map(SubstanceDto::getSubstanceId)
+                        .collect(Collectors.toList()));
+            } catch (Exception e) {
+                log.warn("알러지 정보 조회 중 오류 발생 (petId: {}): {}", pet.getPetId(), e.getMessage());
+                petDto.setAllergies(new ArrayList<>());
+                petDto.setAllergyIds(new ArrayList<>());
+            }
+            
+            return petDto;
+        });
+    } catch (Exception e) {
+        log.error("Error fetching pets for user {}: {}", userId, e.getMessage());
+        throw new RuntimeException("Failed to fetch pets for user", e);
     }
+}
 
-    @Override
-    @Transactional(readOnly = true)
-    public PetDto getPetDetails(Long petId) {
+@Override
+@Transactional(readOnly = true)
+public PetDto getPetDetails(Long petId) {
+    try {
+        // 1. 펫 정보 조회
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new EntityNotFoundException("Pet not found with id: " + petId));
         
-        PetDto petDto = modelMapper.map(pet, PetDto.class);
+        // 2. 기본 정보를 DTO로 매핑
+        PetDto petDto = new PetDto();
+        petDto.setPetId(pet.getPetId());
+        petDto.setUserId(pet.getUserId());
+        petDto.setName(pet.getName());
+        petDto.setAge(pet.getAge());
+        petDto.setBreed(pet.getBreed());
+        petDto.setGender(pet.getGender());
+        petDto.setWeight(pet.getWeight());
+        petDto.setNeutered(pet.getNeutered());
+        petDto.setHealthConditions(pet.getHealthConditions());
+        petDto.setImageUrl(pet.getImageUrl());
+        petDto.setImageName(pet.getImageName());
         
-        // 이미지 URL이 있는 경우 로그로 확인
-        if (petDto.getImageUrl() != null) {
-            log.debug("Pet image URL: {}", petDto.getImageUrl());
+        // 3. 알러지 정보 조회 및 설정
+        try {
+            List<SubstanceDto> allergies = getPetAllergies(petId);
+            petDto.setAllergies(allergies);
+            petDto.setAllergyIds(allergies.stream()
+                    .map(SubstanceDto::getSubstanceId)
+                    .collect(Collectors.toList()));
+        } catch (Exception e) {
+            log.warn("알러지 정보 조회 중 오류 발생 (petId: {}): {}", petId, e.getMessage());
+            petDto.setAllergies(new ArrayList<>());
+            petDto.setAllergyIds(new ArrayList<>());
         }
         
         return petDto;
+        
+    } catch (Exception e) {
+        log.error("펫 상세 정보 조회 중 오류 발생: {}", e.getMessage(), e);
+        throw new RuntimeException("Failed to get pet details", e);
     }
+}
+
 
     @Override
     @Transactional(readOnly = true)
@@ -125,21 +185,20 @@ public String uploadPetImage(MultipartFile file) {
                 .collect(Collectors.toList());
     }
 
-    @Override
+     @Override
     @Transactional
     public void savePetAllergies(Long petId, List<Long> allergyIds) {
-        // 기존 알러지 정보 삭제
-        petAllergyRepository.deleteByPetId(petId);
-
-        // 새로운 알러지 정보 저장
-        if (allergyIds != null && !allergyIds.isEmpty()) {
-            allergyIds.forEach(substanceId -> {
-                PetAllergy petAllergy = new PetAllergy();
-                petAllergy.setPetId(petId);
-                petAllergy.setSubstanceId(substanceId);
-                petAllergyRepository.save(petAllergy);
-            });
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new EntityNotFoundException("Pet not found"));
+        
+        if (allergyIds == null || allergyIds.isEmpty()) {
+            pet.getAllergies().clear();
+        } else {
+            Set<Substance> substances = new HashSet<>(substanceRepository.findAllById(allergyIds));
+            pet.updateAllergies(substances);
         }
+        
+        petRepository.save(pet);
     }
 
     @Override
@@ -195,52 +254,48 @@ public PetDto registerPet(PetDto petDto, MultipartFile image) {
 
 
 @Override
-@Transactional
-public PetDto updatePet(Long petId, PetDto petDto, MultipartFile image) {
-    Pet pet = petRepository.findById(petId)
-            .orElseThrow(() -> new EntityNotFoundException("Pet not found with id: " + petId));
+    @Transactional
+    public PetDto updatePet(Long petId, PetDto petDto, MultipartFile image) {
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new EntityNotFoundException("Pet not found"));
 
-    // 기본 정보 업데이트
-    pet.setName(petDto.getName());
-    pet.setBreed(petDto.getBreed());
-    pet.setAge(petDto.getAge());
-    pet.setWeight(petDto.getWeight());
-    pet.setGender(petDto.getGender());
-    pet.setNeutered(petDto.getNeutered());
-    pet.setHealthConditions(petDto.getHealthConditions());
+        // 기본 정보 업데이트
+        modelMapper.map(petDto, pet);
 
-    // 이미지 업데이트 처리
-    if (image != null && !image.isEmpty()) {
-        // 기존 이미지 삭제
-        if (pet.getImageUrl() != null) {
-            Path oldImagePath = Paths.get(petUploadPath, pet.getImageName());
+        // 알러지 정보 업데이트
+        if (petDto.getAllergyIds() != null) {
+            savePetAllergies(petId, petDto.getAllergyIds());
+        }
+
+        // 이미지 처리
+        if (image != null && !image.isEmpty()) {
             try {
-                Files.deleteIfExists(oldImagePath);
+                handleImageUpdate(pet, image);
             } catch (IOException e) {
-                log.warn("기존 이미지를 삭제하지 못했습니다: {}", e.getMessage());
+                log.error("이미지 업로드 중 오류 발생: {}", e.getMessage());
+                throw new RuntimeException("이미지 업로드 실패", e);
             }
         }
 
-        // 새 이미지 업로드 및 설정
-        String originalFilename = image.getOriginalFilename();
-        String fileName = System.currentTimeMillis() + "_" + originalFilename;
-
-        Path filePath = Paths.get(petUploadPath, fileName);
-        try {
-            image.transferTo(filePath.toFile());
-        } catch (IOException e) {
-            log.error("이미지 업로드 중 오류 발생: {}", e.getMessage(), e);
-            throw new RuntimeException("이미지 업로드 중 오류 발생", e);
-        }
-
-        pet.setImageUrl("/api/pets/image/" + fileName); // API 경로 설정
-        pet.setImageName(fileName); // 실제 파일 이름 저장
+        Pet updatedPet = petRepository.save(pet);
+        return getPetDetails(updatedPet.getPetId());
     }
 
-    Pet updatedPet = petRepository.save(pet);
-    return modelMapper.map(updatedPet, PetDto.class);
-}
+    private void handleImageUpdate(Pet pet, MultipartFile image) throws IOException {
+        // 기존 이미지 삭제
+        if (pet.getImageName() != null) {
+            Path oldImagePath = Paths.get(petUploadPath, pet.getImageName());
+            Files.deleteIfExists(oldImagePath);
+        }
 
+        // 새 이미지 저장
+        String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
+        Path filePath = Paths.get(petUploadPath, fileName);
+        Files.copy(image.getInputStream(), filePath);
+
+        pet.setImageUrl("/api/pets/image/" + fileName);
+        pet.setImageName(fileName);
+    }
     
 @Override
 @Transactional

@@ -20,6 +20,9 @@ import { API_URL } from "../../constant";
 import { getImageUrl } from "../../utils/imageUtils";
 
 const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
+  const [substances, setSubstances] = useState([]); // 알러지 목록
+  const [selectedAllergies, setSelectedAllergies] = useState([]); // 선택된 알러지
+
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
 
@@ -86,6 +89,36 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
     }
   };
 
+  // 알러지 목록 불러오기
+  useEffect(() => {
+    const fetchSubstances = async () => {
+      try {
+        const response = await fetch(`${API_URL}pets/substances`, {
+          credentials: "include"
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setSubstances(data);
+        }
+      } catch (error) {
+        console.error("알러지 목록 로딩 중 오류:", error);
+      }
+    };
+
+    fetchSubstances();
+  }, []);
+
+  // 알러지 선택 핸들러
+  const handleAllergyChange = (substanceId) => {
+    setSelectedAllergies((prev) => {
+      if (prev.includes(substanceId)) {
+        return prev.filter((id) => id !== substanceId);
+      } else {
+        return [...prev, substanceId];
+      }
+    });
+  };
+
   // 폼 제출 핸들러
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,6 +141,10 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
       dataToSend.append("weight", formData.weight);
       dataToSend.append("gender", formData.gender);
       dataToSend.append("userId", user.id);
+      // 선택된 알러지 ID들을 FormData에 추가
+      selectedAllergies.forEach((allergyId) => {
+        dataToSend.append("allergyIds", allergyId);
+      });
 
       if (formData.neutered !== undefined) {
         dataToSend.append("neutered", formData.neutered);
@@ -305,6 +342,29 @@ const PetRegister = ({ petData = null, onSubmitSuccess = () => {} }) => {
               }
               label="중성화 여부"
             />
+
+            {/* 알러지 선택 섹션 추가 */}
+            <FormControl sx={{ mt: 2 }}>
+              <FormLabel>알러지</FormLabel>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+                {substances.map((substance) => (
+                  <FormControlLabel
+                    key={substance.substanceId}
+                    control={
+                      <Checkbox
+                        checked={selectedAllergies.includes(
+                          substance.substanceId
+                        )}
+                        onChange={() =>
+                          handleAllergyChange(substance.substanceId)
+                        }
+                      />
+                    }
+                    label={substance.name}
+                  />
+                ))}
+              </Box>
+            </FormControl>
 
             {/* 버튼 */}
             <Box sx={{ display: "flex", gap: "8px", mt: 2 }}>

@@ -103,6 +103,10 @@ public class SecurityConfig {
                 // WebSocket 설정
                 .requestMatchers("/ws/**", "/topic/**").permitAll()
 
+                //검색
+                .requestMatchers(HttpMethod.GET, "/api/items/search",  "/api/items/search/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/api/items/search",  "/api/items/search/**").permitAll()
+
                 // 인증 불필요 API
                 .requestMatchers(
                     "/api/auth/login",
@@ -110,7 +114,7 @@ public class SecurityConfig {
                     "/api/members/register",
                     "/api/members/checkEmail",
                     "/api/auth/login/kakao",
-                    "/api/items/search/**",
+                  
                     "/api/substances/list"
                 ).permitAll()
 

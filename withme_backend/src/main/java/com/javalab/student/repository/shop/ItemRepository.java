@@ -1,14 +1,14 @@
 package com.javalab.student.repository.shop;
 
-import com.javalab.student.constant.ItemSellStatus;
-import com.javalab.student.entity.shop.Item;
-import org.springframework.data.jdbc.repository.query.Modifying;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+import com.javalab.student.constant.ItemSellStatus;
+import com.javalab.student.entity.shop.Item;
 
 /**
  * 상품 레파지토리

@@ -69,19 +69,23 @@ public class ItemController {
     //     }
     // }
 
-@PostMapping("/new")
-public ResponseEntity<?> createItem(
-    @Valid @RequestPart("itemFormDto") ItemFormDto itemFormDto,
-    @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList
-) {
-    try {
-         // 상품 저장 시 알러지 성분 정보도 함께 저장
-        Long savedItemId = itemService.saveItem(itemFormDto, itemImgFileList);
-        return ResponseEntity.ok().body(savedItemId);
-    } catch (Exception e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+    @PostMapping("/new")
+    public ResponseEntity<?> createItem(
+        @Valid @RequestPart("itemFormDto") ItemFormDto itemFormDto,
+        @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList
+    ) {
+        try {
+            // 로깅 추가하여 substanceIds 확인
+            log.info("Received itemFormDto: {}", itemFormDto);
+            log.info("Received substanceIds: {}", itemFormDto.getSubstanceIds());
+            
+            Long savedItemId = itemService.saveItem(itemFormDto, itemImgFileList);
+            return ResponseEntity.ok().body(savedItemId);
+        } catch (Exception e) {
+            log.error("Error creating item: ", e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-}
 
     /**
      * 상품 상세 조회 API
@@ -101,40 +105,35 @@ public ResponseEntity<?> createItem(
      * 상품 수정 API
      */
     @PutMapping("/edit/{itemId}")
-    public ResponseEntity<?> updateItem(@PathVariable("itemId") Long itemId,
-                                        @Valid @RequestPart ItemFormDto itemFormDto,
-                                        BindingResult bindingResult,
-                                        @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList) {
-        log.info("상품 수정: {}, {}", itemFormDto, itemImgFileList);
-        // 파라미터 내용 자세히 로그에 출력
-        log.info("상품 수정: {}, {}", itemFormDto, itemImgFileList.stream().map(MultipartFile::getOriginalFilename).collect(Collectors.toList()));
+public ResponseEntity<?> updateItem(
+    @PathVariable("itemId") Long itemId,
+    @Valid @RequestPart ItemFormDto itemFormDto,
+    BindingResult bindingResult,
+    @RequestPart("itemImgFile") List<MultipartFile> itemImgFileList
+) {
+    log.info("상품 수정 요청: itemId={}, itemFormDto={}", itemId, itemFormDto);
+    log.info("알러지 성분 IDs: {}", itemFormDto.getSubstanceIds());
 
-        if (bindingResult.hasErrors()) {
-            return ResponseEntity.badRequest().body("입력값이 유효하지 않습니다.");
-        }
-
-        if (itemImgFileList.get(0).isEmpty() && itemFormDto.getId() == null) {
-            return ResponseEntity.badRequest().body("첫번째 상품 이미지는 필수 입력 값입니다.");
-        }
-
-        itemImgFileList = itemImgFileList.stream()
-                .filter(file -> !file.isEmpty())
-                .toList();
-
-        try {
-            itemService.updateItem(itemFormDto, itemImgFileList);
-            return ResponseEntity.ok("상품이 수정되었습니다.");
-        } catch (EntityNotFoundException e) {
-            log.info(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("상품을 찾을 수 없습니다.");
-        } catch (IOException e) {
-            log.info(e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("이미지 처리 중 오류가 발생했습니다.");
-        } catch (Exception e) {
-            log.info(e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("상품 수정 중 에러가 발생하였습니다.");
-        }
+    if (bindingResult.hasErrors()) {
+        return ResponseEntity.badRequest().body("입력값이 유효하지 않습니다.");
     }
+
+    itemImgFileList = itemImgFileList.stream()
+            .filter(file -> !file.isEmpty())
+            .toList();
+
+    try {
+        itemService.updateItem(itemFormDto, itemImgFileList);
+        return ResponseEntity.ok("상품이 수정되었습니다.");
+    } catch (EntityNotFoundException e) {
+        log.error("상품을 찾을 수 없음: ", e);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("상품을 찾을 수 없습니다.");
+    } catch (Exception e) {
+        log.error("상품 수정 중 오류 발생: ", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("상품 수정 중 에러가 발생하였습니다.");
+    }
+}
+
 
     /**
      * 상품 삭제 API

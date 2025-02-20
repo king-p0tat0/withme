@@ -16,6 +16,35 @@ import { getImageUrl } from "../../utils/imageUtils";
 import PetRegister from "./PetRegister";
 import "../../assets/css/member/mypage.css";
 
+// 알러지 정보를 표시하는 컴포넌트
+const AllergiesSection = ({ allergies }) => {
+  if (!allergies || allergies.length === 0) return null;
+
+  return (
+    <Box sx={{ mt: 3, p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
+      <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: "bold" }}>
+        알러지 정보
+      </Typography>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+        {allergies.map((allergy) => (
+          <Box
+            key={allergy.substanceId}
+            sx={{
+              backgroundColor: "primary.main",
+              color: "white",
+              px: 2,
+              py: 0.5,
+              borderRadius: 4,
+              fontSize: "0.875rem"
+            }}>
+            {allergy.name}
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
 const PetDetailPage = () => {
   const { petId } = useParams();
   const navigate = useNavigate();
@@ -338,7 +367,8 @@ const PetDetailPage = () => {
                 펫 관리
               </Typography>
             </Box>
-
+            {/* 알러지 정보 표시 */}
+            <AllergiesSection allergies={petDetails.allergies} />
             {isOwner && !isEditing && (
               <Box
                 sx={{

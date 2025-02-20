@@ -1,8 +1,9 @@
 package com.javalab.student.service.shop;
 
-
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -15,11 +16,11 @@ import com.javalab.student.dto.shop.ItemImgDto;
 import com.javalab.student.entity.Substance;
 import com.javalab.student.entity.shop.Item;
 import com.javalab.student.entity.shop.ItemImg;
-import com.javalab.student.entity.shop.ItemSubstance; 
+import com.javalab.student.entity.shop.ItemSubstance;
+import com.javalab.student.repository.SubstanceRepository;
 import com.javalab.student.repository.shop.ItemImgRepository;
 import com.javalab.student.repository.shop.ItemRepository;
 import com.javalab.student.repository.shop.ItemSubstanceRepository;
-import com.javalab.student.repository.SubstanceRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -38,53 +39,51 @@ public class ItemService {
 
     // 상품 등록
     @Transactional
-public Long saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileList) throws Exception {
-    // 1. 상품 등록, 저장(영속화)
-    Item item = itemFormDto.crateItem();
-    itemRepository.save(item);
+    public Long saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileList) throws Exception {
+        // 1. 상품 등록, 저장(영속화)
+        Item item = itemFormDto.crateItem();
+        itemRepository.save(item);
 
-    // 2. 이미지 등록
-    for(int i=0; i<itemImgFileList.size(); i++){
-        ItemImg itemImg = new ItemImg();
-        itemImg.setItem(item);
-        if(i == 0)
-            itemImg.setRepimgYn("Y");
-        else
-            itemImg.setRepimgYn("N");
-        itemImgService.saveItemImg(itemImg, itemImgFileList.get(i));
+        // 2. 이미지 등록
+        for(int i=0; i<itemImgFileList.size(); i++){
+            ItemImg itemImg = new ItemImg();
+            itemImg.setItem(item);
+            if(i == 0)
+                itemImg.setRepimgYn("Y");
+            else
+                itemImg.setRepimgYn("N");
+            itemImgService.saveItemImg(itemImg, itemImgFileList.get(i));
+        }
+
+        // 3. 알러지 성분 저장 로직
+        if (itemFormDto.getSubstanceIds() != null && !itemFormDto.getSubstanceIds().isEmpty()) {
+            List<ItemSubstance> itemSubstances = itemFormDto.getSubstanceIds().stream()
+                    .map(substanceId -> {
+                        Substance substance = substanceRepository.findById(substanceId)
+                                .orElseThrow(() -> new EntityNotFoundException("Substance not found"));
+
+                        ItemSubstance itemSubstance = new ItemSubstance();
+                        itemSubstance.setItem(item); // 엔티티 연관관계 설정
+                        itemSubstance.setSubstance(substance);
+
+                        return itemSubstance;
+                    })
+                    .collect(Collectors.toList());
+
+            itemSubstanceRepository.saveAll(itemSubstances);
+        }
+
+        return item.getId();
     }
 
-    // 3. 알러지 성분 저장 로직
-    if (itemFormDto.getSubstanceIds() != null && !itemFormDto.getSubstanceIds().isEmpty()) {
-        List<ItemSubstance> itemSubstances = itemFormDto.getSubstanceIds().stream()
-            .map(substanceId -> {
-                Substance substance = substanceRepository.findById(substanceId)
-                    .orElseThrow(() -> new EntityNotFoundException("Substance not found"));
-                
-                ItemSubstance itemSubstance = new ItemSubstance();
-                itemSubstance.setItem(item); // 엔티티 연관관계 설정
-                itemSubstance.setSubstance(substance);
-                
-                return itemSubstance;
-            })
-            .collect(Collectors.toList());
-        
-        itemSubstanceRepository.saveAll(itemSubstances);
-    }
-
-    return item.getId();
-}
-
-
-    
     /**
      * 상품 상세 조회
      * - 한 개의 상품과 여러 개의 상품 이미지 정보를 조회하는 메서드
      * - 상품 ID를 전달받아 상품 상세 정보를 조회하는 메서드 상품 이미지 정보를 조회한다.
      * - 상품 정보와 상품 이미지 정보를 조합하여 상품 상세 정보를 반환한다.
      * - 트랜잭션 내에서 INSERT, UPDATE, DELETE 쿼리가 발생하지 않도록 보장.
-     *   혹시 다른 레이어에서 여기서 영속화한 엔티티를 수정하거나 삭제하는 경우가 있을 수 있기 때문에
-     *   readOnly = true 옵션을 사용하여 트랜잭션 내에서 SELECT 쿼리만 실행하도록 설정한다.
+     * 혹시 다른 레이어에서 여기서 영속화한 엔티티를 수정하거나 삭제하는 경우가 있을 수 있기 때문에
+     * readOnly = true 옵션을 사용하여 트랜잭션 내에서 SELECT 쿼리만 실행하도록 설정한다.
      * - readOnly = true 옵션을 사용하여 트랜잭션 내에서 SELECT 쿼리만 실행하도록 설정한다.
      * @param itemId
      */
@@ -101,7 +100,7 @@ public Long saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileLis
             itemImgDtoList.add(itemImgDto);
         }
 
-       
+
         // 3. 상품 번호로 해당 상품을 조회한다. 이렇게 조회하면 영속성 컨텍스트에 해당 엔티티가 영속화된다.
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(EntityNotFoundException::new);
@@ -111,11 +110,11 @@ public Long saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileLis
         ItemFormDto itemFormDto = ItemFormDto.of(item);
 
         // 알러지 성분 ID 추가
-    List<Long> substanceIds = itemSubstanceRepository.findByItemId(itemId).stream()
-    .map(is -> is.getSubstance().getSubstanceId())
-    .collect(Collectors.toList());
+        List<Long> substanceIds = itemSubstanceRepository.findByItemId(itemId).stream()
+                .map(is -> is.getSubstance().getSubstanceId())
+                .collect(Collectors.toList());
 
-itemFormDto.setSubstanceIds(substanceIds);
+        itemFormDto.setSubstanceIds(substanceIds);
 
         // 4. ItemFormDto에 이미지 정보를 설정한다.
         itemFormDto.setItemImgDtoList(itemImgDtoList);
@@ -124,52 +123,11 @@ itemFormDto.setSubstanceIds(substanceIds);
         return itemFormDto;
     }
 
-    /**
-     * 상품 수정(기존)
-     * 상품 이미지가 여러 개 일경우
-     * @param itemFormDto
-     * @param itemImgFileList
-     */
-    /*public long updateItem(ItemFormDto itemFormDto,
-                           List<MultipartFile> itemImgFileList) throws Exception {
-        // 1. 수정할 상품 조회, 영속화 - 상품 정보를 수정하기 위해 조회
-        Item item = itemRepository.findById(itemFormDto.getId()).orElseThrow(EntityNotFoundException::new);
-
-        // 2. 영속화 되어 있는 상품의 정보를 수정한다. - 변경 감지(dirty checking) - 자동감지후 자동 저장됨.
-        item.updateItem(itemFormDto);
-
-        // 3. 화면에서 전달된 상품 이미지의 키(기본키)를  arrayList로 받아온다.
-        List<Long> itemImgIds = itemFormDto.getItemImgIds();
-
-        // 4. 화면에서 전달된 상품 이미지 파일을 업데이트한다.
-        for(int i = 0; i < itemImgFileList.size(); i++){
-            // 4.1. 상품 이미지 파일을 업데이트한다.(상품 이미지 id, 상품 이미지 파일)
-            itemImgService.updateItemImg(itemImgIds.get(i), itemImgFileList.get(i));
-        }
-        return item.getId();
-    }*/
-
-   /* public long updateItem(ItemFormDto itemFormDto,
-                           List<MultipartFile> itemImgFileList) throws Exception {
-        // 1. 수정할 상품 조회, 영속화 - 상품 정보를 수정하기 위해 조회
-        Item item = itemRepository.findById(itemFormDto.getId()).orElseThrow(EntityNotFoundException::new);
-
-        // 2. 영속화 되어 있는 상품의 정보를 수정한다. - 변경 감지(dirty checking) - 자동감지후 자동 저장됨.
-        item.updateItem(itemFormDto);
-
-        // 3. 화면에서 전달된 상품 이미지의 키(기본키)를  arrayList로 받아온다.
-        List<Long> itemImgIds = itemFormDto.getItemImgIds();
-
-        // 4. 화면에서 전달된 상품 이미지 파일을 업데이트한다.
-        for(int i = 0; i < itemImgFileList.size(); i++){
-            // 4.1. 상품 이미지 파일을 업데이트한다.(상품 이미지 id, 상품 이미지 파일)
-            itemImgService.updateItemImg(itemImgIds.get(i), itemImgFileList.get(i));
-        }
-        return item.getId();
-    }*/
+    @Transactional
     public long updateItem(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileList) throws Exception {
         // 1. 수정할 상품 조회 (영속화)
-        Item item = itemRepository.findById(itemFormDto.getId()).orElseThrow(EntityNotFoundException::new);
+        Item item = itemRepository.findById(itemFormDto.getId())
+                .orElseThrow(EntityNotFoundException::new);
 
         // 2. 영속화된 상품 정보 수정 (변경 감지)
         item.updateItem(itemFormDto);
@@ -177,25 +135,38 @@ itemFormDto.setSubstanceIds(substanceIds);
         // 3. 기존 상품 이미지 리스트 조회 (DB에서 가져옴)
         List<ItemImg> itemImgList = itemImgRepository.findByItemId(item.getId());
 
-        // 4. 새로운 이미지 리스트를 기존 이미지와 매칭하여 업데이트
-        for (int i = 0; i < itemImgFileList.size(); i++) {
-            MultipartFile newFile = itemImgFileList.get(i);
+        // 4. 알러지 성분 관계 업데이트
+        // 4.1 현재 DB에 저장된 알러지 성분 관계 조회
+        List<ItemSubstance> currentSubstances = itemSubstanceRepository.findByItemId(item.getId());
+        Set<Long> currentSubstanceIds = currentSubstances.stream()
+                .map(is -> is.getSubstance().getSubstanceId())
+                .collect(Collectors.toSet());
 
-            // 기존 이미지가 존재하면 업데이트
-            if (i < itemImgList.size()) {
-                ItemImg existingItemImg = itemImgList.get(i);
-                itemImgService.updateItemImg(existingItemImg.getId(), newFile);
-            } else {
-                // 기존 이미지 개수를 초과하는 경우 새 이미지 추가 가능 (필요하면 추가)
-                ItemImg newItemImg = new ItemImg();
-                newItemImg.setItem(item);
-                itemImgService.saveItemImg(newItemImg, newFile);
-            }
-        }
+        // 4.2 새로 입력된 알러지 성분 ID 목록
+        Set<Long> newSubstanceIds = new HashSet<>(itemFormDto.getSubstanceIds() != null ?
+                itemFormDto.getSubstanceIds() : new ArrayList<>());
+
+        // 4.3 삭제해야 할 관계 찾기 (기존에 있었지만 새 목록에는 없는 것)
+        currentSubstances.stream()
+                .filter(is -> !newSubstanceIds.contains(is.getSubstance().getSubstanceId()))
+                .forEach(itemSubstance -> itemSubstanceRepository.delete(itemSubstance)); // itemSubstanceRepository::delete -> itemSubstanceRepository::delete(itemSubstance)
+
+        // 4.4 추가해야 할 관계 찾기 (새 목록에는 있지만 기존에 없던 것)
+        newSubstanceIds.stream()
+                .filter(id -> !currentSubstanceIds.contains(id))
+                .forEach(substanceId -> {
+                    Substance substance = substanceRepository.findById(substanceId)
+                            .orElseThrow(() -> new EntityNotFoundException("Substance not found"));
+
+                    ItemSubstance itemSubstance = new ItemSubstance();
+                    itemSubstance.setItem(item);
+                    itemSubstance.setSubstance(substance);
+
+                    itemSubstanceRepository.save(itemSubstance);
+                });
 
         return item.getId();
     }
-
 
 
     /**
@@ -204,13 +175,6 @@ itemFormDto.setSubstanceIds(substanceIds);
     public List<Item> getItemList() {
         return itemRepository.findAll();
     }
-
-    /**
-     * 판매 상태로 검색
-     */
-    /*public List<Item> getItemListByItemSellStatus(ItemSellStatus itemSellStatus) {
-        return itemRepository.findByItemSellStatus(itemSellStatus);
-    }*/
 
     /**
      * 판매중인 상품 리스트
@@ -244,13 +208,12 @@ itemFormDto.setSubstanceIds(substanceIds);
                 itemFormDto.setItemImgDtoList(new ArrayList<>()); // 대표 이미지가 없는 경우 빈 리스트
             }
 
-
             // 알러지 성분 ID 추가
-        List<Long> substanceIds = itemSubstanceRepository.findByItemId(item.getId()).stream()
-        .map(is -> is.getSubstance().getSubstanceId())
-        .collect(Collectors.toList());
-    
-        itemFormDto.setSubstanceIds(substanceIds);
+            List<Long> substanceIds = itemSubstanceRepository.findByItemId(item.getId()).stream()
+                    .map(is -> is.getSubstance().getSubstanceId())
+                    .collect(Collectors.toList());
+
+            itemFormDto.setSubstanceIds(substanceIds);
 
 
             // 6. 변환된 DTO를 리스트에 추가
@@ -271,44 +234,54 @@ itemFormDto.setSubstanceIds(substanceIds);
         item.setItemSellStatus(itemSellStatus); // JPA 변경 감지로 자동 업데이트
     }
 
-// 상품 등록 시 알러지 정보 저장 메서드
-@Transactional
-public void saveItemWithSubstances(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileList, List<Long> safeSubstanceIds) throws Exception {
-    // 1. 기존 상품 저장 로직 실행
-    Long itemId = saveItem(itemFormDto, itemImgFileList);
+    // 상품 등록 시 알러지 정보 저장 메서드
+    @Transactional
+    public void saveItemWithSubstances(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileList, List<Long> safeSubstanceIds) throws Exception {
+        // 1. 기존 상품 저장 로직 실행
+        Long itemId = saveItem(itemFormDto, itemImgFileList);
 
-    // 2. 알러지 안전 정보 저장
-    if (safeSubstanceIds != null && !safeSubstanceIds.isEmpty()) {
-        safeSubstanceIds.forEach(substanceId -> {
-            ItemSubstance itemSubstance = new ItemSubstance();
-            itemSubstance.setId(itemId);
-            itemSubstance.setSubstance(null);
-            itemSubstanceRepository.save(itemSubstance);
-        });
+        // 2. 알러지 안전 정보 저장
+        if (safeSubstanceIds != null && !safeSubstanceIds.isEmpty()) {
+            Item item = itemRepository.findById(itemId)
+                    .orElseThrow(() -> new EntityNotFoundException("Item not found"));
+            safeSubstanceIds.forEach(substanceId -> {
+                Substance substance = substanceRepository.findById(substanceId)
+                        .orElseThrow(() -> new EntityNotFoundException("Substance not found"));
+
+                ItemSubstance itemSubstance = new ItemSubstance();
+                itemSubstance.setItem(item);
+                itemSubstance.setSubstance(substance);
+                itemSubstanceRepository.save(itemSubstance);
+            });
+        }
     }
-}
 
-// 상품의 알러지 안전 정보 수정
-@Transactional
-public void updateItemSubstances(Long itemId, List<Long> safeSubstanceIds) {
-    // 1. 기존 알러지 정보 삭제
-    itemSubstanceRepository.deleteByItemId(itemId);
+    // 상품의 알러지 안전 정보 수정
+    @Transactional
+    public void updateItemSubstances(Long itemId, List<Long> safeSubstanceIds) {
+        // 1. 기존 알러지 정보 삭제
+        itemSubstanceRepository.deleteByItemId(itemId);
 
-    // 2. 새로운 알러지 정보 저장
-    if (safeSubstanceIds != null && !safeSubstanceIds.isEmpty()) {
-        safeSubstanceIds.forEach(substanceId -> {
-            ItemSubstance itemSubstance = new ItemSubstance();
-            itemSubstance.setId(itemId);
-            itemSubstance.setSubstance(null);
-            itemSubstanceRepository.save(itemSubstance);
-        });
+        // 2. 새로운 알러지 정보 저장
+        if (safeSubstanceIds != null && !safeSubstanceIds.isEmpty()) {
+            Item item = itemRepository.findById(itemId)
+                    .orElseThrow(() -> new EntityNotFoundException("Item not found"));
+            safeSubstanceIds.forEach(substanceId -> {
+                Substance substance = substanceRepository.findById(substanceId)
+                        .orElseThrow(() -> new EntityNotFoundException("Substance not found"));
+
+                ItemSubstance itemSubstance = new ItemSubstance();
+                itemSubstance.setItem(item);
+                itemSubstance.setSubstance(substance);
+                itemSubstanceRepository.save(itemSubstance);
+            });
+        }
     }
-}
 
-// 상품의 알러지 안전 정보 조회
-@Transactional(readOnly = true)
-public List<Long> getItemSafeSubstances(Long itemId) {
-    return itemSubstanceRepository.findSubstanceIdsByItemId(itemId);
-}
+    // 상품의 알러지 안전 정보 조회
+    @Transactional(readOnly = true)
+    public List<Long> getItemSafeSubstances(Long itemId) {
+        return itemSubstanceRepository.findSubstanceIdsByItemId(itemId);
+    }
 
 }

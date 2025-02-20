@@ -213,12 +213,14 @@ const MyPage = () => {
 
               <div className="pet_list">
                 {pets.length === 0 ? (
-                  <Typography
-                    variant="body1"
-                    color="textSecondary"
-                    align="center">
-                    등록된 반려동물이 없습니다.
-                  </Typography>
+                  <div className="empty_pet">
+                    <Typography
+                      variant="body1"
+                      color="textSecondary"
+                      align="center">
+                      등록된 반려동물이 없습니다.
+                    </Typography>
+                  </div>
                 ) : (
                   pets.map(renderPetItem)
                 )}
