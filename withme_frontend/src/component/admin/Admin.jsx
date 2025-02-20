@@ -2,19 +2,17 @@ import DoctorUpdate from './DoctorUpdate';
 import DoctorList from './DoctorList';
 import DoctorView from './DoctorView';
 import UserList from './UserList';
-import ItemAdd from '../shop/Product/ItemAdd';
 import React, { useState  } from 'react';
-import Dashboard from './Dashboard';
-import '../../assets/css/admin/Admin.css';
+import '../../css/Admin.css';
 
-export default function Admin({user}) {
+export default function Admin() {
     // 드롭다운 상태 관리
     const [showDoctorMenu, setShowDoctorMenu] = useState(false);
     const [showCustomerMenu, setShowCustomerMenu] = useState(false);
     const [showShopMenu, setShowShopMenu] = useState(false);
 
     // 현재 보여줄 페이지 상태 관리
-    const [currentPage, setCurrentPage] = useState(<Dashboard />);
+    const [currentPage, setCurrentPage] = useState(<DoctorList />);
 
     return (
         <div className="admin-container">
@@ -22,9 +20,6 @@ export default function Admin({user}) {
             <div className="side-menu">
                 <ul>
                     <div>
-                        <p className="menu-header"
-                        onClick={() => setCurrentPage(<Dashboard user={user}/>)}
-                        > 관리자 홈</p>
                         <p
                             className="menu-header"
                             onClick={() => setShowDoctorMenu(!showDoctorMenu)}
@@ -77,13 +72,7 @@ export default function Admin({user}) {
                         </p>
                         {showShopMenu && (
                             <ul className="menu-items">
-                                <li className="menu-item"
-                                 onClick={() => setCurrentPage(<ItemAdd />)}
-                                 >상품 등록</li>
-                                {/* <li className="menu-item"
-                                 onClick={() => setCurrentPage(<ItemList />)}
-                                 >상품 목록</li> */}
-
+                                <li className="menu-item">상품 목록</li>
                                 <li className="menu-item">주문 관리</li>
                             </ul>
                         )}
