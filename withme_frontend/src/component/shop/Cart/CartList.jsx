@@ -195,7 +195,7 @@ export default function CartPage() {
                     />
                     전체 선택
                 </label>
-                <button className="delete-selected-button" onClick={handleDeleteSelectedItems}><span style={{ color: "#A7A7A7", marginRight: "5px" }}>X</span> 선택 삭제</button>
+                <button style={{ padding: "10px" }} className="delete-selected-button" onClick={handleDeleteSelectedItems}><span style={{ color: "#A7A7A7", marginRight: "5px" }}>X</span> 선택 삭제</button>
             </div>
 
             {cartItems.map(item => (

@@ -90,7 +90,6 @@ nav li:last-child {
     justify-content: flex-start;
     padding: 0 !important;
     box-shadow: none !important;
-    padding-bottom: 90px !important;
 }
 
 .banner {
@@ -312,4 +311,68 @@ hr {
 .admin-dropdown li:hover {
   background-color: #fc8d4d !important;
   color: black;
+}
+
+/* 필터링된 제품 섹션 */
+.filtered-container {
+    background-color: #FFEDE3;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    position: relative;
+    padding-bottom: 30px;
+}
+
+.blurred {
+  filter: blur(15px);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.membership-message {
+  padding: 15px 20px;
+  font-size: 3em;
+  font-weight: bold;
+  text-align: center;
+  margin: 20px 0;
+  position: absolute;
+  bottom: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  z-index: 10;
+}
+
+/* 이미지 컨테이너에 상대 위치 추가 */
+.image-container {
+    position: relative; /* 상세보기 버튼을 절대 위치로 배치할 수 있게 설정 */
+}
+
+/* 상세보기 버튼 */
+.view-details-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 1);
+    color: white;
+    font-size: 1.1em;
+    padding: 10px 10px;
+    border: none;
+    border-radius: 25px;
+    font-weight: bold;
+    width: 150px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+/* hover 상태에서 버튼의 opacity 변경 */
+.view-details-btn:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #202020;
+}
+
+/* 이미지 컨테이너에 hover 상태일 때 상세보기 버튼이 보이도록 설정 */
+.image-container:hover .view-details-btn {
 }

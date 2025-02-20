@@ -5,15 +5,53 @@ import { fetchWithAuth } from '../common/fetchWithAuth';
 import { API_URL, SERVER_URL2 } from "../constant"; // API_URL 가져오기
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+
 import './Home.css';
+import '../assets/css/shop/ItemList.css';
 
 function Home() {
   const [items, setItems] = useState([]);  // 상품 리스트 상태
   const [loading, setLoading] = useState(true); // 로딩 상태
   const [error, setError] = useState(null); // 에러 상태
   const [notices, setNotices] = useState([]);  // 공지사항 리스트 상태
+  const [pets, setPets] = useState([]); // pets 상태 추가
   const { user, isLoggedIn } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState(''); // 상품 검색 상태
+  const [currentPage, setCurrentPage] = useState(1); // 페이지 상태
+const [cart, setCart] = useState([]); // useState로 장바구니 관리
+  const itemsPerPage = 8;
+
+      // 장바구니 추가 함수
+      const handleAddToCart = async (item) => {
+          if (!user) {
+              alert('로그인이 필요합니다.');
+              return;
+          }
+
+          try {
+              const cartItem = {
+                  itemId: item.id,
+                  count: 1 // 기본 수량 1개
+              };
+
+              const response = await fetchWithAuth(`${API_URL}cart/add`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(cartItem)
+              });
+
+              if (response.ok) {
+                  alert('장바구니에 추가되었습니다.');
+              } else {
+                  const errorMsg = await response.text();
+                  alert(`장바구니 추가 실패: ${errorMsg}`);
+              }
+          } catch (error) {
+              console.error('장바구니 추가 오류:', error);
+              alert('장바구니 추가 중 오류가 발생했습니다.');
+          }
+      };
 
   // 공지사항 데이터 불러오기
   const fetchNotices = async () => {
@@ -42,6 +80,25 @@ function Home() {
     }
   };
 
+    // 반려견 정보 불러오기
+  useEffect(() => {
+      const fetchPetData = async () => {
+          try {
+              const response = await fetchWithAuth(`${API_URL}pets/user/${user.id}`);
+              if (response.ok) {
+                  const result = await response.json();
+                  setPets(result.content || []);
+              }
+          } catch (error) {
+              console.error("반려동물 정보 로드 중 오류:", error);
+          }
+      };
+
+      if (isLoggedIn && user) {
+          fetchPetData();
+      }
+  }, [isLoggedIn, user]);
+
   // 컴포넌트 마운트 시 호출
   useEffect(() => {
     fetchNotices();
@@ -52,20 +109,55 @@ function Home() {
     };
   }, []);
 
-  const handleSurveyNavigation = (e) => {
-    e.preventDefault();
-    if (!isLoggedIn || !user) {
-      alert('로그인이 필요한 서비스입니다.');
-      navigate("/login");
-      return;
-    }
+  // 필터링된 상품 목록
+  const filteredItems = items.filter((item) =>
+    item.itemNm.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-    if (user.role === "PAID" || user.role === "VIP") {
-      navigate("/survey/paid");
-    } else {
-      navigate("/survey/free");
-    }
+  // 페이지네이션 관련 계산
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const currentItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
+
+  // 렌더링 함수 (상품 카드)
+  const renderItemCard = (item) => (
+    <div className="item-card" key={item.id}>
+        {item.itemImgDtoList?.length > 0 && (
+            <div className="image-container">
+                <img
+                    src={`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`}
+                    alt={item.itemNm}
+                    className="item-image"
+                    style={{ boxShadow: "none" }}
+                />
+                <button
+                    className="view-details-btn"
+                    onClick={() => navigate(`/item/view/${item.id}`)}
+                >
+                    상세보기
+                </button>
+            </div>
+        )}
+
+        <div className="item-detail-wrap">
+            <h3 className="itemName">{item.itemNm}</h3>
+            <div className="price-cart-container">
+                <p className="price">{item.price.toLocaleString()}원</p>
+               <button
+                    className="add-to-cart-btn"
+                    onClick={() => handleAddToCart(item)}
+                    disabled={item.itemSellStatus === 'SOLD_OUT'}
+                >
+                    <img src="/assets/images/icon/cart.png" alt="cart" className="cartIcon" />
+                </button>
+            </div>
+        </div>
+    </div>
+  );
 
   return (
     <div className="Home">
@@ -76,7 +168,8 @@ function Home() {
           <li><Link to="/notices">공지사항</Link></li>
           <li><Link to="/posts">커뮤니티</Link></li>
           <li className="search-box">
-            <input type="text" placeholder="어떤 상품을 찾아볼까요?" className="search-input" />
+            <input type="text" placeholder="어떤 상품을 찾아볼까요?" className="search-input"
+                   value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             <FontAwesomeIcon icon={faSearch} className="search-icon" />
           </li>
           <li><img src="/assets/images/logo.png" alt="로고 이미지" className="footer-logo" /></li>
@@ -86,87 +179,68 @@ function Home() {
       <div className="container">
         <div className="banner">
           <img src="/assets/images/banner.png" alt="배너 이미지" className="bannerImage" />
-          <Link to="#" onClick={handleSurveyNavigation} className="survey-link">문진하러 가기 &gt;</Link>
+          <Link to="#" onClick={(e) => handleSurveyNavigation(e)} className="survey-link">문진하러 가기 &gt;</Link>
         </div>
 
         <div className="item-wrap">
           <div className="notice">
             <span className="red" style={{ color: "red" }}>공지사항</span> 📢 <span className="line">|</span>
-            {/* 공지사항 제목 동적 렌더링 */}
             {notices.length > 0 ? (
-              notices[0].title // 첫 번째 공지사항 제목을 표시 (필요에 따라 수정 가능)
+              notices[0].title
             ) : (
               "최근 공지사항이 없습니다."
             )}
           </div>
-
-          <div className="product-list all-product-list">
-            <p>전체 상품</p>
-            <hr />
-            <div className="products">
-              {loading ? (
-                <p>상품을 불러오는 중...</p>
-              ) : error ? (
-                <p className="error">{error}</p>
-              ) : (
-                <ul>
-                  {items.slice(0, 8).map((item) => (
-                    <li className="product-item" key={item.id}>
-                      <div className="productLink"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => navigate(`/item/view/${item.id}`)}>
-                        <img
-                          src={item.itemImgDtoList?.length > 0 ? `${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}` : "/assets/images/default-product.png"}
-                          alt={item.itemNm}
-                          className="product-image"
-                        />
-                        <div className="product-info">
-                          <h3 className="productName">{item.itemNm}</h3>
-                          <p className="price">{item.price.toLocaleString()}원</p>
-                        </div>
-                        <div className="button-wrap">
-                          <button type="button" className="product-btn">구매하기</button>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <button type="button" className="moreBtn">더 구경하기</button>
-            </div>
-          </div>
-
-          <div className="product-list filtered-product-list">
-            <p>필터링 적용 상품</p>
-            <hr />
-            {!isLoggedIn && (
-              <div className="membership-overlay" id="membershipOverlay">
-                회원 전용 컨텐츠입니다.<br />
-                로그인 후 이용해주세요.
-              </div>
-            )}
-
-            <div className={`products filtered-products ${isLoggedIn ? "" : "blur"}`} id="productSection">
-              <ul>
-                {[...Array(4)].map((_, index) => (
-                  <li className="product-item" key={index}>
-                    <Link to="#" className="productLink">
-                      <img src="/assets/images/product/product1.png" alt="상품이미지" />
-                      <div className="product-info">
-                        <h3>로얄캐닌 처방식 하이포알러제닉 1.5kg</h3>
-                        <p className="price">34,500원</p>
-                        <button type="button" className="product-btn">구매하기</button>
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <button type="button" className="moreBtn">더 구경하기</button>
-            </div>
-          </div>
         </div>
       </div>
-    </div>
+
+      <div className="item-list-page"  style={{ paddingTop: "0" }}>
+        <div className="item-container">
+          <p className="item-title">이 상품은 어떠세요?</p>
+          <div className="item-grid">
+            {loading ? (
+              <p>상품을 불러오는 중...</p>
+            ) : error ? (
+              <p className="error">{error}</p>
+            ) : filteredItems.length === 0 ? (
+              <div className="no-results-container">
+                <img src="/assets/images/searchDog.png" alt="cannotFound" className="cannotFound" />
+                <p>'{searchQuery}'에 대한 검색한 결과를 찾을 수가 없어요.</p>
+                <p>다른 검색어로 검색을 해보시겠어요?</p>
+              </div>
+            ) : (
+              currentItems.map((item) => renderItemCard(item))
+            )}
+          </div>
+        </div>
+          <button className="moreBtn" onClick={() => navigate(`/item/list`)}>더 많은 상품 보러가기</button>
+
+        {/* 필터링된 상품 섹션 */}
+        <div className="filtered-container">
+            <div style={{ marginLeft: "10%" }}>
+              <p style={{ paddingTop: "20px" }} className="item-title">
+                {pets.length === 0 ? (
+                  "우리 아이 맞춤 상품💕"
+                ) : (
+                  pets.map((pet) => (
+                    <p key={pet.petId}>{pet.name}에게 추천해요💕</p>
+                  ))
+                )}
+              </p>
+            {!isLoggedIn || !user?.roles?.includes("VIP") ? (
+              <div className="membership-message">
+                맴버쉽 가입 후 이용 가능한 컨텐츠입니다.
+              </div>
+            ) : null}
+              <div className={`item-grid ${(!isLoggedIn || !user?.roles?.includes("VIP")) ? "blurred" : ""}`}>
+                {filteredItems.length > 0 ? (
+                  filteredItems.map(renderItemCard)
+                ) : null}
+              </div>
+              </div>
+          </div>
+      </div>
+  </div>
   );
 }
 

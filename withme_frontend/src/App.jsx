@@ -6,8 +6,8 @@ import { persistor } from "./redux/store";
 import { fetchUserInfo, clearUser } from "./redux/authSlice";
 import { API_URL } from "./constant";
 import { fetchWithAuth } from "./common/fetchWithAuth.js";
-import "./App.css";
 import { Helmet } from "react-helmet";
+import "./App.css";
 
 // ui
 import UiComponents from "./component/elements/UiComponents";
@@ -121,7 +121,7 @@ function App() {
       {/*헤더 부분*/}
       <Header />
       {/* Home을 제외한 모든 페이지에 NavBar 노출하도록 설정 */}
-      {location.pathname !== "/" && location.pathname !== "/item/list" && <NavBar />}
+        {!(location.pathname === "/" || location.pathname === "/item/list" || location.pathname.startsWith("/admin")) && <NavBar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -152,6 +152,7 @@ function App() {
         <Route path="/registerMember" element={<RegisterMember />} />
         <Route path="/signupSuccess" element={<SignupSuccess />} />
         <Route path="/doctorSignupSuccess" element={<DoctorSignupSuccess />} />
+
         {/* 펫 페이지 */}
         <Route path="/mypage/pet/:petId" element={<PetDetailsView />} />
         <Route path="/mypage/pet/register" element={<PetRegister />} />
@@ -160,10 +161,8 @@ function App() {
         <Route path="/survey/free" element={<FreeSurvey />} />
         <Route path="/survey/free/result" element={<FreeSurveyResult />} />
         <Route path="/survey/paid" element={<PaidSurvey />} />
-        <Route
-          path="/survey/paid/selection"
-          element={<PaidSurveySelection />}
-        />
+        <Route path="/survey/paid/selection" element={<PaidSurveySelection />} />
+
         {/* 검색 */}
         <Route path="/item/search" element={<SearchResults />} />
         <Route path="/survey/paid/result" element={<PaidSurveyResult />} />
@@ -176,28 +175,24 @@ function App() {
         <Route path="/cart/list" element={<CartList />} />
         <Route path="/orders/:orderId" element={<Order />} />
         <Route path="/payResult/:orderId" element={<PayResult />} />{" "}
+
         {/* ✅ 결제 결과 페이지 라우트 추가 */}
         <Route path="/subscription" element={<SubscriptionPage />} />{" "}
+
         {/* 구독 결제 확인 페이지 */}
+
         {/* 수의사 */}
         <Route path="/signupDoctor" element={<SignupDoctor />} />
-        <Route
-          path="/doctor/register"
-          element={<RegisterDoctor user={user} />}
-        />
-        <Route
-          path="/doctors/status/:id"
-          element={<DoctorApplicationStatus user={user} />}
-        />
-        <Route
-          path="/doctors/edit/:id"
-          element={<DoctorApplicationEdit user={user} />}
-        />
+        <Route path="/doctor/register" element={<RegisterDoctor user={user} />} />
+        <Route path="/doctors/status/:id" element={<DoctorApplicationStatus user={user} />} />
+        <Route path="/doctors/edit/:id" element={<DoctorApplicationEdit user={user} />} />
+
         {/* ✅ 기타 페이지 */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/ui" element={<UiComponents />} />
       </Routes>
-      <Footer />
+
+      {location.pathname.startsWith("/admin") ? null : <Footer />}
     </div>
   );
 }
