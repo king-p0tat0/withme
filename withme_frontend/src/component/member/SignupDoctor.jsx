@@ -317,7 +317,6 @@ export default function SignupDoctor() {
                         height: "50px",
                         backgroundColor: isFormValid ? "#FF7C24" : "#D3D3D3",
                         color: isFormValid ? "white" : "#8B8B8B",
-                        color: "white",
                         fontSize: "1.1em",
                     }}
                     disabled={!isFormValid}

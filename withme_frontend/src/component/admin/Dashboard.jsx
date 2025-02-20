@@ -117,7 +117,6 @@ export default function Dashboard() {
 
     return (
         <div className="dashboard-container">
-            <h1 className="dashboard-title">대시보드</h1>
             {loading ? (
                 <p className="loading-text">데이터를 불러오는 중...</p>
             ) : (

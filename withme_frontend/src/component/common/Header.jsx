@@ -16,6 +16,7 @@ const Header = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const adminDropdownRef = useRef(null);
 
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (adminDropdownRef.current && !adminDropdownRef.current.contains(event.target)) {

@@ -119,7 +119,8 @@ function App() {
       </Helmet>
 
       {/*헤더 부분*/}
-      <Header />
+    {location.pathname.startsWith("/admin") ? null : <Header />}
+
       {/* Home을 제외한 모든 페이지에 NavBar 노출하도록 설정 */}
         {!(location.pathname === "/" || location.pathname === "/item/list" || location.pathname.startsWith("/admin")) && <NavBar />}
 
