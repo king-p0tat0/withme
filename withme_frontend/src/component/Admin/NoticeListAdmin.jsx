@@ -20,7 +20,7 @@ import { API_URL } from "../../constant";
 import '../../assets/css/Admin/NoticeList.css';
 
 
-const NoticeList = () => {
+const NoticeListAdmin = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [notices, setNotices] = useState([]);
@@ -257,4 +257,4 @@ const NoticeList = () => {
   );
 };
 
-export default NoticeList;
+export default NoticeListAdmin;
