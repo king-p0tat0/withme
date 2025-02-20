@@ -44,10 +44,10 @@ export default function DoctorView({doctor, onClose, docList }) {
                           <p><strong>병원:</strong> {doctor.hospital}</p>
                           <p><strong>이메일:</strong> {doctor.member.email}</p>
 
-                        <button onClick={() => handleApprove(doctor.member.email, 'approved')}>승인</button>
+                        {/* <button onClick={() => handleApprove(doctor.member.email, 'approved')}>승인</button>
                         <button onClick={() => handleApprove(doctor.member.email, 'rejected')}>거절</button>
                         <button onClick={() => handleApprove(doctor.member.email, 'on_hold')}>보류</button>
-                        <button onClick={() => handleApprove(doctor.member.email, 'pending')}>대기</button>
+                        <button onClick={() => handleApprove(doctor.member.email, 'pending')}>대기</button> */}
 
                           <button onClick={onClose}>닫기</button>
                       </div>
