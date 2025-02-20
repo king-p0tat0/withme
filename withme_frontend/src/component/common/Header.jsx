@@ -113,10 +113,10 @@ const Header = () => {
                            <Link to="/doctor/register">수의사 신청</Link>
                          </li>
                          <li>
-                           <Link to="/doctors/status/:id">수의사 신청상태</Link>
+                           <Link to={`/doctors/status/${user.id}`}>수의사 신청상태</Link>
                          </li>
                          <li>
-                           <Link to="/doctors/edit/:id">수의사 신청서 수정</Link>
+                           <Link to={`/doctors/edit/${user.id}`}>수의사 신청서 수정</Link>
                          </li>
                        </ul>
                      )}
