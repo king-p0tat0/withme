@@ -118,7 +118,7 @@ export default function DoctorList() {
 
     return (
         <div className="doctor-list-container">
-            <h1 className="title">전문가 리스트</h1>
+            <h1 className="title">수의사 가입 현황</h1>
 
             {/* 검색창 */}
             <div className="search-bar">
