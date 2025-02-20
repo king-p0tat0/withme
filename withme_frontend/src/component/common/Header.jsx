@@ -7,14 +7,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingBasket, faCaretDown } from "@fortawesome/free-solid-svg-icons";
 import { API_URL } from "../../constant";
 import { fetchWithAuth } from "../../common/fetchWithAuth";
-import { Helmet } from "react-helmet";
 
 const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user, isLoggedIn } = useSelector((state) => state.auth);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const adminDropdownRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -44,8 +42,6 @@ const Header = () => {
     if (!isLoggedIn) {
       alert("로그인 후 이용 가능합니다.");
       navigate("/login");
-    } else if (user.roles.includes("ROLE_ADMIN")) {
-      alert("일반 회원만 마이페이지를 이용할 수 있습니다.");
     } else {
       navigate(`/mypage/${user.id}`);
     }
@@ -59,84 +55,74 @@ const Header = () => {
   };
 
   return (
-    <>
-      <Helmet>
-        <title>행복한 반려생활의 시작, 위드미</title>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap"
-          rel="stylesheet"
-        />
-        <link rel="icon" href="/assets/images/favicon.ico" />
-      </Helmet>
-      <header>
-        <div className="gnb-container">
-          <ul className="gnb" style={{ fontWeight: "bold" }}>
-            <Link to="/">
-              <img src="/assets/images/text_logo.png" alt="텍스트 로고" className="textLogo" />
-            </Link>
-            {isLoggedIn ? (
-              <>
-                <li style={{ color: "#333" }}>{user.name}님</li>
-                {user.roles.includes("ROLE_ADMIN") && (
-                  <li>
-                    <Link to="/admin">관리자</Link>
-                  </li>
-                )}
+    <header>
+      <div className="gnb-container">
+        <ul className="gnb" style={{ fontWeight: "bold" }}>
+          <Link to="/">
+            <img src="/assets/images/text_logo.png" alt="텍스트 로고" className="textLogo" />
+          </Link>
+          {isLoggedIn ? (
+            <>
+              <li style={{ color: "#333" }}>{user.name}님</li>
+              {user.roles.includes("ROLE_ADMIN") && (
                 <li>
-                  <Link to="/" onClick={handleLogout} className="logout-btn">
-                    로그아웃
-                  </Link>
+                  <Link to="/admin">관리자</Link>
                 </li>
-                {!user.roles.includes("ADMIN") && (
-                    <li>
-                      <Link to={`/mypage/${user.id}`}>마이페이지</Link>
-                    </li>
-                )}
-                {user.roles.includes("PENDING_DOCTOR") && (
-                  <li ref={adminDropdownRef}>
-                     <button
-                       className="admin-btn"
-                       onClick={() => setIsAdminOpen(!isAdminOpen)}>
-                       수의사 <FontAwesomeIcon icon={faCaretDown} />
-                     </button>
-                     {isAdminOpen && (
-                       <ul className="admin-dropdown">
-                         <li>
-                           <Link to="/doctor/register">수의사 신청</Link>
-                         </li>
-                         <li>
-                           <Link to={`/doctors/status/${user.id}`}>수의사 신청상태</Link>
-                         </li>
-                         <li>
-                           <Link to={`/doctors/edit/${user.id}`}>수의사 신청서 수정</Link>
-                         </li>
-                       </ul>
-                     )}
-                   </li>
-                )}
-              </>
-            ) : (
+              )}
               <li>
-                <Link to="/login">로그인</Link>
+                <Link to="/" onClick={handleLogout} className="logout-btn">
+                  로그아웃
+                </Link>
               </li>
-            )}
-
-            {!isLoggedIn && (
-              <li className="join-us">
-                <Link to="/policy">회원가입</Link>
-                <span className="tooltip">+2,000P</span>
-              </li>
-            )}
-
+              {user.roles.includes("DOCTOR") && (
+                <li>
+                  <Link to="/doctor-messages">상담내역</Link>
+                </li>
+              )}
+              {user.roles.includes("PENDING_DOCTOR") && (
+                <li>
+                  <button
+                    className="admin-btn"
+                    onClick={() => setIsAdminOpen(!isAdminOpen)}>
+                    수의사 <FontAwesomeIcon icon={faCaretDown} />
+                  </button>
+                  {isAdminOpen && (
+                    <ul className="admin-dropdown">
+                      <li>
+                        <Link to="/doctor/register">수의사 신청</Link>
+                      </li>
+                      <li>
+                        <Link to={`/doctors/status/${user.id}`}>수의사 신청상태</Link>
+                      </li>
+                      <li>
+                        <Link to={`/doctors/edit/${user.id}`}>수의사 신청서 수정</Link>
+                      </li>
+                    </ul>
+                  )}
+                </li>
+              )}
+            </>
+          ) : (
             <li>
-              <Link to="/cart/list" className="cart-btn" onClick={handleCartClick}>
-                <FontAwesomeIcon icon={faShoppingBasket} />
-              </Link>
+              <Link to="/login">로그인</Link>
             </li>
-          </ul>
-        </div>
-      </header>
-    </>
+          )}
+
+          {!isLoggedIn && (
+            <li className="join-us">
+              <Link to="/policy">회원가입</Link>
+              <span className="tooltip">+2,000P</span>
+            </li>
+          )}
+
+          <li>
+            <Link to="/cart/list" className="cart-btn" onClick={handleCartClick}>
+              <FontAwesomeIcon icon={faShoppingBasket} />
+            </Link>
+          </li>
+        </ul>
+      </div>
+    </header>
   );
 };
 

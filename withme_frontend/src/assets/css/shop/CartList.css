@@ -49,12 +49,16 @@
     justify-content: center;
 }
 
+.delete-selected-button:hover, .deleteBtn:hover, .countBtn:hover {
+    background-color: white;
+}
+
 /* 장바구니 아이템 이미지 */
 .cart-item-image {
     width: 200px;
     height: 200px;
     object-fit: cover;
-    margin-right: 30px;
+    margin: auto 30px auto 10px;
     cursor: pointer;
 }
 
@@ -264,4 +268,9 @@
     background-color: #F49153;
     color: white;
     border-color: #F49153;
+}
+
+/* 주문하기 버튼 */
+.order-button:hover {
+    background-color: #F49153;
 }

@@ -2,110 +2,113 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import MainNotice from "./notice/MainNotice";
-import './Home.css';
+import { fetchWithAuth } from '../common/fetchWithAuth';
+import { API_URL, SERVER_URL2 } from "../constant";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import useWebSocket from "../hook/useWebSocket";
 import { Modal, Box, Typography, Button, Badge } from "@mui/material";
+import useWebSocket from "../hook/useWebSocket";
 
-function Home() { // 🔧 수정됨: 함수형 컴포넌트 제대로 선언
+import './Home.css';
+import '../assets/css/shop/ItemList.css';
+
+function Home() {
   const { user, isLoggedIn } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState({ content: "", senderName: "" });
   const [lastMessageId, setLastMessageId] = useState(null);
   const [newConsultationCount, setNewConsultationCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [notices, setNotices] = useState([]);
+  const [pets, setPets] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
-  // VIP 역할 확인 함수
-  const isVipUser = () => {
-    if (!user || !user.roles) return false;
-    return user.roles.includes("ROLE_VIP");
-  };
-
-  // WebSocket 연결
   const { lastMessage } = useWebSocket(user);
 
-  // WebSocket 메시지 처리
+  // 문진 함수
+const handleSurveyNavigation = (e) => {
+  e.preventDefault();
+  if (!isLoggedIn || !user) {
+    alert("로그인이 필요한 서비스입니다.");
+    navigate("/login");
+    return;
+  }
+  const userRoles = user.roles.replace(/[\[\]"]/g, '').split(',').map(role => role.trim());
+
+  if (userRoles.includes("ROLE_PAID") || userRoles.includes("ROLE_VIP")) {
+    navigate("/survey/paid");
+  } else {
+    navigate("/survey/free");
+  }
+};
+
+// 공지사항 데이터 불러오기 함수
+const fetchNotices = async () => {
+  try {
+    const response = await fetchWithAuth(`${API_URL}notices?page=0&size=5`);
+    if (!response.ok) throw new Error('공지사항을 불러오는 데 실패했습니다.');
+    const data = await response.json();
+    setNotices(data.content);  // 공지사항 데이터를 상태에 저장
+  } catch (error) {
+    console.error(error);
+    alert('공지사항 데이터를 가져오는 데 문제가 발생했습니다.');
+  }
+};
+
+  // 상품 데이터 불러오기
+  const fetchItems = async () => {
+    try {
+      const response = await fetch(`${API_URL}item/list`);
+      const data = await response.json();
+      setItems(data);  // 받은 데이터 상태에 저장
+    } catch (err) {
+      setError('상품 데이터를 가져오는 데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 반려견 정보 불러오기
   useEffect(() => {
-    if (lastMessage && isVipUser()) {
-      if (lastMessage.messageType === 'answer' && lastMessage.senderRole === 'DOCTOR') {
-        if (lastMessage.msg_id !== lastMessageId) {
-          setModalMessage({
-            content: lastMessage.content,
-            senderName: lastMessage.senderName
-          });
-          setModalOpen(true);
-          setLastMessageId(lastMessage.msg_id);
-          setNewConsultationCount(prevCount => prevCount + 1);
+    const fetchPetData = async () => {
+      try {
+        const response = await fetchWithAuth(`${API_URL}pets/user/${user.id}`);
+        if (response.ok) {
+          const result = await response.json();
+          setPets(result.content || []);
         }
-      }
-    }
-
-    if (isVipUser()) {
-      fetch(`/api/messages/${user.id}?page=0&size=1`)
-        .then(res => res.json())
-        .then(data => {
-          const latestMsg = data.content?.[0];
-          if (latestMsg && latestMsg.msg_id !== lastMessageId) {
-            const { content, senderName, msg_id } = latestMsg;
-            if (content && senderName) {
-              setModalMessage({ content, senderName });
-              setModalOpen(true);
-              setLastMessageId(msg_id);
-              setNewConsultationCount(prevCount => prevCount + 1);
-              console.log('🟢 팝업 표시:', content);
-            }
-          }
-        })
-        .catch(err => console.error('🚨 메시지 로드 실패:', err));
-    }
-
-    const handleMessageReceived = (event) => {
-      const { content, senderName, senderRole, msg_id } = event.detail;
-      if (senderRole === 'ROLE_DOCTOR' && msg_id !== lastMessageId) {
-        setModalMessage({ content, senderName });
-        setModalOpen(true);
-        setLastMessageId(msg_id);
+      } catch (error) {
+        console.error("반려동물 정보 로드 중 오류:", error);
       }
     };
 
-    window.addEventListener('messageReceived', handleMessageReceived);
-    return () => {
-      window.removeEventListener('messageReceived', handleMessageReceived);
-    };
-  }, [lastMessage, isVipUser, lastMessageId]);
-
-  const handleClose = () => setModalOpen(false);
-
-  const handleSurveyNavigation = (e) => {
-    e.preventDefault();
-    if (!isLoggedIn || !user) {
-      alert("로그인이 필요한 서비스입니다.");
-      navigate("/login");
-      return;
+    if (isLoggedIn && user) {
+      fetchPetData();
     }
-    const userRoles = user.roles.replace(/[\[\]"]/g, '').split(',').map(role => role.trim());
+  }, [isLoggedIn, user]);
 
-    if (userRoles.includes("ROLE_PAID") || userRoles.includes("ROLE_VIP")) {
-      navigate("/survey/paid");
-    } else {
-      navigate("/survey/free");
-    }
-  };
-
-  const handleConsultationHistory = (e) => {
-    e.preventDefault();
-    setNewConsultationCount(0);
-    navigate("/doctor-messages");
-  };
-
+  // 컴포넌트 마운트 시 호출
   useEffect(() => {
+    fetchNotices();
+    fetchItems();
     document.body.style.backgroundColor = "#FEF9F6";
     return () => {
       document.body.style.backgroundColor = "";
     };
   }, []);
+
+  const filteredItems = items.filter((item) =>
+    item.itemNm.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const currentItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -123,26 +126,46 @@ function Home() { // 🔧 수정됨: 함수형 컴포넌트 제대로 선언
     }
   };
 
-  const isDoctor = user && user.roles.includes('ROLE_DOCTOR');
-
-  const modalStyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-  };
+  const renderItemCard = (item) => (
+    <div className="item-card" key={item.id}>
+      {item.itemImgDtoList?.length > 0 && (
+        <div className="image-container">
+          <img
+            src={`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`}
+            alt={item.itemNm}
+            className="item-image"
+            style={{ boxShadow: "none", width: "250px" }}
+          />
+          <button
+            className="view-details-btn"
+            onClick={() => navigate(`/item/view/${item.id}`)}
+          >
+            상세보기
+          </button>
+        </div>
+      )}
+      <div className="item-detail-wrap">
+        <h3 className="itemName">{item.itemNm}</h3>
+        <div className="price-cart-container">
+          <p className="price">{item.price.toLocaleString()}원</p>
+          <button
+            className="add-to-cart-btn"
+            onClick={() => handleAddToCart(item)}
+            disabled={item.itemSellStatus === 'SOLD_OUT'}
+          >
+            <img src="/assets/images/icon/cart.png" alt="cart" className="cartIcon" style={{ width: "25px" }} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="Home">  {/* ✅ 중복된 Home div 해결 */}
+    <div className="Home">
       <nav>
         <ul>
           <li><Link to="/">홈</Link></li>
-          <li><Link to="/item/list">전체상품</Link></li>
+          <li><Link to="/item/list">쇼핑몰</Link></li>
           <li><Link to="/notices">공지사항</Link></li>
           <li><Link to="/posts">커뮤니티</Link></li>
           <li className="search-box">
@@ -166,32 +189,74 @@ function Home() { // 🔧 수정됨: 함수형 컴포넌트 제대로 선언
 
       <div className="container">
         <div className="banner">
-          <img src="/assets/images/banner.png" alt="배너 이미지" />
-          {isDoctor ? (
-            <Badge badgeContent={newConsultationCount} color="error">
-              <Link to="#" onClick={handleConsultationHistory} className="survey-link">
-                상담내역 &gt;
-              </Link>
-            </Badge>
-          ) : (
-            <Link to="#" onClick={handleSurveyNavigation} className="survey-link">
-              문진하러 가기 &gt;
-            </Link>
-          )}
+          <img src="/assets/images/banner.png" alt="배너 이미지" className="bannerImage" />
+          <Link onClick={handleSurveyNavigation}>문진하러 가기 &gt;</Link>
+        </div>
+
+        <div className="item-container">
+          <p className="item-title">이 상품은 어떠세요?</p>
+          <div className="item-grid">
+            {loading ? (
+              <p>상품을 불러오는 중...</p>
+            ) : error ? (
+              <p className="error">{error}</p>
+            ) : filteredItems.length === 0 ? (
+              <div className="no-results-container">
+                <img src="/assets/images/searchDog.png" alt="cannotFound" className="cannotFound" />
+                <p>'{searchQuery}'에 대한 검색한 결과를 찾을 수가 없어요.</p>
+                <p>다른 검색어로 검색을 해보시겠어요?</p>
+              </div>
+            ) : (
+              currentItems.map((item) => renderItemCard(item))
+            )}
+          </div>
+        </div>
+
+        <button
+            className="moreBtn"
+            onClick={() => navigate(`/item/list`)}
+            style={{ marginBottom: "50px"}}
+            >
+            더 많은 상품 보러가기
+            </button>
+
+        {/* 필터링된 상품 섹션 */}
+        <div className="filtered-container">
+          <div style={{ marginLeft: "10%" }}>
+            <p style={{ paddingTop: "20px" }} className="item-title">
+              {pets.length === 0 ? (
+                "우리 아이 맞춤 상품💕"
+              ) : (
+                pets.map((pet) => (
+                  <p key={pet.petId}>{pet.name}에게 추천해요💕</p>
+                ))
+              )}
+            </p>
+            {!isLoggedIn || !user?.roles?.includes("VIP") ? (
+              <div className="membership-message">
+                맴버쉽 가입 후 이용 가능한 컨텐츠입니다.
+              </div>
+            ) : null}
+            <div className={`item-grid ${(!isLoggedIn || !user?.roles?.includes("VIP")) ? "blurred" : ""}`}>
+              {filteredItems.length > 0 ? (
+                filteredItems.map(renderItemCard)
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
 
-      <Modal open={modalOpen} onClose={handleClose} aria-labelledby="vip-message-modal">
-        <Box sx={modalStyle}>
-          <Typography variant="h6" component="h2">
-            전문가의 새로운 답변 도착!
-          </Typography>
-          <Typography sx={{ mt: 2 }}>
-            {modalMessage.senderName}: {modalMessage.content}
-          </Typography>
-          <Button onClick={handleClose} sx={{ mt: 2 }}>
-            닫기
-          </Button>
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        aria-labelledby="message-modal-title"
+        aria-describedby="message-modal-description"
+      >
+        <Box className="message-modal">
+          <Typography variant="h6" id="message-modal-title">새 메시지</Typography>
+          <Typography variant="body2" id="message-modal-description">{modalMessage.content}</Typography>
+          <Typography variant="caption">From: {modalMessage.senderName}</Typography>
+          <Button onClick={() => setModalOpen(false)} color="primary">닫기</Button>
         </Box>
       </Modal>
     </div>
