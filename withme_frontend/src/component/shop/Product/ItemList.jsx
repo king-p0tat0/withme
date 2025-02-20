@@ -119,13 +119,13 @@ export default function ItemList() {
               currentData.map((item) => (
                 <div className="item-card" key={item.id}>
                   {/* 대표 이미지 표시 */}
-                  {item.itemImgDtoList && item.itemImgDtoList.length > 0 && (
                     <img
-                      src={`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`}
-                      alt={item.itemNm}
+                      src={item.itemImgDtoList && item.itemImgDtoList.length > 0
+                                 ? `${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`
+                                 : "/assets/images/favicon.ico" }
                       className="item-image"
                     />
-                  )}
+
 
                   <div className="item-info">
                     <h3>{item.itemNm}</h3>
