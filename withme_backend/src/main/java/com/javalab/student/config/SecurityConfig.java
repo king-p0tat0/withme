@@ -58,14 +58,13 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http.formLogin(form -> form
-                .loginPage("/api/auth/login")   // 인증되지 않은 사용자가 보호된 리소스에 접근하면 /api/auth/login으로 리다이렉트됩니다.
-                // Spring Security가 인증 처리할 URL(로그인 요청을 처리하는 URL)을 설정, 리액트에서 로그인을 요청할때 사용(/api/auth/login)
                 .loginProcessingUrl("/api/auth/login")
                 .successHandler(customAuthenticationSuccessHandler)
                 .failureHandler((request, response, exception) -> {
-                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                            response.setContentType("application/json");
-                            response.getWriter().write("{\"error\":\"login failure!\"}");})
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\":\"로그인에 실패했습니다.\"}");
+                })
                 .permitAll()
         );
 
@@ -81,18 +80,12 @@ public class SecurityConfig {
                 .permitAll()
         );
 
-        /*
-            * 정적 자원 및 URL에 대한 접근 제어 설정(인가) 로드맵
-            * authorizeRequests() : 애플리케이션의 접근 제어(Authorization) 정책을 정의
-            * requestMatchers() : 요청에 대한 보안 검사를 설정
-            * permitAll() : 모든 사용자에게 접근을 허용
-            * hasRole() : 특정 권한을 가진 사용자만 접근을 허용
-            * anyRequest() : 모든 요청에 대해 접근을 허용
-            * authenticated() : 인증된 사용자만 접근을 허용
-            * favicon.ico : 파비콘 요청은 인증 없이 접근 가능, 이코드 누락시키면 계속 서버에 요청을 보내서 서버에 부하를 줄 수 있다.
-         */
+        // CORS 설정
+        http.cors(Customizer.withDefaults());   // WebConfig의 CORS 설정을 사용
+
+        // URL 접근 권한 설정
         http.authorizeHttpRequests(request -> request
-                // ✅ WebSocket 관련 요청은 인증 검사 제외
+
                 //    WebSocket 접속이 정상인지 체크하는 핸드쉐이크 요청인 /ws/info와 WebSocket 연결, /ws/**는 인증 없이 접근할 수 있도록 설정합니다.
                 .requestMatchers("/ws/**").permitAll()  //
                 .requestMatchers("/api/questionnaires/free").permitAll()
@@ -106,10 +99,48 @@ public class SecurityConfig {
                 // 공지사항 등록, 수정, 삭제는 ADMIN만 접근 가능
                 .requestMatchers(HttpMethod.POST, "/api/notices/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/notices/**").hasRole("ADMIN")
+
+                // WebSocket 설정
+                .requestMatchers("/ws/**", "/topic/**").permitAll()
+
+                // 인증 불필요 API
+                .requestMatchers(
+                    "/api/auth/login",
+                    "/api/auth/logout",
+                    "/api/members/register",
+                    "/api/members/checkEmail",
+                    "/api/auth/login/kakao",
+                    "/api/items/search/**",
+                    "/api/substances/list"
+                ).permitAll()
+
+                // GET 요청 허용
+                .requestMatchers(HttpMethod.GET,
+                        "/api/notices/**",
+                         "/api/posts/**",
+                        "/api/posts/*/comments",
+                         "/api/comments/**",
+                        "/api/members/{userId}/comments",
+                        "/api/pets/user/{userId}",
+                        "/api/posts/user/{userId}",
+                        "/api/posts/comments/user/{userId}",
+                        "/api/pets/image/**",
+                        "/api/post/image/**",
+                        "/api/item/list",
+                        "/api/item/view/**"
+                ).permitAll()
+
+                // 반려동물 관련
+                .requestMatchers(HttpMethod.POST, "/api/pets/register").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/pets/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/pets/**").authenticated()
+                .requestMatchers("/api/pets/{petId}").authenticated()
+
+                // 관리자 전용
+                .requestMatchers(HttpMethod.POST, "/api/notices/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/notices/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/notices/**").hasRole("ADMIN")
-                .requestMatchers("/api/students/**").hasRole("ADMIN")   // 학생 등록, 수정, 삭제는 ADMIN만 접근 가능
-                .requestMatchers("/api/auth/userInfo").permitAll() // 사용자 정보 조회 API는 모든 사용자에게 허용
-                .requestMatchers("/api/doctors/**").permitAll()
+                .requestMatchers("/api/students/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/members/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 사용자 정보 수정 API는 USER, ADMIN만 접근 가능
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()  // 스웨거 Swagger UI는 인증을 거치지 않고 접근 가능
@@ -119,10 +150,47 @@ public class SecurityConfig {
                 // 쇼핑몰
                 .requestMatchers("/api/item/list", "/api/item/view/**").permitAll()
                 .requestMatchers("/api/item/new", "/api/item/edit/**","/api/item/delete/**").hasRole("ADMIN")
-                .requestMatchers("/api/cart/**","/api/orders/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR")
-                .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN","VIP","DOCTOR","PENDING_DOCTOR") // 결제
+                .requestMatchers("/api/cart/**","/api/orders/**").authenticated()
+                .requestMatchers("/api/payments/**").authenticated() // 결제
+
+                //커뮤니티
+                //커뮤니티 이미지 업로드
+                .requestMatchers(HttpMethod.POST, "/api/posts/upload").permitAll()
+                //커뮤니티 인증된 사용자 전용
+                .requestMatchers(HttpMethod.POST, "/api/posts", "/api/posts/*/comments").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/posts/**", "/api/posts/*/comments/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/posts/**", "/api/posts/*/comments/**").authenticated()
+
+                // 특정 역할 사용자
+                .requestMatchers("/api/members/**").authenticated()
+                .requestMatchers("/api/messages/**", "/api/chat/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/api/cart/**","/api/orders/**").authenticated()
+
+                // API 문서 및 의사 관련
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/api/doctors/**").permitAll()
+                .requestMatchers("/api/auth/userInfo").permitAll()
+
+                // 메시지 및 커뮤니티 관련 API
+                .requestMatchers("/api/messages/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers("/api/chat/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
 
+
+                // 문진 관련 API - 더 구체적인 패턴을 먼저 배치
+                .requestMatchers("/api/questions/free/latest/{userId}").hasAuthority("ROLE_USER")
+                .requestMatchers("/api/questions/paid/latest/{userId}").hasAuthority("ROLE_VIP")
+                .requestMatchers("/api/questions/free/**").hasAuthority("ROLE_USER")
+                .requestMatchers("/api/questions/paid/**").hasAuthority("ROLE_VIP")
+                .requestMatchers("/api/questions").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
+
+                // 설문 주제 및 사용자 선택 주제 관련 API
+                .requestMatchers("/api/survey-topics/paid/**").hasAuthority("ROLE_VIP")
+                .requestMatchers("/api/survey-topics/**").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
+                .requestMatchers("/api/user-selected-topics/**").hasAnyAuthority("ROLE_USER", "ROLE_VIP")
+
+
+                // 정적 리소스
                 .requestMatchers(
                         "/images/**",
                         "/image/**",
@@ -176,21 +244,12 @@ public class SecurityConfig {
                 .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
         );
 
-        // http.csrf(csrf -> csrf.disable()); // CSRF 보안 설정을 비활성화
-        http.csrf(csrf -> csrf.disable());  // 프론트 엔드를 리액트로 할경우 CSRF 보안 설정을 비활성화
-        http.cors(Customizer.withDefaults());   // 이 설정은 출처가 다른 도메인에서 요청을 허용하기 위한 설정, 스프링은 8080포트에서 실행되고 있고, 리액트는 3000포트에서 실행되고 있기 때문에 스프링은 3000 포트에서 오는 요청을 허용하지 않는다. 이를 해결하기 위해 CORS 설정을 추가한다.
+        // CSRF 설정
+        http.csrf(csrf -> csrf.disable());
 
-        /*
-         * 소셜 로그인 설정
-         *  - oauth2Login() 메소드 : 소셜(OAuth2) 로그인을 활성화하는 설정의 시작점.
-         *  - 이 메서드를 호출함으로써, 애플리케이션은 OAuth2 공급자(Google, Kakao 등)를
-         *    통해 사용자 인증을 수행할 수 있게 된다.
-         *  - loginPage() : 사용자가 인증되지 않은 상태에서 보호된 리소스에 접근시 여기로 리디렉트
-         *    loginPage()를 설정하지 않으면 스프링 시큐리티는 기본 로그인 페이지(/login)를 사용.
-         *  - userInfoEndpoint() : OAuth2 공급자로부터 사용자 정보를 가져오는 엔드포인트를 구성
-         *  - userService() : 사용자 정보를 가져오는 서비스를 구현한 객체를 지정
-         * - customOAuth2UserService : OAuth2 공급자로부터 사용자 정보를 가져오는 엔드포인트를 구성하는 실제 서비스 클래스
-         */
+
+
+        // OAuth2 로그인 설정
         http.oauth2Login(oauth2 -> oauth2
                 .loginPage("/api/auth/login/kakao")
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))

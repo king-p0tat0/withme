@@ -1,18 +1,20 @@
 package com.javalab.student.service;
 
-import com.javalab.student.dto.NewRegistrationDTO;
-import com.javalab.student.entity.DoctorApplication;
-import com.javalab.student.entity.Member;
-import com.javalab.student.repository.DoctorApplicationRepository;
-import com.javalab.student.repository.MemberRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.javalab.student.dto.NewRegistrationDTO;
+import com.javalab.student.entity.DoctorApplication;
+import com.javalab.student.entity.Member;
+import com.javalab.student.repository.DoctorApplicationRepository;
+import com.javalab.student.repository.MemberRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

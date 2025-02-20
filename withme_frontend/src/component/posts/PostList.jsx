@@ -159,20 +159,28 @@ const PostList = () => {
                 className="post_list_item"
                 key={post.id}
                 onClick={() => handlePostClick(post.id)}>
-                {post.thumbnailUrl && (
-                  <img
-                    src={post.thumbnailUrl}
-                    alt="게시물 썸네일"
-                    className="w-full h-48 object-cover"
-                  />
-                )}
-                <span className="list_title_box">
-                  <p
-                    dangerouslySetInnerHTML={{
-                      __html: post.content || "내용 없음"
-                    }}></p>
-                </span>
                 <div className="list_area">
+                  {post.thumbnailUrl && (
+                    <div className="list_thumbnail_box">
+                      <img
+                        src={`${API_URL.replace(/\/api\/$/, "")}${
+                          post.thumbnailUrl
+                        }`}
+                        alt="게시물 썸네일"
+                        className="thumbnail_img"
+                      />
+                    </div>
+                  )}
+
+                  <span className="list_title_box">
+                    <p
+                      dangerouslySetInnerHTML={{
+                        __html: post.title || "내용 없음"
+                      }}></p>
+                  </span>
+                </div>
+
+                <div className="list_date">
                   <span>{post.views}</span>
                   <div>
                     {post.updateTime && post.updateTime !== post.regTime ? (
@@ -208,24 +216,27 @@ const PostList = () => {
         </TabPanel>
       ))}
 
-      {/* 글 작성 버튼 */}
-      <PrimaryButton
-        onClick={handleWritePostClick}
-        variant="contained"
-        size="small"
-        sx={{
-          mb: 1,
-          minWidth: "auto",
-          height: "40px"
-        }}>
-        글 작성하기
-      </PrimaryButton>
+      <div className="post_btn">
+        {/* 글 작성 버튼 */}
+        <PrimaryButton
+          onClick={handleWritePostClick}
+          variant="contained"
+          size="small"
+          sx={{
+            mb: 1,
+            minWidth: "auto",
+            height: "40px"
+          }}>
+          글 작성하기
+        </PrimaryButton>
+      </div>
 
       {/* 페이지네이션 - Router Integration */}
       <div className="pagination-container">
         <Pagination
           page={paginationModel.page}
           count={Math.ceil(totalRows / paginationModel.pageSize)}
+          onChange={handlePageChange}
           siblingCount={1}
           boundaryCount={1}
           renderItem={(item) => (

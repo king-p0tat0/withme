@@ -40,7 +40,7 @@ public class SurveyTopicService {
      */
     @Transactional(readOnly = true)
     public List<SurveyTopic> getPaidTopics(Long surveyId) {
-        return surveyTopicRepository.findAllBySurvey_SurveyId(surveyId);  // Survey의 surveyId로 관련된 SurveyTopic 조회
+        return surveyTopicRepository.findAllBySurveyId(surveyId);  // Repository의 실제 메소드명으로 수정
     }
 
 

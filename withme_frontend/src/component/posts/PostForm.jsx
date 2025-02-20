@@ -2,25 +2,19 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_URL } from "../../constant";
 import { fetchWithAuth } from "../../common/fetchWithAuth";
-import { EditorState, ContentState } from "draft-js";
-import { Editor } from "react-draft-wysiwyg";
-import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
-import "draft-js/dist/Draft.css";
-import { stateToHTML } from "draft-js-export-html";
-import htmlToDraft from "html-to-draftjs";
+import { Editor } from "@tinymce/tinymce-react";
+import "../../assets/css/posts/posts.css";
 
 const PostForm = () => {
   const [post, setPost] = useState({
     title: "",
-    content: "",
+    content: "<p></p>",
     postCategory: ""
   });
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
 
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // 게시글 불러오는 함수
   const fetchPost = async () => {
     try {
       const response = await fetchWithAuth(`${API_URL}posts/${id}`);
@@ -29,18 +23,9 @@ const PostForm = () => {
       }
       const data = await response.json();
 
-      // Convert HTML content to DraftJS content state
-      const contentBlock = htmlToDraft(data.content || "");
-      if (contentBlock) {
-        const contentState = ContentState.createFromBlockArray(
-          contentBlock.contentBlocks
-        );
-        setEditorState(EditorState.createWithContent(contentState));
-      }
-
       setPost({
         title: data.title || "",
-        content: data.content || "",
+        content: data.content || "<p></p>",
         postCategory: data.postCategory || ""
       });
     } catch (error) {
@@ -61,21 +46,64 @@ const PostForm = () => {
     setPost((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle editor state changes
-  const handleEditorChange = (state) => {
-    setEditorState(state);
+  const handleEditorChange = (content) => {
+    const safeContent = content || "<p></p>";
+    //console.log("에디터 내용 변경:", safeContent);
+
     setPost((prev) => ({
       ...prev,
-      content: stateToHTML(state.getCurrentContent())
+      content: safeContent
     }));
   };
 
-  // 게시글 저장 함수
+  const handleImageUpload = async (blobInfo, progress) => {
+    try {
+      const formData = new FormData();
+      formData.append("image", blobInfo.blob(), blobInfo.filename());
+
+      const response = await fetch(`${API_URL}posts/upload`, {
+        method: "POST",
+        credentials: "include",
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error("이미지 업로드 실패");
+      }
+
+      const result = await response.json();
+      const baseUrl = API_URL.replace(/\/$/, "");
+      const imagePath = result.imageUrl
+        .replace(/^\/api/, "")
+        .replace(/^\//, "");
+      const imageUrl = `${baseUrl}/${imagePath}`;
+
+      console.log("업로드된 이미지 URL:", imageUrl);
+      return imageUrl;
+    } catch (error) {
+      console.error("이미지 업로드 오류:", error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!post.title.trim() || !post.content.trim() || !post.postCategory) {
-      alert("모든 필드를 입력해주세요.");
+    const cleanContent = post.content?.trim() || "";
+    const contentWithoutTags = cleanContent.replace(/<[^>]*>/g, "").trim();
+
+    if (!post.title.trim()) {
+      alert("제목을 입력해주세요.");
+      return;
+    }
+
+    if (!contentWithoutTags) {
+      alert("내용을 입력해주세요.");
+      return;
+    }
+
+    if (!post.postCategory) {
+      alert("카테고리를 선택해주세요.");
       return;
     }
 
@@ -83,60 +111,46 @@ const PostForm = () => {
       const method = id ? "PUT" : "POST";
       const endpoint = `${API_URL}posts${id ? `/${id}` : ""}`;
 
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(post.content, "text/html");
+      const firstImage = doc.querySelector("img");
+      const thumbnailUrl = firstImage
+        ? firstImage.src.replace(
+            /^.*\/api\/posts\/image\//,
+            "/api/posts/image/"
+          )
+        : null;
+
       const postData = {
-        title: post.title,
+        title: post.title.trim(),
         content: post.content,
-        postCategory: post.postCategory
+        postCategory: post.postCategory,
+        thumbnailUrl: thumbnailUrl
       };
+
+      console.log("서버로 전송할 데이터:", JSON.stringify(postData, null, 2));
 
       const response = await fetchWithAuth(endpoint, {
         method,
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify(postData)
       });
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.message || `HTTP 오류! 상태 코드: ${response.status}`
+          errorData.error || `HTTP 오류! 상태 코드: ${response.status}`
         );
       }
 
       alert(id ? "게시글이 수정되었습니다." : "게시글이 등록되었습니다.");
-      window.scrollTo(0, 0);
       navigate("/posts");
     } catch (error) {
-      console.error("게시글 저장 실패:", error.message);
-      if (error.message.includes("Unauthorized")) {
-        alert("로그인이 필요하거나 세션이 만료되었습니다.");
-        navigate("/login");
-      } else {
-        alert("게시글 저장에 실패했습니다.");
-      }
+      console.error("게시글 저장 실패:", error);
+      alert("게시글 저장에 실패했습니다. " + error.message);
     }
-  };
-
-  const uploadImageCallBack = (file) => {
-    return new Promise((resolve, reject) => {
-      const formData = new FormData();
-      formData.append("image", file);
-
-      fetchWithAuth(`${API_URL}upload`, {
-        method: "POST",
-        body: formData
-      })
-        .then((response) => response.json())
-        .then((result) => {
-          resolve({
-            data: {
-              link: result.imageUrl // 서버에서 반환하는 이미지 URL
-            }
-          });
-        })
-        .catch((error) => {
-          console.error("Image upload error:", error);
-          reject(error);
-        });
-    });
   };
 
   return (
@@ -144,6 +158,7 @@ const PostForm = () => {
       <h1 className="post_form_title">
         {id ? "커뮤니티 수정" : "커뮤니티 등록"}
       </h1>
+
       <form onSubmit={handleSubmit} className="post_form">
         <div className="form_group">
           <label className="form_label">제목:</label>
@@ -162,19 +177,41 @@ const PostForm = () => {
           <label className="form_label">내용:</label>
           <div className="editor_wrapper">
             <Editor
-              editorState={editorState}
-              onEditorStateChange={handleEditorChange}
-              wrapperClassName="wrapper-class"
-              editorClassName="editor-class"
-              toolbarClassName="toolbar-class"
-              toolbar={{
-                image: {
-                  uploadCallback: uploadImageCallBack,
-                  alt: { present: true, mandatory: false },
-                  previewImage: true,
-                  inputAccept:
-                    "image/gif,image/jpeg,image/jpg,image/png,image/svg"
-                }
+              apiKey="ex9u265c1zhjyhpymup3s4hl475tatjva16c9xn4yi6kk0rg"
+              value={post.content}
+              onEditorChange={handleEditorChange}
+              init={{
+                height: 500,
+                menubar: false,
+                plugins: [
+                  "advlist",
+                  "autolink",
+                  "lists",
+                  "link",
+                  "image",
+                  "charmap",
+                  "preview",
+                  "searchreplace",
+                  "visualblocks",
+                  "code",
+                  "fullscreen",
+                  "insertdatetime",
+                  "media",
+                  "table",
+                  "code",
+                  "help",
+                  "wordcount"
+                ],
+                toolbar:
+                  "undo redo | blocks | bold italic forecolor | alignleft aligncenter " +
+                  "alignright alignjustify | bullist numlist outdent indent | " +
+                  "removeformat | image | help",
+                images_upload_handler: handleImageUpload,
+                automatic_uploads: true,
+                images_reuse_filename: true,
+                paste_data_images: true,
+                content_style:
+                  "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }"
               }}
             />
           </div>

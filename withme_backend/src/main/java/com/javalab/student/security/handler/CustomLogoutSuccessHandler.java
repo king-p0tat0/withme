@@ -1,5 +1,7 @@
 package com.javalab.student.security.handler;
 
+import com.javalab.student.security.dto.MemberSecurityDto;
+import com.javalab.student.service.RedisService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -8,9 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
-
-import com.javalab.student.security.dto.MemberSecurityDto;
-import com.javalab.student.service.RedisService;
 
 import java.io.IOException;
 
