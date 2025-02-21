@@ -1,6 +1,9 @@
 package com.javalab.student.entity.shop;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.javalab.student.constant.ItemSellStatus;
 import com.javalab.student.dto.shop.ItemFormDto;
 import com.javalab.student.entity.BaseEntity;
@@ -43,6 +46,9 @@ public class Item extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ItemSellStatus itemSellStatus; //상품 판매 상태
 
+
+@OneToMany(mappedBy = "item", fetch = FetchType.LAZY)
+    private List<ItemSubstance> itemSubstances = new ArrayList<>();
 
 
 /**

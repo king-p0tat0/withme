@@ -146,50 +146,47 @@ public ResponseEntity<PetDto> registerPet(
 
     // 반려동물 정보 수정 (이미지 포함)
     @PutMapping(value = "/{petId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-@PreAuthorize("isAuthenticated()")
-public ResponseEntity<PetDto> updatePet(
-        @PathVariable("petId") Long petId,
-        @RequestParam(value = "image", required = false) MultipartFile image,
-        @RequestParam("name") String name,
-        @RequestParam("breed") String breed,
-        @RequestParam("age") Integer age,
-        @RequestParam("weight") Integer weight,
-        @RequestParam("gender") String gender,
-        @RequestParam("userId") Long userId,
-        @RequestParam(value = "neutered", required = false) Boolean neutered,
-        @RequestParam(value = "healthConditions", required = false) String healthConditions,
-        Authentication authentication) {
-    
-    log.info("Authentication Principal: {}", authentication.getPrincipal());
-    
-    // principal이 String인 경우 (이메일)
-    String userEmail = authentication.getName();
-    log.info("User email from authentication: {}", userEmail);
-    
-    // 사용자 검증 로직
-    try {
-        PetDto petDto = PetDto.builder()
-                .petId(petId)
-                .name(name)
-                .breed(breed)
-                .age(age)
-                .weight(weight)
-                .gender(gender)
-                .userId(userId)
-                .neutered(neutered)
-                .healthConditions(healthConditions)
-                .build();
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<PetDto> updatePet(
+            @PathVariable("petId") Long petId,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam("name") String name,
+            @RequestParam("breed") String breed,
+            @RequestParam("age") Integer age,
+            @RequestParam("weight") Integer weight,
+            @RequestParam("gender") String gender,
+            @RequestParam("userId") Long userId,
+            @RequestParam(value = "neutered", required = false) Boolean neutered,
+            @RequestParam(value = "healthConditions", required = false) String healthConditions,
+            @RequestParam(value = "allergyIds", required = false) List<Long> allergyIds,
+            Authentication authentication) {
         
-        if (image != null && !image.isEmpty()) {
-            petService.updatePetImage(petId, image);
+        log.info("Authentication Principal: {}", authentication.getPrincipal());
+        
+        try {
+            PetDto petDto = PetDto.builder()
+                    .petId(petId)
+                    .name(name)
+                    .breed(breed)
+                    .age(age)
+                    .weight(weight)
+                    .gender(gender)
+                    .userId(userId)
+                    .neutered(neutered)
+                    .healthConditions(healthConditions)
+                    .allergyIds(allergyIds) // 알러지 ID 추가
+                    .build();
+            
+            if (image != null && !image.isEmpty()) {
+                petService.updatePetImage(petId, image);
+            }
+            
+            return ResponseEntity.ok(petService.updatePet(petId, petDto, image));
+        } catch (Exception e) {
+            log.error("Error updating pet: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        
-        return ResponseEntity.ok(petService.updatePet(petId, petDto, image));
-    } catch (Exception e) {
-        log.error("Error updating pet: {}", e.getMessage(), e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
-}
 
     // 반려동물 삭제
     @DeleteMapping("/{petId}")

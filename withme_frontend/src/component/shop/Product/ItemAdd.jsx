@@ -23,10 +23,10 @@ const ItemRegistration = () => {
     itemDetail: "",
     stockNumber: "",
     itemSellStatus: "SELL",
-    substanceIds: [] // 알러지 성분 추가
+    substanceIds: [] // 알러지 성분 ID 배열
   });
   const [images, setImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]); // 이미지 미리보기 상태 추가
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [substances, setSubstances] = useState([]);
 
   const navigate = useNavigate();
@@ -38,6 +38,7 @@ const ItemRegistration = () => {
         const response = await fetchWithAuth(`${API_URL}substances/list`);
         if (response.ok) {
           const data = await response.json();
+          //console.log("Fetched substances:", data);
           setSubstances(data);
         }
       } catch (error) {
@@ -49,8 +50,9 @@ const ItemRegistration = () => {
   }, []);
 
   // 알러지 성분 선택 핸들러
-  const handleSubstanceChange = (e) => {
-    const { value } = e.target;
+  const handleSubstanceChange = (event) => {
+    const { value } = event.target;
+    console.log("Selected substance IDs:", value);
     setItem((prevItem) => ({
       ...prevItem,
       substanceIds: value
@@ -99,16 +101,21 @@ const ItemRegistration = () => {
       return;
     }
 
-    const formData = new FormData();
-
-    // 상품 정보를 JSON으로 변환하여 전송
+    // 상품 데이터 준비
     const itemData = {
       ...item,
-      price: Number(item.price), // 가격을 숫자로 변환
-      stockNumber: Number(item.stockNumber || 0), // 재고 숫자로 변환, 없으면 0
-      substanceIds: item.substanceIds || [] // 알러지 성분 ID 배열 확인
+      price: Number(item.price),
+      stockNumber: Number(item.stockNumber || 0),
+      substanceIds: Array.isArray(item.substanceIds) ? item.substanceIds : []
     };
 
+    // 전송 전 데이터 확인 로그
+    //console.log("전송할 상품 데이터:", itemData);
+    console.log("선택된 알러지 성분:", itemData.substanceIds);
+
+    const formData = new FormData();
+
+    // itemFormDto를 JSON 문자열로 변환하여 추가
     formData.append(
       "itemFormDto",
       new Blob([JSON.stringify(itemData)], { type: "application/json" })
@@ -129,9 +136,8 @@ const ItemRegistration = () => {
         alert("상품이 성공적으로 등록되었습니다.");
         navigate("/item/list");
       } else {
-        // 오류 처리 개선
         const errorText = await response.text();
-        console.error("서버 에러 응답:", errorText);
+        console.error("서버 응답:", errorText);
         alert(`상품 등록 실패: ${errorText}`);
       }
     } catch (error) {
@@ -262,7 +268,7 @@ const ItemRegistration = () => {
             placeholder="상품의 상세한 설명을 입력하세요."
           />
         </div>
-        {/* 알러지 성분 선택 섹션 */}
+        {/* 알러지 성분 선택 */}
         <div className="form-group">
           <FormControl fullWidth>
             <InputLabel>알러지 성분</InputLabel>
@@ -275,6 +281,7 @@ const ItemRegistration = () => {
                   .map(
                     (id) => substances.find((s) => s.substanceId === id)?.name
                   )
+                  .filter(Boolean)
                   .join(", ")
               }>
               {substances.map((substance) => (

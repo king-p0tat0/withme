@@ -23,8 +23,9 @@ const ItemEdit = () => {
     itemDetail: "",
     stockNumber: "",
     itemSellStatus: "SELL",
-    itemImgIds: [], // 기존 이미지 ID 리스트를 상태로 추가
-    substanceIds: [] // 알러지 성분 추가
+    itemImgIds: [],
+    substanceIds: [], // 알러지 성분 ID 배열
+    itemImgDtoList: []
   });
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -36,60 +37,59 @@ const ItemEdit = () => {
 
   console.log("itemId : ", itemId);
 
-  // 알러지 성분 목록 불러오기
+  // 알러지 성분 목록과 상품 정보 불러오기
   useEffect(() => {
-    const fetchSubstances = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetchWithAuth(`${API_URL}substances/list`);
-        if (response.ok) {
-          const data = await response.json();
-          setSubstances(data);
+        // 알러지 성분 목록 불러오기
+        const substancesResponse = await fetchWithAuth(
+          `${API_URL}substances/list`
+        );
+        if (substancesResponse.ok) {
+          const substancesData = await substancesResponse.json();
+          //console.log("Fetched substances:", substancesData);
+          setSubstances(substancesData);
         }
-      } catch (error) {
-        console.error("알러지 성분 목록 불러오기 실패:", error);
-      }
-    };
 
-    fetchSubstances();
-  }, []);
+        // 상품 정보 불러오기
+        const itemResponse = await fetchWithAuth(
+          `${API_URL}item/view/${itemId}`
+        );
+        if (itemResponse.ok) {
+          const itemData = await itemResponse.json();
+          console.log("Fetched item data:", itemData);
 
-  // 알러지 성분 선택 핸들러
-  const handleSubstanceChange = (e) => {
-    const { value } = e.target;
-    setItem((prevItem) => ({
-      ...prevItem,
-      substanceIds: value
-    }));
-  };
-
-  // 기존 상품 정보 불러오기
-  useEffect(() => {
-    const fetchItem = async () => {
-      try {
-        const response = await fetchWithAuth(`${API_URL}item/view/${itemId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setItem((prev) => ({
-            ...data,
-            substanceIds: data.substanceIds || [] // 알러지 성분 ID 추가
-          }));
+          setItem({
+            ...itemData,
+            substanceIds: itemData.substanceIds || [] // 알러지 성분 ID 설정
+          });
 
           // 기존 이미지 미리보기 설정
-          const previews = data.itemImgDtoList.map((img) => img.imgUrl);
-          setImagePreviews(previews);
-        } else {
-          alert("상품을 불러오는 데 실패했습니다.");
+          if (itemData.itemImgDtoList) {
+            const previews = itemData.itemImgDtoList.map((img) => img.imgUrl);
+            setImagePreviews(previews);
+          }
         }
       } catch (error) {
-        console.error("상품 정보 불러오기 실패:", error);
-        alert("상품 정보 불러오기 실패");
+        console.error("데이터 로딩 중 오류 발생:", error);
+        alert("데이터를 불러오는데 실패했습니다.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchItem();
+    fetchData();
   }, [itemId]);
+
+  // 알러지 성분 선택 핸들러
+  const handleSubstanceChange = (event) => {
+    const { value } = event.target;
+    console.log("Selected substance IDs:", value);
+    setItem((prevItem) => ({
+      ...prevItem,
+      substanceIds: value
+    }));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -117,43 +117,77 @@ const ItemEdit = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 입력 유효성 검사
+    if (!item.itemNm) {
+      alert("상품명을 입력해주세요.");
+      return;
+    }
+
+    if (!item.price) {
+      alert("판매가를 입력해주세요.");
+      return;
+    }
+
+    // 상품 데이터 준비
+    const itemData = {
+      ...item,
+      price: Number(item.price),
+      stockNumber: Number(item.stockNumber || 0),
+      substanceIds: Array.isArray(item.substanceIds) ? item.substanceIds : []
+    };
+
+    // 전송 전 데이터 확인
+    //console.log("전송할 상품 데이터:", itemData);
+    console.log("선택된 알러지 성분:", itemData.substanceIds);
+
     const formData = new FormData();
 
+    // itemFormDto를 JSON 문자열로 변환하여 추가
     formData.append(
       "itemFormDto",
-      new Blob([JSON.stringify(item)], { type: "application/json" })
+      new Blob([JSON.stringify(itemData)], { type: "application/json" })
     );
 
-    // 기존 이미지 ID들을 전송하는 과정
-    item.itemImgDtoList.forEach((img) => {
-      formData.append("itemImgIds", img.id); // itemImgDtoList에서 id 값을 가져와서 서버로 전달
-    });
-
+    // 이미지 파일 추가
     images.forEach((image) => {
       formData.append("itemImgFile", image);
     });
 
-    // formData 내용 확인
+    // FormData 내용 확인 (안전하게 처리)
+    console.log("FormData 내용:");
     for (let [key, value] of formData.entries()) {
-      console.log(key, value);
+      if (key === "itemFormDto") {
+        // Blob을 텍스트로 읽어서 출력
+        const reader = new FileReader();
+        reader.onload = () => {
+          console.log("itemFormDto 내용:", reader.result);
+        };
+        reader.readAsText(value);
+      } else if (value instanceof File) {
+        console.log(key, `File: ${value.name}`);
+      } else {
+        console.log(key, value);
+      }
     }
 
     try {
-      const response = await fetchWithAuth(`${API_URL}item/edit/${itemId}`, {
-        method: "PUT",
+      const response = await fetchWithAuth(`${API_URL}item/new`, {
+        method: "POST",
         body: formData
       });
 
       if (response.ok) {
-        alert("상품이 성공적으로 수정되었습니다.");
+        alert("상품이 성공적으로 등록되었습니다.");
         navigate("/item/list");
       } else {
-        const errorData = await response.json();
-        alert(`상품 수정 실패: ${errorData.message}`);
+        const errorText = await response.text();
+        console.error("서버 응답:", errorText);
+        alert(`상품 등록 실패: ${errorText}`);
       }
     } catch (error) {
-      const errorText = await response.text(); // 텍스트 형식으로 응답 받기
-      alert(`상품 수정 중 오류 발생: ${errorText}`);
+      console.error("상품 등록 중 오류 발생:", error);
+      alert("상품 등록 중 오류가 발생했습니다.");
     }
   };
 

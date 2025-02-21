@@ -4,6 +4,7 @@ import com.javalab.student.entity.PetAllergy;
 import lombok.*;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -23,7 +24,15 @@ public class PetDto implements Serializable {
     private String gender;
     private String imageUrl;
     private String imageName;
-    private List<Long> allergyIds;
+
+   // 알러지 관련 필드
+    private List<SubstanceDto> allergies = new ArrayList<>();
+    private List<Long> allergyIds = new ArrayList<>();
+    
+    // 문진 상태 필드
+    private Boolean simpleSurveyCompleted;
+    private Boolean paymentCompleted;
+    private Boolean expertSurveyCompleted;
 
    
 }

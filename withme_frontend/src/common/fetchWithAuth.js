@@ -1,14 +1,3 @@
-/**
- * src/common/fetchWithAuth.js
- * - API 요청 시 JWT 액세스 토큰을 헤더에 포함하여 요청시 사용
- * - fetch API를 사용하여 API 요청을 보내고, 응답을 반환
- * - fetch API의 두 번째 인자로 옵션 객체를 받아서 사용
- * - 기본 Content-Type은 application/json으로 설정
- * - 액세스 토큰은 저장시 "/"로 저장해서 모든 요청에 포함되며 리프레시 토큰은 "/refresh"로 저장해서 "/refresh" 요청에만 포함됨
- * - 401 UnAuthroized 상태 발생 시 "/refresh" 요청을 서버에 하게 되면 액세스 토큰+리프레시 토큰이 함께 서버로 전성됨.
- *   전송된 리프레시 토큰은 서버에서 검증 후 새로운 액세스 토큰을 발급하고 이를 응답으로 클라이언트에 전송함.
- */
-
 import { SERVER_URL } from "../constant"; // "/refresh" 요청 시 사용
 
 /**
