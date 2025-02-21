@@ -32,6 +32,6 @@ public class Choice {
     @Column(name = "score", nullable = false)
     private Integer score; // 선택지 점수
 
-    @Column(name = "seq", nullable = false)
+    @Column(name = "seq")
     private Integer seq; // 선택지 순서
 }

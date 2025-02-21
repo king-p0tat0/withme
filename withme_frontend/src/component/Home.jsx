@@ -263,7 +263,7 @@ const [cart, setCart] = useState([]); // useState로 장바구니 관리
                 맴버쉽 가입 후 이용 가능한 컨텐츠입니다.
               </div>
             ) : null}
-              <div className={`item-grid ${(!isLoggedIn || !user?.roles?.includes("VIP")) ? "blurred" : ""}`}>
+              <div className={`filtered-gird item-grid ${(!isLoggedIn || !user?.roles?.includes("VIP")) ? "blurred" : ""}`}>
                 {filteredItems.length > 0 ? (
                   filteredItems.map(renderItemCard)
                 ) : null}
