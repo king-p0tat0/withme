@@ -187,6 +187,19 @@ const fetchNotices = async () => {
         </ul>
       </nav>
 
+
+              <div className="item-wrap">
+                <div className="notice">
+                  <span className="red" style={{ color: "red" }}>공지사항</span> 📢 <span className="line">|</span>
+                  {notices.length > 0 ? (
+                    notices[0].title
+                  ) : (
+                    "최근 공지사항이 없습니다."
+                  )}
+                </div>
+              </div>
+            </div>
+
       <div className="container">
         <div className="banner">
           <img src="/assets/images/banner.png" alt="배너 이미지" className="bannerImage" />
