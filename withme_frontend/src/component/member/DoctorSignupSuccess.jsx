@@ -27,7 +27,7 @@ function DoctorSignupSuccess() {
     };
 
   return (
-    <div className="container" style={{ backgroundColor: "#FEF9F6" }}>
+    <div className="container" style={{ backgroundColor: "#FEF9F6", marginBottom: "150px" }}>
       <img src="assets/images/dog.png" alt="dog image" />
       <div className="message">
         <p className="title">
@@ -40,8 +40,7 @@ function DoctorSignupSuccess() {
            수의사님을 진심으로 환영합니다.
         </p>
         <p className="last">
-          아래 링크에서 권한 신청 및 관리자 승인 후 관련 서비스 이용이 가능합니다.<br /><br />
-          <Link onClick="handleNavigation" to="/registerDoctor" style={{ margin: "16x auto 20px", fontWeight: 'bold', color: "#FF6946", fontSize: "1.2em" }}>[ 수의사 신청 하러 가기 ]</Link>
+            승인 신청 후 <span style={{ fontWeight: "bold" }}>관리자의 승인</span>을 통해 관련 서비스 이용이 가능합니다.
         </p>
       </div>
       <div className="btn-wrap">

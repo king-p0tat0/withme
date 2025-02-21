@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth } from '../../common/fetchWithAuth';
-import DoctorViewAdmin from './DoctorViewAdmin';
+// import DoctorViewAdmin from './DoctorViewAdmin';
 import '../../css/DoctorUpdate.css';
 
 export default function DoctorUpdate() {
@@ -52,7 +52,7 @@ export default function DoctorUpdate() {
 
     return (
         <div className="doctor-update-container">
-            <h1 className="title">대기중 전문가 목록</h1>
+            <h1 className="title">승인 대기 목록</h1>
             <table className="doctor-table">
                 <thead>
                     <tr>

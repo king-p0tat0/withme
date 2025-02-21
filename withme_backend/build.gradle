@@ -87,7 +87,6 @@ dependencies {
     implementation 'org.mariadb.jdbc:mariadb-java-client'
 
 
-
     // Swagger 의존성
     // [스웨거]Springdoc OpenAPI Starter for Spring Boot 3.x
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
@@ -98,14 +97,14 @@ dependencies {
     // redis 의존성, redis는 메모리 기반의 key-value 저장소로서, 데이터를 빠르게 저장하고 조회할 수 있는 오픈소스 데이터베이스입니다.
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-// Thumbnailator 라이브러리 추가
+    // Thumbnailator 라이브러리 추가
      implementation 'net.coobird:thumbnailator:0.4.20'
 
     // 포트원 결제 모듈 의존성
     implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
-// Thumbnailator 라이브러리 추가
+    // Thumbnailator 라이브러리 추가
      implementation 'net.coobird:thumbnailator:0.4.19'
 
    // Elasticsearch 의존성
@@ -116,7 +115,6 @@ dependencies {
     
     // 호환성을 위한 추가 의존성
     implementation 'org.springframework.data:spring-data-elasticsearch:5.2.3'
-    
 
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch:3.2.3'
     implementation 'co.elastic.clients:elasticsearch-java:8.10.4'

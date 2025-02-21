@@ -118,7 +118,7 @@ export default function DoctorList() {
 
     return (
         <div className="doctor-list-container">
-            <h1 className="title">전문가 리스트</h1>
+            <h1 className="title">수의사 가입 현황</h1>
 
             {/* 검색창 */}
             <div className="search-bar">
@@ -173,9 +173,9 @@ export default function DoctorList() {
                     </table>
 
                     {/* 팝업 모달 */}
-                    {isModalOpen && (
-                        <DoctorView doctor={selectedDoctor} onClose={closeModal} docList={fetchDoctors} />
-                    )}
+{/*                     {isModalOpen && ( */}
+{/*                         <DoctorView doctor={selectedDoctor} onClose={closeModal} docList={fetchDoctors} /> */}
+{/*                     )} */}
 
                     {/* 페이징 버튼 */}
                     <div className="pagination">

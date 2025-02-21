@@ -16,7 +16,7 @@ function SignupSuccess() {
     }, []);
 
   return (
-    <div className="container" style={{ backgroundColor: "#FEF9F6" }}>
+    <div className="container" style={{ backgroundColor: "#FEF9F6", marginBottom: "150px" }}>
       <img src="assets/images/dog.png" alt="dog image" />
       <div className="message">
         <p className="title">

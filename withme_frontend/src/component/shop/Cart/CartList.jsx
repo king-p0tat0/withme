@@ -184,8 +184,6 @@ export default function CartPage() {
     return (
         <div className="cart-container">
             <h2>장바구니</h2>
-
-            {/* 전체 선택 체크박스 */}
             <div>
                 <label>
                     <input
@@ -206,7 +204,7 @@ export default function CartPage() {
                         onChange={() => handleSelectItem(item.cartItemId)}
                     />
                     <img src={item.imgUrl ? SERVER_URL2 + item.imgUrl : '/assets/images/noImg.jpg'}
-                     style={{ width: 100, height: 100, marginRight: 20 }}/>
+                     className="cart-item-image" />
 
                     <div className="cart-item-info">
                         <h4>{item.itemNm}</h4>
