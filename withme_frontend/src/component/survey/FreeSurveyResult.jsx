@@ -138,7 +138,7 @@ function FreeSurveyResultPage() {
           if (tooltip) tooltip.style.visibility = "hidden";
         }}
       >
-        🐾 유료회원으로 전환~
+        🐾 유료회원으로 전환
         <div className="tooltip" style={{
           position: "absolute",
           top: "-85px",  // ✅ 툴팁을 더 위로 조정

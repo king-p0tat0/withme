@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../../css/DoctorList.css';
-//import DoctorView from './DoctorView';
+import DoctorView from './DoctorView';
 import { useNavigate, Link } from 'react-router-dom';
 import { fetchWithAuth } from '../../common/fetchWithAuth'; // fetchWithAuth import
 import { API_URL } from '../../constant';
@@ -173,9 +173,9 @@ export default function DoctorList() {
                     </table>
 
                     {/* 팝업 모달 */}
-{/*                     {isModalOpen && ( */}
-{/*                         <DoctorView doctor={selectedDoctor} onClose={closeModal} docList={fetchDoctors} /> */}
-{/*                     )} */}
+                    {isModalOpen && (
+                        <DoctorView doctor={selectedDoctor} onClose={closeModal} docList={fetchDoctors} />
+                    )}
 
                     {/* 페이징 버튼 */}
                     <div className="pagination">

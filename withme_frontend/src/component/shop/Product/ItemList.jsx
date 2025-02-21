@@ -139,10 +139,25 @@ export default function ItemList() {
                         ) : (
                             currentItems.map((item) => (
                                 <div className="item-card" key={item.id}>
-                                    {item.itemImgDtoList?.length > 0 && (
+                                    {item.itemImgDtoList?.length > 0 ? (
                                         <div className="image-container">
                                             <img
                                                 src={`${SERVER_URL2}${item.itemImgDtoList[0].imgUrl}`}
+                                                alt={item.itemNm}
+                                                className="item-image"
+                                                style={{ boxShadow: "none" }}
+                                            />
+                                            <button
+                                                className="view-details-btn"
+                                                onClick={() => navigate(`/item/view/${item.id}`)}
+                                            >
+                                                상세보기
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="image-container">
+                                            <img
+                                                src="/assets/images/noImg.jpg"
                                                 alt={item.itemNm}
                                                 className="item-image"
                                                 style={{ boxShadow: "none" }}

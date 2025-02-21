@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth } from '../../common/fetchWithAuth';
-// import DoctorViewAdmin from './DoctorViewAdmin';
+import DoctorViewAdmin from './DoctorViewAdmin';
 import '../../css/DoctorUpdate.css';
 
 export default function DoctorUpdate() {
