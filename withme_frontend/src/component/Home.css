@@ -53,7 +53,7 @@ nav a.active {
 }
 
 .search-input {
-  width: 300px;
+  width: 400px;
   height: 25px;
   padding: 10px 100px 8px 20px;
   border: 2px solid #ccc;
@@ -65,7 +65,7 @@ nav a.active {
 
 .search-box .search-icon {
   position: absolute;
-  right: 60px;
+  right: 70px;
   color: #aaa;
   cursor: pointer;
   font-size: 18px;
